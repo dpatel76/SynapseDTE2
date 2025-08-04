@@ -155,7 +155,7 @@ RESOURCES = {
         "display_name": "Observation Management Phase",
         "type": ResourceType.MODULE,
         "description": "Phase 7 - Manage and resolve observations",
-        "actions": [Action.CREATE, Action.SUBMIT, Action.REVIEW, Action.APPROVE, 
+        "actions": [Action.CREATE, Action.UPDATE, Action.SUBMIT, Action.REVIEW, Action.APPROVE, 
                    Action.OVERRIDE, Action.COMPLETE, Action.DELETE]
     },
     
@@ -203,7 +203,7 @@ DEFAULT_ROLE_PERMISSIONS: Dict[str, List[str]] = {
         "sample_selection:complete",
         "request_info:execute", "request_info:review", "request_info:complete",
         "testing:execute", "testing:submit", "testing:complete",
-        "observations:create", "observations:submit",
+        "observations:create", "observations:submit", "observations:update",
         "workflow:read",
         "lobs:read"
     ],

@@ -62,7 +62,7 @@ from app.models.data_owner_lob_assignment import (
 # Legacy data owner models (to be deprecated)
 from app.models.data_owner import (
     # AttributeLOBAssignment removed - table doesn't exist
-    HistoricalDataOwnerAssignment,
+    # HistoricalDataOwnerAssignment removed - table doesn't exist
     DataOwnerSLAViolation, DataOwnerEscalationLog, DataOwnerPhaseAuditLog,
     escalation_level_enum
 )
@@ -82,7 +82,7 @@ from app.models.sample_selection import (
 # Note: Individual sample models removed - functionality moved to sample_selection endpoints
 # from app.models.sample_selection_phase import SampleSelectionPhase  # DEPRECATED: Use universal phase status
 from app.models.testing import (
-    DataOwnerAssignment,  # Sample moved to unified sample selection system
+    # DataOwnerAssignment removed - using universal assignments instead
     test_result_enum, data_source_type_enum, assignment_status_enum,
     observation_type_enum, impact_level_enum, sample_status_enum, observation_status_enum
 )
@@ -285,7 +285,7 @@ __all__ = [
     
     # Legacy Data Owner Phase (to be deprecated)
     # "AttributeLOBAssignment" removed - table doesn't exist
-    "HistoricalDataOwnerAssignment",
+    # "HistoricalDataOwnerAssignment" removed - table doesn't exist
     "DataOwnerSLAViolation", "DataOwnerEscalationLog", "DataOwnerPhaseAuditLog",
     "escalation_level_enum",
     
@@ -300,7 +300,7 @@ __all__ = [
     
     
     # Testing
-    "DataOwnerAssignment",  # Sample moved to unified sample selection system
+    # "DataOwnerAssignment" removed - using universal assignments instead
     "test_result_enum", "data_source_type_enum", "assignment_status_enum",
     "observation_type_enum", "impact_level_enum", "sample_status_enum", "observation_status_enum",
     

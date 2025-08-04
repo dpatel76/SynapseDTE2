@@ -94,16 +94,8 @@ class User(CustomPKModel):
     # Data owner phase relationships
     # lob_assignments removed - AttributeLOBAssignment table doesn't exist
     # data_executive_notifications = relationship("CDONotification", back_populates="data_executive")  # Deprecated - using universal assignments
-    historical_assignments = relationship(
-        "HistoricalDataOwnerAssignment",
-        primaryjoin="User.user_id == HistoricalDataOwnerAssignment.data_owner_id",
-        back_populates="data_owner"
-    )
-    historical_assignments_made = relationship(
-        "HistoricalDataOwnerAssignment",
-        primaryjoin="User.user_id == HistoricalDataOwnerAssignment.assigned_by",
-        back_populates="assigned_by_user"
-    )
+    # historical_assignments removed - HistoricalDataOwnerAssignment table doesn't exist
+    # historical_assignments_made removed - HistoricalDataOwnerAssignment table doesn't exist
     data_owner_audit_logs = relationship("DataOwnerPhaseAuditLog", primaryjoin="User.user_id == DataOwnerPhaseAuditLog.performed_by", back_populates="user")
     
     # Sample selection phase relationships

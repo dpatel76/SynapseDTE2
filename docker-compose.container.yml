@@ -84,6 +84,7 @@ services:
       - "${BACKEND_PORT:-8001}:8000"  # Incremented from 8000 to 8001
     networks:
       - synapse-network
+      - temporal-network
     labels:
       - "com.synapse.service=backend"
       - "com.synapse.version=${APP_VERSION:-3.7.0}"
@@ -146,8 +147,12 @@ services:
       DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/production.yaml
       ENABLE_ES: false
       PROMETHEUS_ENDPOINT: 0.0.0.0:9090
+      # Use container name as PUBLIC_FRONTEND_ADDRESS
+      PUBLIC_FRONTEND_ADDRESS: temporal:7233
     volumes:
       - ./temporal/dynamicconfig:/etc/temporal/config/dynamicconfig:ro
+      - ./temporal/custom-entrypoint.sh:/custom-entrypoint.sh:ro
+    entrypoint: ["/custom-entrypoint.sh"]
     ports:
       - "${TEMPORAL_PORT:-7234}:7233"  # Incremented from 7233 to 7234
       - "${TEMPORAL_METRICS_PORT:-9091}:9090"  # Incremented from 9090 to 9091
@@ -155,7 +160,7 @@ services:
       - temporal-network
       - synapse-network
     healthcheck:
-      test: ["CMD", "temporal", "workflow", "list", "--namespace", "default"]
+      test: ["CMD", "temporal", "workflow", "list", "--address", "temporal:7233", "--namespace", "default"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -201,7 +206,7 @@ services:
       # Redis
       REDIS_URL: "redis://:${REDIS_PASSWORD:-synapse_redis_password}@redis:6379/0"
       # Temporal
-      TEMPORAL_HOST: temporal
+      TEMPORAL_HOST: temporal:7233
       TEMPORAL_NAMESPACE: ${TEMPORAL_NAMESPACE:-default}
       TEMPORAL_TASK_QUEUE: ${TEMPORAL_TASK_QUEUE:-synapse-workflow-queue}
       TEMPORAL_WORKER_ENABLED: true
@@ -216,6 +221,7 @@ services:
     volumes:
       - ./uploads:/app/uploads
       - ./logs:/app/logs
+      - ./scripts/worker-entrypoint.sh:/app/start-worker.sh:ro
     networks:
       - synapse-network
       - temporal-network

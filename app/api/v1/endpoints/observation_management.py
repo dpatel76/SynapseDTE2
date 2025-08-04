@@ -82,19 +82,40 @@ async def create_and_submit_observation_version(
                 detail="Observation phase not found"
             )
         
-        # Temporarily disabled ObservationVersioningService due to duplicate model issue
-        # This endpoint is not currently used - observation versions are handled directly in ObservationRecord
-        raise HTTPException(
-            status_code=status.HTTP_501_NOT_IMPLEMENTED,
-            detail="Observation versioning endpoint is temporarily disabled. Use observation management endpoints instead."
+        # Get observation IDs from request
+        observation_ids = request_data.get("observation_ids", [])
+        submission_notes = request_data.get("submission_notes", "")
+        
+        if not observation_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No observation IDs provided"
+            )
+        
+        # Update all observations to submitted status
+        from sqlalchemy import update
+        from app.models.observation_management import ObservationRecord, ObservationStatusEnum
+        from datetime import datetime, timezone
+        
+        result = await db.execute(
+            update(ObservationRecord)
+            .where(ObservationRecord.observation_id.in_(observation_ids))
+            .values(
+                status="SUBMITTED",
+                updated_at=datetime.utcnow(),
+                updated_by_id=current_user.user_id
+            )
         )
         
+        await db.commit()
+        
         return {
-            "version_id": str(version.version_id),
-            "version_number": version.version_number,
-            "version_status": version.version_status,
-            "approval_status": version.approval_status,
-            "total_observations": version.total_observations
+            "version_id": f"v{phase.phase_id}-{int(datetime.now().timestamp())}",
+            "version_number": 1,
+            "version_status": "submitted",
+            "approval_status": "Pending Review",
+            "total_observations": len(observation_ids),
+            "message": f"Successfully submitted {len(observation_ids)} observations for approval"
         }
         
     except Exception as e:
@@ -136,9 +157,9 @@ async def approve_observation_group(
     comments = request_data.get("comments", "")
     
     try:
-        from sqlalchemy import select, update
+        from sqlalchemy import select, update, and_
         from app.models.observation_management import ObservationRecord
-        from datetime import datetime
+        from datetime import datetime, timezone
         
         # First, get the observations that belong to this group
         # In the frontend, group_id is actually an observation_id from one of the grouped observations
@@ -155,12 +176,26 @@ async def approve_observation_group(
                 detail=f"Observation {group_id} not found"
             )
         
+        # Get the phase to access cycle_id and report_id
+        from app.models.workflow import WorkflowPhase
+        phase_result = await db.execute(
+            select(WorkflowPhase).where(
+                WorkflowPhase.phase_id == observation.phase_id
+            )
+        )
+        phase = phase_result.scalar_one_or_none()
+        
+        if not phase:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Phase not found for observation {group_id}"
+            )
+        
         # Get all observations in the same group (same attribute and type)
         grouped_obs_result = await db.execute(
             select(ObservationRecord).where(
                 and_(
-                    ObservationRecord.cycle_id == observation.cycle_id,
-                    ObservationRecord.report_id == observation.report_id,
+                    ObservationRecord.phase_id == observation.phase_id,
                     ObservationRecord.source_attribute_id == observation.source_attribute_id,
                     ObservationRecord.observation_type == observation.observation_type
                 )
@@ -168,35 +203,65 @@ async def approve_observation_group(
         )
         grouped_observations = grouped_obs_result.scalars().all()
         
-        # Update approval fields directly in observation records
+        # Check user role to determine which fields to update
+        from app.models.rbac import UserRole, Role
+        from sqlalchemy import select, and_
+        
+        # Get user's roles
+        result = await db.execute(
+            select(Role).join(UserRole).where(
+                UserRole.user_id == current_user.user_id
+            )
+        )
+        user_roles = result.scalars().all()
+        role_names = [role.role_name for role in user_roles]
+        
+        # Update approval fields based on user role
         decision = "Approved" if approved else "Rejected"
         
         for obs in grouped_observations:
-            # Update tester decision fields
-            obs.tester_decision = decision
-            obs.tester_comments = comments
-            obs.tester_decision_by_id = current_user.user_id
-            obs.tester_decision_at = datetime.utcnow()
-            
-            # Update overall approval status
-            obs.approval_status = f"{decision} by Tester"
+            if "Report Owner" in role_names:
+                # Update report owner decision fields
+                obs.report_owner_decision = decision
+                obs.report_owner_comments = comments
+                obs.report_owner_decision_by_id = current_user.user_id
+                obs.report_owner_decision_at = datetime.utcnow()
+                
+                # Update overall approval status based on both decisions
+                if obs.tester_decision == "Approved" and decision == "Approved":
+                    obs.approval_status = "Fully Approved"
+                elif decision == "Rejected":
+                    obs.approval_status = "Rejected by Report Owner"
+                else:
+                    obs.approval_status = f"{decision} by Report Owner"
+            else:
+                # Update tester decision fields (default behavior)
+                obs.tester_decision = decision
+                obs.tester_comments = comments
+                obs.tester_decision_by_id = current_user.user_id
+                obs.tester_decision_at = datetime.utcnow()
+                
+                # Update overall approval status
+                obs.approval_status = f"{decision} by Tester"
             
             # Update audit fields
-            obs.updated_at = datetime.utcnow()
+            obs.updated_at = datetime.now(timezone.utc)
             obs.updated_by_id = current_user.user_id
             
             db.add(obs)
         
         await db.commit()
         
-        logger.info(f"Updated {len(grouped_observations)} observations with tester decision: {decision}")
+        role_text = "Report Owner" if "Report Owner" in role_names else "Tester"
+        logger.info(f"Updated {len(grouped_observations)} observations with {role_text} decision: {decision}")
         
         status_text = "approved" if approved else "rejected"
         return {
             "message": f"Observation group {status_text} successfully",
             "comments": comments,
             "observations_updated": len(grouped_observations),
-            "approval_status": f"{decision} by Tester"
+            "approval_status": f"{decision} by {role_text}",
+            "decided_by": role_text
         }
         
     except HTTPException:
@@ -309,7 +374,6 @@ async def get_observation_groups(
         
         # Convert groups to the expected format
         grouped = []
-        group_id = 1
         
         for (attribute_id, issue_type), obs_list in groups.items():
             # Calculate statistics from grouped observations
@@ -416,9 +480,9 @@ async def get_observation_groups(
             severities = [obs.severity.value for obs in obs_list if obs.severity]
             rating = "HIGH" if "HIGH" in severities else "MEDIUM" if "MEDIUM" in severities else "LOW"
             
-            # Create the group
+            # Create the group - use the first observation's ID as the group_id
             group = {
-                "group_id": group_id,
+                "group_id": obs_list[0].observation_id if obs_list else 0,
                 "attribute_id": attribute_id,
                 "attribute_name": attribute_names.get(attribute_id, f"Attribute {attribute_id}") if attribute_id else "General",
                 "issue_type": issue_type,
@@ -450,7 +514,6 @@ async def get_observation_groups(
             }
             
             grouped.append(group)
-            group_id += 1
         
         # Sort by attribute name and issue type
         grouped.sort(key=lambda x: (x['attribute_name'], x['issue_type']))

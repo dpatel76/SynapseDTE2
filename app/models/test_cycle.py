@@ -43,10 +43,10 @@ class TestCycle(CustomPKModel, AuditMixin):
     
     # Data provider phase relationships
     # attribute_lob_assignments removed - table doesn't exist
-    data_owner_assignments = relationship("DataOwnerAssignment", back_populates="cycle")
+    # data_owner_assignments removed - using universal assignments instead
     # data_executive_notifications = relationship("DataExecutiveNotification", back_populates="cycle")  # Deprecated - using universal assignments
-    historical_assignments = relationship("HistoricalDataOwnerAssignment", back_populates="cycle")
-    sla_violations = relationship("DataOwnerSLAViolation", back_populates="cycle")
+    # historical_assignments removed - table doesn't exist
+    # sla_violations removed - data_owner_sla_violations table doesn't exist
     # data_owner_audit_logs = relationship("DataOwnerPhaseAuditLog", back_populates="cycle")  # Now phase-based
     
     # Sample selection phase relationships

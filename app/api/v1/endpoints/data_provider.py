@@ -22,7 +22,7 @@ from app.models.workflow import WorkflowPhase
 from app.models.report_attribute import ReportAttribute
 from app.models.lob import LOB
 from app.models.data_owner import (
-    HistoricalDataOwnerAssignment,
+    # HistoricalDataOwnerAssignment removed - table doesn't exist
     DataOwnerSLAViolation, DataOwnerEscalationLog, DataOwnerPhaseAuditLog
 )
 from app.models.sample_selection import SampleSet, SampleRecord

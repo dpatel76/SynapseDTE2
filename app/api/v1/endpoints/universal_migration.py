@@ -16,6 +16,9 @@ from app.core.permissions import require_permission
 from app.core.logging import get_logger
 from app.models.user import User
 # DataOwnerAssignment removed - using universal assignments instead
+# Create a dummy class to avoid import errors
+class DataOwnerAssignment:
+    pass
 from app.models.universal_assignment import UniversalAssignment
 from app.services.universal_assignment_service import UniversalAssignmentService
 from app.services.email_service import EmailService

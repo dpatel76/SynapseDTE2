@@ -74,10 +74,12 @@ class AttributeLOBAssignment_DEPRECATED(CustomPKModel, AuditMixin):
 #         return f"<CDONotification(id={self.notification_id}, data_executive_id={self.data_executive_id}, lob_id={self.lob_id})>"
 
 
+# DEPRECATED: HistoricalDataOwnerAssignment - table doesn't exist
+# Using universal assignments instead
 class HistoricalDataOwnerAssignment(CustomPKModel, AuditMixin):
-    """Historical data owner assignments for knowledge tracking"""
+    """DEPRECATED - Table doesn't exist. Historical data owner assignments for knowledge tracking"""
     
-    __tablename__ = "historical_data_owner_assignments"
+    __tablename__ = "historical_data_owner_assignments_deprecated"
     
     history_id = Column(Integer, primary_key=True, index=True)
     report_name = Column(String(255), nullable=False, index=True)
@@ -91,10 +93,10 @@ class HistoricalDataOwnerAssignment(CustomPKModel, AuditMixin):
     success_rating = Column(Float, nullable=True)  # 0.0 to 1.0
     notes = Column(Text, nullable=True)
     
-    # Relationships
-    data_owner = relationship("User", foreign_keys=[data_owner_id], back_populates="historical_assignments")
-    assigned_by_user = relationship("User", foreign_keys=[assigned_by], back_populates="historical_assignments_made")
-    cycle = relationship("TestCycle", back_populates="historical_assignments")
+    # Relationships - DEPRECATED: Commented out as table doesn't exist
+    # data_owner = relationship("User", foreign_keys=[data_owner_id], back_populates="historical_assignments")
+    # assigned_by_user = relationship("User", foreign_keys=[assigned_by], back_populates="historical_assignments_made")
+    # cycle = relationship("TestCycle", back_populates="historical_assignments")
     
     def __repr__(self):
         return f"<HistoricalDataOwnerAssignment(id={self.history_id}, report='{self.report_name}', attribute='{self.attribute_name}')>"
@@ -120,8 +122,8 @@ class DataOwnerSLAViolation(CustomPKModel, AuditMixin):
     resolved_at = Column(DateTime(timezone=True), nullable=True)
     
     # Relationships - Connected through WorkflowPhase, not directly to Report
-    assignment = relationship("DataOwnerAssignment", back_populates="sla_violations")
-    cycle = relationship("TestCycle", back_populates="sla_violations")
+    # assignment = relationship("DataOwnerAssignment", back_populates="sla_violations")  # DataOwnerAssignment removed
+    # cycle = relationship("TestCycle")  # back_populates removed - TestCycle doesn't have sla_violations
     phase = relationship("WorkflowPhase", foreign_keys=[phase_id])
     attribute = relationship("ReportAttribute", foreign_keys=[attribute_id])
     cdo = relationship("User", foreign_keys=[cdo_id])

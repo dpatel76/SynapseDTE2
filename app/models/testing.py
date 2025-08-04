@@ -94,7 +94,7 @@ class DataOwnerAssignment(CustomPKModel, AuditMixin):
     status = Column(assignment_status_enum, default='Assigned', nullable=False)
     
     # Relationships
-    cycle = relationship("TestCycle", back_populates="data_owner_assignments")
+    cycle = relationship("TestCycle")  # back_populates removed - TestCycle doesn't have data_owner_assignments
     attribute = relationship("ReportAttribute", foreign_keys=[attribute_id])
     lob = relationship("LOB")  # back_populates removed - LOB doesn't have this relationship
     cdo = relationship("User", foreign_keys=[cdo_id])
@@ -102,7 +102,7 @@ class DataOwnerAssignment(CustomPKModel, AuditMixin):
     assigned_by_user = relationship("User", foreign_keys=[assigned_by])  # back_populates removed - User doesn't have this relationship
     
     # Data owner phase relationships
-    sla_violations = relationship("DataOwnerSLAViolation", back_populates="assignment")
+    sla_violations = relationship("DataOwnerSLAViolation")  # back_populates removed - assignment relationship removed
     
     def __repr__(self):
         return f"<DataOwnerAssignment(id={self.assignment_id}, attribute_id={self.attribute_id})>"

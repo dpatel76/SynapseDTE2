@@ -45,7 +45,7 @@ from app.models import (
     User,
     UniversalAssignment,
     # AttributeLOBAssignment removed - table doesn't exist
-    HistoricalDataOwnerAssignment,
+    # HistoricalDataOwnerAssignment removed - table doesn't exist
     DataOwnerSLAViolation,
     DataOwnerEscalationLog,
     DataOwnerPhaseAuditLog,
@@ -809,17 +809,18 @@ class SubmitCDOAssignmentsUseCase(UseCase):
                     logger.warning(f"Report not found for ID {report_id}, skipping historical assignment")
                     continue
                 
-                historical_assignment = HistoricalDataOwnerAssignment(
-                    report_name=report.report_name,
-                    attribute_name=attribute.attribute_name,
-                    data_owner_id=assignment_req.data_owner_id,
-                    assigned_by=current_user.user_id,
-                    cycle_id=cycle_id,
-                    assigned_at=current_time,
-                    completion_status='Assigned',
-                    notes=assignment_req.assignment_notes
-                )
-                db.add(historical_assignment)
+                # SKIP: HistoricalDataOwnerAssignment table doesn't exist
+                # historical_assignment = HistoricalDataOwnerAssignment(
+                #     report_name=report.report_name,
+                #     attribute_name=attribute.attribute_name,
+                #     data_owner_id=assignment_req.data_owner_id,
+                #     assigned_by=current_user.user_id,
+                #     cycle_id=cycle_id,
+                #     assigned_at=current_time,
+                #     completion_status='Assigned',
+                #     notes=assignment_req.assignment_notes
+                # )
+                # db.add(historical_assignment)
         
         await db.commit()
         
