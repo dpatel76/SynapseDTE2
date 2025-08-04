@@ -85,13 +85,14 @@ class DataSourceQueryService:
             conn_string = await self.get_connection_string(data_source)
             engine = create_async_engine(conn_string)
             
-            query = f"SELECT COUNT(*) FROM {table_name}"
+            query = f"SELECT COUNT(*) AS row_count FROM {table_name}"
             if where_clause:
                 query += f" WHERE {where_clause}"
             
             async with engine.connect() as conn:
                 result = await conn.execute(text(query))
-                count = (await result.fetchone())[0]
+                row = await result.fetchone()
+                count = row.row_count if hasattr(row, 'row_count') else row[0]
                 
             await engine.dispose()
             return count
@@ -363,13 +364,13 @@ class DataSourceQueryService:
             
             async with engine.connect() as conn:
                 result = await conn.execute(text(query))
-                row = await result.fetchone()
+                row = await result.mappings().fetchone()
                 
             await engine.dispose()
             
-            total = row[0]
-            passed = row[1]
-            failed = row[2]
+            total = row['total']
+            passed = row['passed']
+            failed = row['failed']
             pass_rate = (passed / total * 100) if total > 0 else 0
             
             return {

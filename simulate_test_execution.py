@@ -22,7 +22,7 @@ def simulate_test_execution():
         # Get the evidence we created
         evidence = conn.execute(text("""
             SELECT 
-                id,
+                id AS evidence_id,
                 test_case_id,
                 sample_id,
                 query_text,
@@ -30,15 +30,15 @@ def simulate_test_execution():
                 attribute_id
             FROM cycle_report_request_info_testcase_source_evidence
             WHERE id = 5
-        """)).fetchone()
+        """)).mappings().fetchone()
         
         if not evidence:
             print("❌ Evidence not found")
             return
         
-        print(f"📄 Using Evidence ID: {evidence[0]}")
-        print(f"   Test Case ID: {evidence[1]}")
-        print(f"   Query: {evidence[3][:100]}...")
+        print(f"📄 Using Evidence ID: {evidence['evidence_id']}")
+        print(f"   Test Case ID: {evidence['test_case_id']}")
+        print(f"   Query: {evidence['query_text'][:100]}...")
         
         # Get sample data
         sample_data = conn.execute(text("""
@@ -47,24 +47,24 @@ def simulate_test_execution():
                 s.sample_data
             FROM cycle_report_sample_selection_samples s
             WHERE s.sample_id = CAST(:sample_id AS UUID)
-        """), {"sample_id": evidence[2]}).fetchone()
+        """), {"sample_id": evidence['sample_id']}).mappings().fetchone()
         
         if sample_data:
-            sample_value = sample_data[1].get("Current Credit limit", "0") if sample_data[1] else "0"
+            sample_value = sample_data['sample_data'].get("Current Credit limit", "0") if sample_data['sample_data'] else "0"
             print(f"\n📊 Sample Data:")
-            print(f"   Sample ID: {sample_data[0]}")
+            print(f"   Sample ID: {sample_data['sample_identifier']}")
             print(f"   Expected Value: {sample_value}")
         
         # Execute the query from evidence
         print(f"\n🔄 Executing Query from Evidence...")
         try:
-            result = conn.execute(text(evidence[3]))
-            query_result = result.fetchone()
+            result = conn.execute(text(evidence['query_text']))
+            query_result = result.mappings().fetchone()
             
             if query_result:
-                extracted_value = query_result[1]  # current_credit_limit
+                extracted_value = query_result['current_credit_limit']
                 print(f"✅ Query Executed Successfully")
-                print(f"   Customer ID: {query_result[0]}")
+                print(f"   Customer ID: {query_result['customer_id']}")
                 print(f"   Retrieved Value: {extracted_value}")
                 
                 # Compare values
@@ -84,10 +84,10 @@ def simulate_test_execution():
                     SELECT phase_id FROM workflow_phases 
                     WHERE cycle_id = 55 AND report_id = 156 
                     AND phase_name = 'Testing'
-                """)).fetchone()
+                """)).mappings().fetchone()
                 
                 if phase_result:
-                    phase_id = phase_result[0]
+                    phase_id = phase_result['phase_id']
                     
                     # Create execution record
                     exec_result = conn.execute(text("""
@@ -108,25 +108,25 @@ def simulate_test_execution():
                         RETURNING id
                     """), {
                         "phase_id": phase_id,
-                        "test_case_id": str(evidence[1]),
-                        "evidence_id": evidence[0],
+                        "test_case_id": str(evidence['test_case_id']),
+                        "evidence_id": evidence['evidence_id'],
                         "sample_value": str(sample_value),
                         "extracted_value": str(extracted_value),
                         "test_result": "pass" if match else "fail",
                         "comparison_result": match,
-                        "query": evidence[3],
+                        "query": evidence['query_text'],
                         "analysis_results": json.dumps({
                             "database_analysis": {
-                                "query_executed": evidence[3],
+                                "query_executed": evidence['query_text'],
                                 "result_count": 1,
                                 "execution_time_ms": 15,
-                                "result_sample": [{"customer_id": query_result[0], "current_credit_limit": float(extracted_value)}]
+                                "result_sample": [{"customer_id": query_result['customer_id'], "current_credit_limit": float(extracted_value)}]
                             }
                         }),
                         "summary": f"Test {'passed' if match else 'failed'}: Sample value {sample_value} {'matches' if match else 'does not match'} extracted value {extracted_value}"
                     })
                     
-                    execution_id = exec_result.fetchone()[0]
+                    execution_id = exec_result.mappings().fetchone()['id']
                     conn.commit()
                     
                     print(f"✅ Test Execution Created (ID: {execution_id})")

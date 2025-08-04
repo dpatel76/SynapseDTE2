@@ -281,11 +281,11 @@ async def get_data_profiling_workflow_status(
                     {"version_id": latest_version_id}
                 )
                 
-                result = decision_query.fetchone()
-                total_rules = result[0] or 0
-                approved_rules = result[1] or 0
-                rejected_rules = result[2] or 0
-                pending_rules = result[3] or 0
+                result = decision_query.mappings().fetchone()
+                total_rules = result['total_rules'] or 0
+                approved_rules = result['tester_approved'] or 0
+                rejected_rules = result['tester_rejected'] or 0
+                pending_rules = result['no_decision'] or 0
             else:
                 total_rules = approved_rules = rejected_rules = pending_rules = 0
             

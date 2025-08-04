@@ -264,7 +264,7 @@ class ReportOwnerMetricsCalculator(BaseMetricsCalculator):
         }
         
         # Get all cycles for this report
-        cycle_query = select(WorkflowPhase.cycle_id).where(
+        cycle_query = select(WorkflowPhase.cycle_id.label('cycle_id')).where(
             WorkflowPhase.report_id == report_id
         ).distinct()
         
@@ -272,7 +272,7 @@ class ReportOwnerMetricsCalculator(BaseMetricsCalculator):
             cycle_query = cycle_query.where(WorkflowPhase.cycle_id == cycle_id)
         
         cycle_result = await self.db.execute(cycle_query)
-        cycle_ids = [row[0] for row in cycle_result]
+        cycle_ids = [row.cycle_id for row in cycle_result]
         
         # Calculate metrics for each cycle
         for cid in cycle_ids:
@@ -532,12 +532,12 @@ class ReportOwnerMetricsCalculator(BaseMetricsCalculator):
                 report_count += 1
             else:
                 # Aggregate across all cycles
-                cycle_query = select(WorkflowPhase.cycle_id).where(
+                cycle_query = select(WorkflowPhase.cycle_id.label('cycle_id')).where(
                     WorkflowPhase.report_id == report["report_id"]
                 ).distinct()
                 
                 cycle_result = await self.db.execute(cycle_query)
-                cycles = [row[0] for row in cycle_result]
+                cycles = [row.cycle_id for row in cycle_result]
                 
                 report_error_rate = 0
                 report_observations = 0
@@ -587,12 +587,12 @@ class ReportOwnerMetricsCalculator(BaseMetricsCalculator):
         # Get all unique cycles
         cycle_ids = set()
         for report in owned_reports:
-            cycle_query = select(WorkflowPhase.cycle_id).where(
+            cycle_query = select(WorkflowPhase.cycle_id.label('cycle_id')).where(
                 WorkflowPhase.report_id == report["report_id"]
             ).distinct()
             
             cycle_result = await self.db.execute(cycle_query)
-            cycle_ids.update(row[0] for row in cycle_result)
+            cycle_ids.update(row.cycle_id for row in cycle_result)
         
         # Calculate metrics for each cycle
         for cycle_id in cycle_ids:

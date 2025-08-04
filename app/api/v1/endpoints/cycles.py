@@ -36,12 +36,12 @@ async def get_test_cycles(
         
         # Get cycles that have reports assigned to this tester
         assigned_cycles_query = (
-            select(distinct(CycleReport.cycle_id))
+            select(distinct(CycleReport.cycle_id).label('cycle_id'))
             .where(CycleReport.tester_id == current_user.user_id)
         )
         
         assigned_cycle_result = await db.execute(assigned_cycles_query)
-        assigned_cycle_ids = [row[0] for row in assigned_cycle_result.fetchall()]
+        assigned_cycle_ids = [row.cycle_id for row in assigned_cycle_result.fetchall()]
         
         if not assigned_cycle_ids:
             # No assignments, return empty result
@@ -162,7 +162,7 @@ async def get_test_cycles(
         
         # Get cycles that have universal assignments for this user
         assigned_cycles_query = (
-            select(distinct(UniversalAssignment.context_data['cycle_id'].astext.cast(Integer)))
+            select(distinct(UniversalAssignment.context_data['cycle_id'].astext.cast(Integer)).label('cycle_id'))
             .where(
                 and_(
                     UniversalAssignment.to_user_id == current_user.user_id,
@@ -172,7 +172,7 @@ async def get_test_cycles(
         )
         
         assigned_cycle_result = await db.execute(assigned_cycles_query)
-        assigned_cycle_ids = [row[0] for row in assigned_cycle_result.fetchall() if row[0] is not None]
+        assigned_cycle_ids = [row.cycle_id for row in assigned_cycle_result.fetchall() if row.cycle_id is not None]
         
         if not assigned_cycle_ids:
             # No assignments, return empty result
@@ -206,12 +206,12 @@ async def get_test_cycles(
         
         # Get cycles that have test cases assigned to this data owner
         assigned_cycles_query = (
-            select(distinct(TestCase.cycle_id))
+            select(distinct(TestCase.cycle_id).label('cycle_id'))
             .where(TestCase.data_owner_id == current_user.user_id)
         )
         
         assigned_cycle_result = await db.execute(assigned_cycles_query)
-        assigned_cycle_ids = [row[0] for row in assigned_cycle_result.fetchall() if row[0] is not None]
+        assigned_cycle_ids = [row.cycle_id for row in assigned_cycle_result.fetchall() if row.cycle_id is not None]
         
         if not assigned_cycle_ids:
             # No assignments, return empty result
@@ -1004,14 +1004,14 @@ async def add_reports_to_cycle(
     
     # Check which reports are already in the cycle
     existing_result = await db.execute(
-        select(CycleReport.report_id).where(
+        select(CycleReport.report_id.label('report_id')).where(
             and_(
                 CycleReport.cycle_id == cycle_id,
                 CycleReport.report_id.in_(request.report_ids)
             )
         )
     )
-    existing_report_ids = {row[0] for row in existing_result}
+    existing_report_ids = {row.report_id for row in existing_result}
     
     # Create a mapping of report_id to tester_id from assignments
     tester_assignments = {}

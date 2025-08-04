@@ -259,7 +259,7 @@ class DataProfilingService:
                 ProfilingRule.version_id == version.version_id
             ).distinct()
             existing_result = await self.db.execute(existing_rules_query)
-            processed_attr_ids = set(row[0] for row in existing_result)
+            processed_attr_ids = set(row.attribute_id for row in existing_result)
             
             for i, attr in enumerate(attributes):
                 # Skip already processed attributes (for restart capability)
@@ -1087,7 +1087,7 @@ class DataProfilingService:
                         PlanningPDEMapping.phase_id == planning_phase.phase_id
                     )
                 )
-                all_attr_ids = [row[0] for row in all_mappings_query.fetchall()]
+                all_attr_ids = [row.attribute_id for row in all_mappings_query.fetchall()]
                 logger.info(f"All attribute IDs in phase {planning_phase.phase_id}: {all_attr_ids[:10]}... (showing first 10)")
                 
                 pde_mapping_query = await self.db.execute(
@@ -1317,7 +1317,7 @@ class DataProfilingService:
                         
                         # Add common columns if they exist
                         check_columns_query = f"""
-                            SELECT column_name 
+                            SELECT column_name AS col_name
                             FROM information_schema.columns 
                             WHERE table_schema = '{schema_name}' 
                             AND table_name = '{table_name}'
@@ -1326,6 +1326,8 @@ class DataProfilingService:
                         
                         with conn.cursor() as cur:
                             cur.execute(check_columns_query)
+                            # Since we're using a basic cursor, we still need to use index access
+                            # but the query is explicit about what column it returns
                             existing_columns = [row[0] for row in cur.fetchall()]
                             columns_to_fetch.extend(existing_columns)
                         

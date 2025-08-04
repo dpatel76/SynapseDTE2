@@ -22,7 +22,7 @@ def show_test_execution_facts():
         
         evidence_data = conn.execute(text("""
             SELECT 
-                e.id,
+                e.id AS evidence_id,
                 e.evidence_type,
                 e.document_name,
                 e.query_text,
@@ -36,21 +36,21 @@ def show_test_execution_facts():
             JOIN cycle_report_test_cases tc ON e.test_case_id = tc.id
             WHERE e.created_at >= CURRENT_DATE
             ORDER BY e.created_at DESC
-        """)).fetchall()
+        """)).mappings().fetchall()
         
         for row in evidence_data:
-            print(f"\n📄 Evidence ID: {row[0]}")
-            print(f"   Type: {row[1]}")
-            if row[1] == 'document':
-                print(f"   Document: {row[2]}")
+            print(f"\n📄 Evidence ID: {row['evidence_id']}")
+            print(f"   Type: {row['evidence_type']}")
+            if row['evidence_type'] == 'document':
+                print(f"   Document: {row['document_name']}")
             else:
-                print(f"   Query: {row[3][:100]}..." if row[3] else "")
-            print(f"   Validation Status: {row[4]}")
-            print(f"   Version: {row[5]}")
-            print(f"   Attribute: {row[8]}")
-            print(f"   Sample ID: {row[9]}")
-            print(f"   Notes: {row[6]}")
-            print(f"   Submitted: {row[7]}")
+                print(f"   Query: {row['query_text'][:100]}..." if row['query_text'] else "")
+            print(f"   Validation Status: {row['validation_status']}")
+            print(f"   Version: {row['version_number']}")
+            print(f"   Attribute: {row['attribute_name']}")
+            print(f"   Sample ID: {row['sample_id']}")
+            print(f"   Notes: {row['submission_notes']}")
+            print(f"   Submitted: {row['created_at']}")
         
         # 2. Test Executions
         print("\n\n2️⃣ TEST EXECUTIONS:")
@@ -58,7 +58,7 @@ def show_test_execution_facts():
         
         execution_data = conn.execute(text("""
             SELECT 
-                ter.id,
+                ter.id AS execution_id,
                 ter.execution_number,
                 ter.test_type,
                 ter.analysis_method,
@@ -78,26 +78,26 @@ def show_test_execution_facts():
             LEFT JOIN cycle_report_request_info_testcase_source_evidence e ON ter.evidence_id = e.id
             WHERE ter.created_at >= CURRENT_DATE
             ORDER BY ter.completed_at DESC
-        """)).fetchall()
+        """)).mappings().fetchall()
         
         for row in execution_data:
-            print(f"\n🧪 Execution ID: {row[0]} (Execution #{row[1]})")
-            print(f"   Test Type: {row[2]}")
-            print(f"   Analysis Method: {row[3]}")
-            print(f"   Attribute: {row[12]}")
-            print(f"   Evidence Type: {row[13]}")
-            if row[13] == 'document':
-                print(f"   Document: {row[14]}")
-            print(f"   Sample Value: ${row[4]}")
-            print(f"   Extracted Value: ${row[5]}")
-            print(f"   Match Result: {row[6].upper()} {'✅' if row[7] else '❌'}")
-            print(f"   LLM Confidence: {row[8]}")
-            print(f"   Summary: {row[9]}")
-            print(f"   Completed: {row[10]}")
+            print(f"\n🧪 Execution ID: {row['execution_id']} (Execution #{row['execution_number']})")
+            print(f"   Test Type: {row['test_type']}")
+            print(f"   Analysis Method: {row['analysis_method']}")
+            print(f"   Attribute: {row['attribute_name']}")
+            print(f"   Evidence Type: {row['evidence_type']}")
+            if row['evidence_type'] == 'document':
+                print(f"   Document: {row['document_name']}")
+            print(f"   Sample Value: ${row['sample_value']}")
+            print(f"   Extracted Value: ${row['extracted_value']}")
+            print(f"   Match Result: {row['test_result'].upper()} {'✅' if row['comparison_result'] else '❌'}")
+            print(f"   LLM Confidence: {row['llm_confidence_score']}")
+            print(f"   Summary: {row['execution_summary']}")
+            print(f"   Completed: {row['completed_at']}")
             
             # Parse analysis results
-            if row[11]:
-                analysis = row[11] if isinstance(row[11], dict) else json.loads(row[11])
+            if row['analysis_results']:
+                analysis = row['analysis_results'] if isinstance(row['analysis_results'], dict) else json.loads(row['analysis_results'])
                 if 'document_analysis' in analysis:
                     doc_analysis = analysis['document_analysis']
                     print(f"   Document Type: {doc_analysis.get('document_type', 'N/A')}")
@@ -118,11 +118,11 @@ def show_test_execution_facts():
             FROM cycle_report_request_info_testcase_source_evidence
             WHERE created_at >= CURRENT_DATE
             GROUP BY evidence_type
-        """)).fetchall()
+        """)).mappings().fetchall()
         
         print("\n📊 Evidence Submissions:")
         for stat in evidence_stats:
-            print(f"   {stat[0]}: {stat[1]} total, {stat[2]} validated")
+            print(f"   {stat['evidence_type']}: {stat['count']} total, {stat['valid_count']} validated")
         
         # Execution stats
         exec_stats = conn.execute(text("""
@@ -133,11 +133,11 @@ def show_test_execution_facts():
             FROM cycle_report_test_execution_results
             WHERE created_at >= CURRENT_DATE
             GROUP BY test_result
-        """)).fetchall()
+        """)).mappings().fetchall()
         
         print("\n📊 Test Execution Results:")
         for stat in exec_stats:
-            print(f"   {stat[0].upper()}: {stat[1]} tests (avg confidence: {stat[2]:.2f})")
+            print(f"   {stat['test_result'].upper()}: {stat['count']} tests (avg confidence: {stat['avg_confidence']:.2f})")
         
         # Document processing stats
         doc_stats = conn.execute(text("""
@@ -148,11 +148,11 @@ def show_test_execution_facts():
             JOIN cycle_report_test_execution_results ter ON ter.evidence_id = e.id
             WHERE e.evidence_type = 'document'
             AND e.created_at >= CURRENT_DATE
-        """)).fetchone()
+        """)).mappings().fetchone()
         
         print(f"\n📊 Document Processing:")
-        print(f"   Unique documents: {doc_stats[0]}")
-        print(f"   Document-based executions: {doc_stats[1]}")
+        print(f"   Unique documents: {doc_stats['unique_docs']}")
+        print(f"   Document-based executions: {doc_stats['doc_executions']}")
         
         # 4. Generated Credit Card Statements
         print("\n\n4️⃣ CREDIT CARD STATEMENT FACTS:")
@@ -172,17 +172,17 @@ def show_test_execution_facts():
             AND e.document_name LIKE 'credit_card%'
             AND e.created_at >= CURRENT_DATE
             ORDER BY e.created_at
-        """)).fetchall()
+        """)).mappings().fetchall()
         
         for row in cc_evidence:
-            print(f"\n💳 {row[0]}")
-            print(f"   Submission Notes: {row[1]}")
-            print(f"   Extracted Credit Limit: ${row[2]}")
-            print(f"   Sample Credit Limit: ${row[3]}")
-            print(f"   Test Result: {row[4].upper()} {'✅' if row[4] == 'pass' else '❌'}")
+            print(f"\n💳 {row['document_name']}")
+            print(f"   Submission Notes: {row['submission_notes']}")
+            print(f"   Extracted Credit Limit: ${row['extracted_value']}")
+            print(f"   Sample Credit Limit: ${row['sample_value']}")
+            print(f"   Test Result: {row['test_result'].upper()} {'✅' if row['test_result'] == 'pass' else '❌'}")
             
-            if row[5]:
-                analysis = row[5] if isinstance(row[5], dict) else json.loads(row[5])
+            if row['analysis_results']:
+                analysis = row['analysis_results'] if isinstance(row['analysis_results'], dict) else json.loads(row['analysis_results'])
                 if 'document_analysis' in analysis:
                     da = analysis['document_analysis']
                     print(f"   Identified as: {da.get('document_type', 'N/A')}")

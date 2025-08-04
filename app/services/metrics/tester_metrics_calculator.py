@@ -381,7 +381,7 @@ class TesterMetricsCalculator(BaseMetricsCalculator):
         from app.models.sample_selection import SampleSet, CycleReportSampleSelectionSamples
         
         # Get all LOBs for this report
-        lob_query = select(SampleSet.lob_name).where(
+        lob_query = select(SampleSet.lob_name.label('lob_name')).where(
             and_(
                 SampleSet.cycle_id == cycle_id,
                 SampleSet.report_id == report_id,
@@ -390,7 +390,7 @@ class TesterMetricsCalculator(BaseMetricsCalculator):
         ).distinct()
         
         lob_result = await self.db.execute(lob_query)
-        lobs = [row[0] for row in lob_result]
+        lobs = [row.lob_name for row in lob_result]
         
         lob_metrics = {}
         
@@ -432,7 +432,7 @@ class TesterMetricsCalculator(BaseMetricsCalculator):
         from app.models.test_scoping import ScopedReportAttribute
         
         # Get all LOBs for scoped attributes
-        lob_query = select(ScopedReportAttribute.lob_name).where(
+        lob_query = select(ScopedReportAttribute.lob_name.label('lob_name')).where(
             and_(
                 ScopedReportAttribute.cycle_id == cycle_id,
                 ScopedReportAttribute.report_id == report_id
@@ -440,7 +440,7 @@ class TesterMetricsCalculator(BaseMetricsCalculator):
         ).distinct()
         
         lob_result = await self.db.execute(lob_query)
-        lobs = [row[0] for row in lob_result if row[0]]  # Filter out None values
+        lobs = [row.lob_name for row in lob_result if row.lob_name]  # Filter out None values
         
         lob_metrics = {}
         

@@ -601,12 +601,12 @@ async def get_report_attributes(
         # Build query with left join to PDE mappings to get classification
         query = select(
             ReportAttribute,
-            PlanningPDEMapping.information_security_classification,
-            PlanningPDEMapping.criticality,
-            PlanningPDEMapping.risk_level,
-            PlanningPDEMapping.regulatory_flag,
-            PlanningPDEMapping.pii_flag,
-            PlanningPDEMapping.llm_classification_rationale
+            PlanningPDEMapping.information_security_classification.label('pde_classification'),
+            PlanningPDEMapping.criticality.label('pde_criticality'),
+            PlanningPDEMapping.risk_level.label('pde_risk_level'),
+            PlanningPDEMapping.regulatory_flag.label('pde_regulatory_flag'),
+            PlanningPDEMapping.pii_flag.label('pde_pii_flag'),
+            PlanningPDEMapping.llm_classification_rationale.label('pde_classification_rationale')
         ).options(
             selectinload(ReportAttribute.phase)
         ).outerjoin(
@@ -628,24 +628,24 @@ async def get_report_attributes(
         # query = query.order_by(text('cycle_report_planning_attributes.attribute_name'))  # Temporarily disabled
         
         result = await db.execute(query)
-        rows = result.all()
+        rows = result.mappings().all()
         
         # Debug logging to see what we're getting from DB
         if rows:
             first_row = rows[0]
-            logger.info(f"First attribute from DB: id={first_row[0].id}, name={first_row[0].attribute_name}")
-            logger.info(f"  classification from PDE mapping={first_row[1]}")
+            logger.info(f"First attribute from DB: id={first_row['ReportAttribute'].id}, name={first_row['ReportAttribute'].attribute_name}")
+            logger.info(f"  classification from PDE mapping={first_row['pde_classification']}")
         
         # Convert to response models
         response_attributes = []
         for row in rows:
-            attr = row[0]  # ReportAttribute
-            pde_classification = row[1]  # information_security_classification from PDE mapping
-            pde_criticality = row[2]  # criticality from PDE mapping
-            pde_risk_level = row[3]  # risk_level from PDE mapping
-            pde_regulatory_flag = row[4]  # regulatory_flag from PDE mapping
-            pde_pii_flag = row[5]  # pii_flag from PDE mapping
-            pde_classification_rationale = row[6]  # llm_classification_rationale from PDE mapping
+            attr = row['ReportAttribute']  # ReportAttribute
+            pde_classification = row['pde_classification']  # information_security_classification from PDE mapping
+            pde_criticality = row['pde_criticality']  # criticality from PDE mapping
+            pde_risk_level = row['pde_risk_level']  # risk_level from PDE mapping
+            pde_regulatory_flag = row['pde_regulatory_flag']  # regulatory_flag from PDE mapping
+            pde_pii_flag = row['pde_pii_flag']  # pii_flag from PDE mapping
+            pde_classification_rationale = row['pde_classification_rationale']  # llm_classification_rationale from PDE mapping
             
             try:
                 # Create dict with all fields explicitly

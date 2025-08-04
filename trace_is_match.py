@@ -49,31 +49,31 @@ async def find_is_match_pattern():
         """)
         
         result = await db.execute(query)
-        rows = result.fetchall()
+        rows = result.mappings().fetchall()
         
         print(f"Found {len(rows)} executions with 'is_match'")
         print("=" * 100)
         
         for row in rows:
-            print(f"\nID: {row[0]}, Test Case: {row[1]}")
-            print(f"Created: {row[2]}")
-            print(f"Started: {row[4]}")
-            print(f"Completed: {row[3]}")
-            print(f"Duration: {row[8]:.2f} seconds ({row[8]/3600:.2f} hours)")
-            print(f"Status: {row[5]}, Result: {row[6]}")
+            print(f"\nID: {row['id']}, Test Case: {row['test_case_id']}")
+            print(f"Created: {row['created_at']}")
+            print(f"Started: {row['started_at']}")
+            print(f"Completed: {row['completed_at']}")
+            print(f"Duration: {row['duration_seconds']:.2f} seconds ({row['duration_seconds']/3600:.2f} hours)")
+            print(f"Status: {row['execution_status']}, Result: {row['test_result']}")
             
             # Check if duration is exactly 4 hours
-            if row[8] and abs(row[8] - 14400) < 10:  # Within 10 seconds of 4 hours
+            if row['duration_seconds'] and abs(row['duration_seconds'] - 14400) < 10:  # Within 10 seconds of 4 hours
                 print("⚠️  EXACTLY 4 HOURS! This suggests a timeout or scheduled process")
             
-            analysis = row[7]
+            analysis = row['analysis_results']
             if analysis:
                 print(f"Analysis timestamp: {analysis.get('analysis_timestamp')}")
                 
                 # Check if the analysis timestamp matches completed_at
                 if 'analysis_timestamp' in analysis:
                     analysis_dt = datetime.fromisoformat(analysis['analysis_timestamp'].replace('Z', '+00:00'))
-                    completed_dt = row[3]
+                    completed_dt = row['completed_at']
                     if completed_dt:
                         diff = abs((analysis_dt - completed_dt.replace(tzinfo=None)).total_seconds())
                         if diff < 1:
@@ -87,7 +87,9 @@ async def find_is_match_pattern():
         
         # Look for jobs that might be processing these
         job_query = text("""
-            SELECT COUNT(*), execution_status, test_result,
+            SELECT COUNT(*) as count, 
+                   execution_status, 
+                   test_result,
                    analysis_results ? 'is_match' as has_is_match,
                    analysis_results ? 'execution_source' as has_source
             FROM cycle_report_test_execution_results
@@ -101,12 +103,12 @@ async def find_is_match_pattern():
         print("\nExecution patterns in last 24 hours:")
         print("Status      | Result | Has is_match | Has source | Count")
         print("-" * 60)
-        for row in result:
-            print(f"{row[1]:11} | {row[2] or 'None':6} | {str(row[3]):12} | {str(row[4]):10} | {row[0]}")
+        for row in result.mappings():
+            print(f"{row['execution_status']:11} | {row['test_result'] or 'None':6} | {str(row['has_is_match']):12} | {str(row['has_source']):10} | {row['count']}")
         
         # Check audit logs for clues
         audit_query = text("""
-            SELECT DISTINCT action, COUNT(*)
+            SELECT DISTINCT action, COUNT(*) as count
             FROM cycle_report_test_execution_audit
             WHERE created_at > NOW() - INTERVAL '24 hours'
             GROUP BY action
@@ -116,8 +118,8 @@ async def find_is_match_pattern():
         result = await db.execute(audit_query)
         
         print("\nAudit log actions in last 24 hours:")
-        for row in result:
-            print(f"  {row[0]}: {row[1]}")
+        for row in result.mappings():
+            print(f"  {row['action']}: {row['count']}")
 
 if __name__ == "__main__":
     asyncio.run(find_is_match_pattern())
