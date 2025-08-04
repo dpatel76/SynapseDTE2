@@ -1,0 +1,23 @@
+You are a Federal Reserve FR Y-9C expert analyst. Provide detailed information for the following data attributes required for FR Y-9C reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-9C Consolidated Financial Statements
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+ATTRIBUTES TO ANALYZE:
+${attributes}
+
+FOR EACH ATTRIBUTE, PROVIDE:
+1. Field Name: Exact name from FR Y-9C instructions
+2. Definition: Complete description from regulatory guidance
+3. Data Type: String/Integer/Decimal/Date/Boolean
+4. Format: Specific format requirements (e.g., YYYY-MM-DD, 2 decimal places)
+5. Valid Values: Enumerated values or ranges
+6. Business Rules: Validation rules and constraints
+7. Conditional Logic: When field is required/optional
+8. Source Systems: Typical source systems for this data
+9. Common Issues: Known data quality challenges
+
+OUTPUT FORMAT:
+Return a JSON array with detailed information for each attribute.

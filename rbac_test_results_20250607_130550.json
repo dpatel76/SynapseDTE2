@@ -1,0 +1,105 @@
+{
+  "timestamp": "2025-06-07T17:05:50.880347",
+  "summary": {
+    "total_tests": 384,
+    "passed_tests": 384,
+    "failed_tests": 0,
+    "success_rate": 100.0
+  },
+  "user_statistics": {
+    "test.manager@example.com": {
+      "role": "Test Manager",
+      "total": 64,
+      "passed": 64,
+      "failed": 0,
+      "failures": []
+    },
+    "tester@example.com": {
+      "role": "Tester",
+      "total": 64,
+      "passed": 64,
+      "failed": 0,
+      "failures": []
+    },
+    "report.owner@example.com": {
+      "role": "Report Owner",
+      "total": 64,
+      "passed": 64,
+      "failed": 0,
+      "failures": []
+    },
+    "cdo@example.com": {
+      "role": "CDO",
+      "total": 64,
+      "passed": 64,
+      "failed": 0,
+      "failures": []
+    },
+    "data.provider@example.com": {
+      "role": "Data Provider",
+      "total": 64,
+      "passed": 64,
+      "failed": 0,
+      "failures": []
+    },
+    "admin@synapsedt.com": {
+      "role": "Admin",
+      "total": 64,
+      "passed": 64,
+      "failed": 0,
+      "failures": []
+    }
+  },
+  "role_statistics": {
+    "Test Manager": {
+      "total": 64,
+      "passed": 64,
+      "failed": 0,
+      "users": [
+        "test.manager@example.com"
+      ]
+    },
+    "Tester": {
+      "total": 64,
+      "passed": 64,
+      "failed": 0,
+      "users": [
+        "tester@example.com"
+      ]
+    },
+    "Report Owner": {
+      "total": 64,
+      "passed": 64,
+      "failed": 0,
+      "users": [
+        "report.owner@example.com"
+      ]
+    },
+    "CDO": {
+      "total": 64,
+      "passed": 64,
+      "failed": 0,
+      "users": [
+        "cdo@example.com"
+      ]
+    },
+    "Data Provider": {
+      "total": 64,
+      "passed": 64,
+      "failed": 0,
+      "users": [
+        "data.provider@example.com"
+      ]
+    },
+    "Admin": {
+      "total": 64,
+      "passed": 64,
+      "failed": 0,
+      "users": [
+        "admin@synapsedt.com"
+      ]
+    }
+  },
+  "critical_failures": [],
+  "unexpected_permissions": []
+}

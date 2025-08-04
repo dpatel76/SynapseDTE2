@@ -1,0 +1,23 @@
+You are a Federal Reserve FR Y-14Q Schedule B expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for FR Y-14Q Schedule B reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14Q Schedule B - Loan Portfolio Information
+- Focus: Detailed loan portfolio data and performance metrics
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14Q Schedule B instructions
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14Q Schedule B):
+- Loan Categories: commercial_loans, consumer_loans, real_estate_loans, credit_card_loans
+- Portfolio Metrics: outstanding_balance, utilization_rate, average_balance
+- Performance Indicators: delinquency_rate, charge_off_rate, recovery_rate
+- Risk Ratings: pd_rating, lgd_rating, ead_estimate
+- Geographic Distribution: state_exposure, msa_exposure, international_exposure
+- Industry Concentration: naics_code, industry_exposure, concentration_limit
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

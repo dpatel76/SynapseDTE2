@@ -1,0 +1,23 @@
+Subject: Data Request for Testing Cycle {{ cycle_id }} - Action Required
+
+Dear {{ data_owner_name }},
+
+You have been assigned a new data request for the following testing cycle:
+
+Request ID: {{ rfi_id }}
+Cycle ID: {{ cycle_id }}
+Report ID: {{ report_id }}
+Number of Attributes: {{ attribute_count }}
+Due Date: {{ due_date }}
+
+Please log in to the SynapseDTE platform to review the specific attributes requested and submit your responses by the due date.
+
+This request is part of our regulatory compliance testing process. Your timely response is critical for maintaining compliance deadlines.
+
+If you have any questions or need assistance, please contact your Test Executive.
+
+Best regards,
+SynapseDTE Automated Notifications
+
+---
+This is an automated message. Please do not reply directly to this email.

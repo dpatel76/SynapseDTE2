@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test CDO Assignment</title>
+</head>
+<body>
+    <h1>Test CDO Assignment API</h1>
+    <button onclick="testAssignment()">Test CDO Assignment</button>
+    <pre id="output"></pre>
+
+    <script>
+        async function testAssignment() {
+            const output = document.getElementById('output');
+            output.textContent = 'Testing...\n';
+            
+            const token = localStorage.getItem('token');
+            if (!token) {
+                output.textContent += 'Error: No token found. Please login first.\n';
+                return;
+            }
+            
+            const payload = {
+                assignments: [
+                    {
+                        attribute_id: 244,
+                        data_owner_id: 4,
+                        assignment_notes: "Test assignment",
+                        use_historical_assignment: false
+                    }
+                ],
+                submission_notes: "Test submission"
+            };
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/data-owner/cycles/55/reports/156/cdo-assignments', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                output.textContent += `Status: ${response.status} ${response.statusText}\n`;
+                output.textContent += `Headers:\n${JSON.stringify(Object.fromEntries(response.headers), null, 2)}\n`;
+                
+                const responseText = await response.text();
+                output.textContent += `\nResponse Body:\n`;
+                
+                try {
+                    const responseJson = JSON.parse(responseText);
+                    output.textContent += JSON.stringify(responseJson, null, 2);
+                } catch {
+                    output.textContent += responseText;
+                }
+                
+                if (response.status === 422) {
+                    output.textContent += '\n\n✅ CONFIRMED: Backend returns 422 directly';
+                } else if (response.status === 403) {
+                    output.textContent += '\n\n❌ Backend returns 403, not 422';
+                }
+                
+            } catch (error) {
+                output.textContent += `\nError: ${error.message}\n`;
+                output.textContent += `Stack: ${error.stack}\n`;
+            }
+        }
+    </script>
+</body>
+</html>

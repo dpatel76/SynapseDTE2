@@ -1,0 +1,110 @@
+[
+  {
+    "clean_file": "app/api/v1/endpoints/planning_clean.py",
+    "regular_file": "app/api/v1/endpoints/planning.py",
+    "clean_exists": true,
+    "regular_exists": true,
+    "clean_imports": 10,
+    "regular_imports": 129,
+    "clean_imported_by": [
+      "./app/temporal/activities/planning_activities_wrapper.py",
+      "./app/api/v1/api_clean.py",
+      "./app/api/v1/api.py"
+    ],
+    "regular_imported_by": [
+      "./test_finalize_report_page.py",
+      "./test_all_attributes.py",
+      "./test_unified_status_end_to_end.py"
+    ]
+  },
+  {
+    "clean_file": "app/api/v1/endpoints/scoping_clean.py",
+    "regular_file": "app/api/v1/endpoints/scoping.py",
+    "clean_exists": true,
+    "regular_exists": true,
+    "clean_imports": 9,
+    "regular_imports": 174,
+    "clean_imported_by": [
+      "./app/api/v1/api_clean.py",
+      "./app/api/v1/api.py",
+      "./scripts/update_imports_after_rename.py"
+    ],
+    "regular_imported_by": [
+      "./backup_unused_code_final.py",
+      "./backup_unused_code_corrected.py",
+      "./test_all_attributes.py"
+    ]
+  },
+  {
+    "clean_file": "app/api/v1/endpoints/data_owner_clean.py",
+    "regular_file": "app/api/v1/endpoints/data_owner.py",
+    "clean_exists": true,
+    "regular_exists": true,
+    "clean_imports": 6,
+    "regular_imports": 148,
+    "clean_imported_by": [
+      "./app/api/v1/api_clean.py",
+      "./app/api/v1/api.py",
+      "./scripts/update_imports_after_rename.py"
+    ],
+    "regular_imported_by": [
+      "./backup_unused_code_final.py",
+      "./backup_unused_code_corrected.py",
+      "./backup_unused_code.py"
+    ]
+  },
+  {
+    "clean_file": "app/api/v1/endpoints/request_info_clean.py",
+    "regular_file": "app/api/v1/endpoints/request_info.py",
+    "clean_exists": true,
+    "regular_exists": true,
+    "clean_imports": 6,
+    "regular_imports": 92,
+    "clean_imported_by": [
+      "./app/api/v1/api_clean.py",
+      "./app/api/v1/api.py",
+      "./scripts/update_imports_after_rename.py"
+    ],
+    "regular_imported_by": [
+      "./test_all_attributes.py",
+      "./test_unified_status_end_to_end.py",
+      "./app/temporal/worker_reconciled.py"
+    ]
+  },
+  {
+    "clean_file": "app/api/v1/endpoints/test_execution_clean.py",
+    "regular_file": "app/api/v1/endpoints/test_execution.py",
+    "clean_exists": true,
+    "regular_exists": true,
+    "clean_imports": 10,
+    "regular_imports": 103,
+    "clean_imported_by": [
+      "./app/api/v1/api_clean.py",
+      "./app/api/v1/api.py",
+      "./scripts/update_imports_after_rename.py"
+    ],
+    "regular_imported_by": [
+      "./backup_unused_code_final.py",
+      "./test_all_attributes.py",
+      "./app/temporal/workflows.py"
+    ]
+  },
+  {
+    "clean_file": "app/api/v1/endpoints/observation_management_clean.py",
+    "regular_file": "app/api/v1/endpoints/observation_management.py",
+    "clean_exists": true,
+    "regular_exists": true,
+    "clean_imports": 6,
+    "regular_imports": 47,
+    "clean_imported_by": [
+      "./app/api/v1/api_clean.py",
+      "./app/api/v1/api.py",
+      "./scripts/update_imports_after_rename.py"
+    ],
+    "regular_imported_by": [
+      "./test_unified_status_end_to_end.py",
+      "./app/temporal/workflows/report_testing_workflow.py",
+      "./app/temporal/workflows/enhanced_test_cycle_workflow.py"
+    ]
+  }
+]

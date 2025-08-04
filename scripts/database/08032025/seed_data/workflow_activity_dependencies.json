@@ -1,0 +1,194 @@
+{
+  "table": "workflow_activity_dependencies",
+  "row_count": 17,
+  "extracted_at": "2025-08-03T11:29:28.948264",
+  "data": [
+    {
+      "dependency_id": 37,
+      "phase_name": "Planning",
+      "activity_name": "Review Generated Attributes",
+      "depends_on_activity": "Generate Attributes",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 38,
+      "phase_name": "Planning",
+      "activity_name": "Submit for Approval",
+      "depends_on_activity": "Review Generated Attributes",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 39,
+      "phase_name": "Planning",
+      "activity_name": "Report Owner Approval",
+      "depends_on_activity": "Submit for Approval",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 40,
+      "phase_name": "Planning",
+      "activity_name": "Complete Planning Phase",
+      "depends_on_activity": "Report Owner Approval",
+      "dependency_type": "approval",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 41,
+      "phase_name": "Scoping",
+      "activity_name": "Review Scoping Results",
+      "depends_on_activity": "Execute Scoping",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 42,
+      "phase_name": "Scoping",
+      "activity_name": "Scoping Approval",
+      "depends_on_activity": "Review Scoping Results",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 43,
+      "phase_name": "Scoping",
+      "activity_name": "Complete Scoping Phase",
+      "depends_on_activity": "Scoping Approval",
+      "dependency_type": "approval",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 44,
+      "phase_name": "Sample Selection",
+      "activity_name": "Review and Tag Samples",
+      "depends_on_activity": "Generate Samples",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 45,
+      "phase_name": "Sample Selection",
+      "activity_name": "Complete Sample Selection",
+      "depends_on_activity": "Review and Tag Samples",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 46,
+      "phase_name": "Request for Information",
+      "activity_name": "Upload Data",
+      "depends_on_activity": "Send Data Request",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 47,
+      "phase_name": "Request for Information",
+      "activity_name": "Validate Data Upload",
+      "depends_on_activity": "Upload Data",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 48,
+      "phase_name": "Request for Information",
+      "activity_name": "Generate Test Cases",
+      "depends_on_activity": "Validate Data Upload",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 49,
+      "phase_name": "Test Execution",
+      "activity_name": "Review Test Results",
+      "depends_on_activity": "Execute Tests",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 50,
+      "phase_name": "Test Execution",
+      "activity_name": "Document Test Evidence",
+      "depends_on_activity": "Execute Tests",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 51,
+      "phase_name": "Observation Management",
+      "activity_name": "Review Observations",
+      "depends_on_activity": "Create Observations",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 52,
+      "phase_name": "Observation Management",
+      "activity_name": "Data Owner Response",
+      "depends_on_activity": "Review Observations",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "dependency_id": 53,
+      "phase_name": "Observation Management",
+      "activity_name": "Finalize Observations",
+      "depends_on_activity": "Data Owner Response",
+      "dependency_type": "completion",
+      "is_active": true,
+      "created_at": "2025-07-11T12:54:50.823319+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    }
+  ]
+}

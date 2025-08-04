@@ -1,0 +1,52 @@
+DOCUMENT DATA EXTRACTION TASK
+
+Extract specific data values from document with high precision.
+
+TARGET EXTRACTION:
+- Document: ${document_type}
+- Primary Key: ${primary_key_field} = ${primary_key_value}
+- Extract: ${target_attributes}
+
+DOCUMENT CONTENT:
+${document_content}
+
+ATTRIBUTE CONTEXT:
+${attribute_context}
+
+PROCESS:
+1. Find record with primary key = ${primary_key_value}
+2. Extract each target attribute value
+3. Provide evidence text snippet
+4. Rate confidence (1-10)
+
+OUTPUT JSON:
+{
+  "primary_key_found": true/false,
+  "primary_key_evidence": "text snippet",
+  "extractions": {
+    "attribute_name": {
+      "value": "exact_value",
+      "confidence": 1-10,
+      "evidence": "supporting text",
+      "location": "page/section"
+    }
+  },
+  "missing_attributes": ["not found"],
+  "document_quality": "High|Medium|Low",
+  "extraction_notes": "observations"
+}
+
+CONFIDENCE SCALE:
+- 9-10: Clear, unambiguous value
+- 7-8: Value found, minor formatting issues
+- 5-6: Value present but unclear
+- 1-4: Uncertain or inferred
+- 0: Not found
+
+REQUIREMENTS:
+- Exact numerical precision
+- Preserve date/ID formatting
+- Include supporting evidence
+- Flag quality issues
+
+Extract now: 

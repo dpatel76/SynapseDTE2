@@ -1,0 +1,19 @@
+Subject: Testing Report Rejected - Action Required
+
+Dear {{ executive_name }},
+
+The testing report for the following cycle has been rejected and requires revision:
+
+Cycle ID: {{ cycle_id }}
+Report ID: {{ report_id }}
+Reviewer: {{ reviewer_name }}
+
+{% if comments %}
+Reviewer Comments:
+{{ comments }}
+{% endif %}
+
+Please review the feedback and make the necessary changes to the report. Once revised, the report will need to be resubmitted for approval.
+
+Best regards,
+SynapseDTE Automated Notifications

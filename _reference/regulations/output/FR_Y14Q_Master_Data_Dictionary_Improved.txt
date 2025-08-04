@@ -1,0 +1,627 @@
+Report Name|Schedule Name|Line Item #|Line Item Name|Technical Line Item Name|MDRM|Description|Static or Dynamic|Mandatory or Optional|Format|# of reports or schedules used in|Other Schedule Reference
+FR Y-14Q|Schedule B: Securities|10|Hedge Horizon|Hedge Horizon|2005|If the hedge is a fair value hedge, report the latest date of the remaining effectiveness horizon...|Dynamic|Mandatory|"Must be in yyyy-mm-dd
+format, e.g.:
+2005-02-01
+1999-12-14"|2|Schedule H: Wholesale Risk
+FR Y-14Q|Schedule B: Securities|15|ASU 2017-12 Hedge Designations|ASU 2017-12 Hedge Designations|2017|Indicate if any of the ASU 2017-12 hedge designations allowed in conjunction with partial-term he...|Dynamic|Mandatory|"1= Last-of-Layer;
+2= One or more selected
+contractual cash flows;
+3= Not applicable"|1|
+FR Y-14Q|Schedule E: Operational Risk||||2011||Dynamic|Mandatory||1|
+FR Y-14Q|Schedule E: Operational Risk||||2011||Dynamic|Mandatory||1|
+FR Y-14Q|Schedule E: Operational Risk||||2011||Dynamic|Mandatory||1|
+FR Y-14Q|Schedule E: Operational Risk||||2011||Dynamic|Mandatory||1|
+FR Y-14Q|Schedule E: Operational Risk||Q4|Q4|2007|ET4 BL2 4|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule E: Operational Risk||Q4|Q4|2007|ET4 BL7 6|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule E: Operational Risk||Q4|Q4|2007|ET1 BL2 5|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule E: Operational Risk||Q1|Q1|2008|ET4 BL3 1|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule E: Operational Risk||Q3|Q3|2008|ET4 BL2 1|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule E: Operational Risk||Q2|Q2|2009|ET4 BL1 2|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule E: Operational Risk||Q2|Q2|2009|ET3 BL4 1|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule E: Operational Risk||Q3|Q3|2009|ET7 BL2 1|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule E: Operational Risk||Q3|Q3|2010|ET4 BL1 3|Dynamic|Mandatory||2|Schedule H: Wholesale Risk
+FR Y-14Q|Schedule E: Operational Risk||Q4|Q4|2010|ET7 BL7 1|Dynamic|Mandatory||2|Schedule H: Wholesale Risk
+FR Y-14Q|Schedule F: Trading|1000|||1000|20 1000 20 1000 30|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule H: Wholesale Risk|1|Customer ID (CustomerID)|Customer ID (CustomerID)|CLCOM047|Report the unique internal identifier for the customer relationship under which the obligor's exp...|Dynamic|Mandatory|"Must not contain a carriage
+return, line feed, comma or any
+unprintable character."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|2|Internal ID (InternalObligor ID)|Internal ID (InternalObligor ID)|CLCOM300|Report the reporting entity’s unique internal identifier for the obligor. Internal ID is a borrow...|Dynamic|Mandatory|"Must not contain a carriage
+return, line feed, comma or any
+unprintable character."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|2|Obligor Name (ObligorName)|Obligor Name (ObligorName)|9017|Report the obligor name on the loan. Full legal entity name is desirable, but the precise name is...|Dynamic|Mandatory|"Must not contain a vertical bar (|,
+ASCII 7C), carriage return, line
+feed, comma or any unprintable
+character."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|3|Original Internal ID (OriginalInterna lObligorID)|Original Internal ID (OriginalInterna lObligorID)|CLCOG064|Report the internal identification code assigned to the obligor in the previous submission. If th...|Dynamic|Mandatory|"Must not contain a carriage
+return, line feed, comma or any
+unprintable character."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|4|Obligor Name (ObligorName)|Obligor Name (ObligorName)|CLCO9017|Report the obligor name on the credit facility. Full legal corporate name is desirable. If the bo...|Dynamic|Mandatory|"Must not contain a carriage
+return, line feed, comma or any
+unprintable character."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|5|City (City)|City (City)|CLCO9130|Report the name of the city in which the obligor is domiciled (as defined in the FR Y-9C Glossary...|Dynamic|Mandatory|"Free text indicating the City
+where the Obligor is domiciled."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|6|Country (Country)|Country (Country)|CLCO9031|Report the domicile of the obligor (as defined in the FR Y-9C Glossary entry for “domicile”).|Dynamic|Mandatory|Use the 2 letter Country Code22|1|
+FR Y-14Q|Schedule H: Wholesale Risk|7|Zip Code (ZipCodeForeign MailingCode)|Zip Code (ZipCodeForeign MailingCode)|CLCO9220|Report the five-digit zip code for locations within the 50 US states, Washington DC, Puerto Rico,...|Dynamic|Mandatory|"For locations within the 50 US
+states, Washington DC, Puerto
+Rico, the US Virgin Islands,
+Guam, Palau, Micronesia, the
+Northern Marianas, or the
+Marshall Islands: five-digit ZIP
+code. If the ZIP code begins with
+zeroes, leading zeroes must be
+specified with no punctuation.
+For International: use country
+specific postal code."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|7|Participation Flag (Participation Flag)|Participation Flag (Participation Flag)|6135|Indicate if the CRE Loan is participated or syndicated among other financial institutions and if ...|Dynamic|Mandatory|"1. No
+2. Yes, syndicate/participant in
+syndication but does not meet
+the definition of a Shared
+National Credit
+3. Yes, agent in syndication but
+does not meet the definition of
+a Shared National Credit sold
+by reporting BHC or IHC or
+SLHC
+4. Yes, syndicate/participant in
+Shared National Credit
+5. Yes, agent in Shared National
+Credit"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|8|Industry Code (IndustryCode)|Industry Code (IndustryCode)|CLCO4537|Report the numeric code that describes the primary business activity of the obligor according to ...|Dynamic|Mandatory|"Report 4 to 6 digit number. If
+this code is not available, then
+provide a SIC or GICS industry
+code."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|9|Industry Code Type (IndustryCodeTy pe)|Industry Code Type (IndustryCodeTy pe)|CLCOM297|Select the type of industry code identification scheme used in Field 8.|Dynamic|Mandatory|"1. NAICS
+2. SIC
+3. GICS"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|10|Obligor Internal Risk Rating (InternalRating)|Obligor Internal Risk Rating (InternalRating)|CLCOG080|Report the obligor rating grade from the reporting entity’s internal risk rating system. For fron...|Dynamic|Mandatory|"Free text indicating the obligor
+rating grade.
+Obligor Internal Risk Rating
+must be consistent with
+Schedule H.4 (Internal Risk
+Rating Schedule), Field 1."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|10|Origination Date (OriginationDa|Origination Date (OriginationDa|9912|Report the origination date. The origination date is the contractual date of the credit agreement...|Dynamic|Mandatory|"Must be in yyyy-mm-dd format,
+e.g.:
+2005-02-01"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|11|TIN (TIN)|TIN (TIN)|CLCO6191|Report the Taxpayer Identification Number (TIN) assigned to the obligor by the U.S. Internal Reve...|Dynamic|Mandatory|"The 9 digit identification
+assigned by the Internal
+Revenue Service for the obligor
+identified in field 2.
+Allowable forms are either
+##-#######, #########, or
+‘NA’."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|12|Stock Exchange (StockExchange)|Stock Exchange (StockExchange)|CLCO4534|Report the name of the Stock Exchange on which the primary stock of the obligor, or its parent, t...|Dynamic|Mandatory|Free text|1|
+FR Y-14Q|Schedule H: Wholesale Risk|13|Ticker Symbol (TKR)|Ticker Symbol (TKR)|CLCO4539|Report the Stock Symbol for stocks listed and traded on the regulated exchange provided in Field ...|Dynamic|Mandatory|Free text|1|
+FR Y-14Q|Schedule H: Wholesale Risk|13|Value at Origination|Value at Origination|M148|Report the value of the subject property at origination (date given in Field 10) the value may be|Dynamic|Mandatory|"Rounded whole dollar amount
+with no cents, e.g.: 20000000"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|14|CUSIP (CUSIP)|CUSIP (CUSIP)|CLCO9161|Report the CUSIP of the obligor, if available. CUSIPs are identifiers created and delivered by th...|Dynamic|Mandatory|"Must be valid 6 digit CUSIP
+number issued by the CUSIP
+Service Bureau."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|14|Value Basis (ValueBasis)|Value Basis (ValueBasis)|2010|Provide integer code if the Value in Field 13 was calculated using an “as is,” “as stabilized” or...|Dynamic|Mandatory|"1. As Is
+2. As Stabilized
+3. As Completed"|2|Schedule E: Operational Risk
+FR Y-14Q|Schedule H: Wholesale Risk|15|Internal Credit Facility ID (InternalCreditF acilityID)|Internal Credit Facility ID (InternalCreditF acilityID)|CLCOM142|Report the reporting entity’s unique internal identifier for this credit facility record. It must...|Dynamic|Mandatory|"Must be unique within a
+submission and over time. That
+is, the same submission file
+must not have two facilities
+with the same Credit Facility ID.
+May not contain a carriage
+return, line feed, comma or any
+unprintable character."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|16|Original Internal Credit Facility ID (OriginalInternal CreditFacilityID)|Original Internal Credit Facility ID (OriginalInternal CreditFacilityID)|CLCOM296|Report the Internal identification code assigned to the credit facility record in the previous su...|Dynamic|Mandatory|"May not contain a carriage
+return, line feed, or any
+unprintable character.
+Provide the ID separated by a ,
+(comma). For example, if
+facilities 123 and XYZ are
+aggregated into facility ABC
+then the ""Unique ID"" (H.1
+Internal Credit Facility ID Field
+15, H.2 Loan Number Field 1) is
+reported as ABC and the
+""Original ID"" (H.1 Original
+Internal Credit Facility ID Field
+16, H.2 Original/Previous Loan
+Number Field 35) is reported
+as 123, XYZ."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|16|Probability of Default (PD)|Probability of Default (PD)|5000|For firms that are subject to the advanced approaches for regulatory capital, report the advanced...|Dynamic|Mandatory|"Express as a decimal to 4 decimal
+places, e.g., 50% is 0.5000. Use
+decimal format; do not use
+scientific notation.
+If the reporting entity does not
+assign a credit facility PD estimate,
+report ‘NA’."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|18|Origination Date (OriginationDate )|Origination Date (OriginationDate )|CLCO9912|Report the origination date. The origination date is the contractual date of the credit agreement...|Dynamic|Mandatory|"Must be in yyyy- mm-dd format,
+e.g.:
+2005-02-01
+1999-12-14
+Must be before or equal to the
+period end date of the data."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|19|Maturity Date (MaturityDate)|Maturity Date (MaturityDate)|CLCO9914|Report the maturity date. The maturity date is the last date upon which the funds must be repaid,...|Dynamic|Mandatory|"Must be in yyyy- mm-dd format,
+e.g.:
+2005-02-01
+1999-12-14"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|19|Maturity Date (MaturityDate)|Maturity Date (MaturityDate)|9914|Report the maturity date. The maturity date is the last date upon which the funds must be repaid,...|Dynamic|Mandatory|"Must be in yyyy-mm-dd format,
+e.g.:
+2005-02-01
+1999-12-14"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|20|Credit Facility Type (FacilityType)|Credit Facility Type (FacilityType)|CLCOG072|Report the credit facility type. Use the following credit facility type descriptions, only. Note ...|Dynamic|Mandatory|"Enter number code of the
+description."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|21|Other Credit Facility Type Description (OtherFacilityTy pe)|Other Credit Facility Type Description (OtherFacilityTy pe)|CLCOG107|If the credit facility is listed as “Other” in Field 20, provide a description of the “other cred...|Dynamic|Mandatory|Free Text|1|
+FR Y-14Q|Schedule H: Wholesale Risk|23|Other Credit Facility Purpose Description (OtherFacilityPu rpose)|Other Credit Facility Purpose Description (OtherFacilityPu rpose)|CLCOG108|If the credit facility purpose is listed as “Other” in Field 22, provide a description of the “ot...|Dynamic|Mandatory|Free Text|1|
+FR Y-14Q|Schedule H: Wholesale Risk|24|Committed Exposure Global 23 (CommittedExpo sure)|Committed Exposure Global 23 (CommittedExpo sure)|CLCOG074|Report the total commitment amount as the sum of loan and lease financing receivables recorded in...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|25|Utilized Exposure Global 24 (UtilizedExposur e)|Utilized Exposure Global 24 (UtilizedExposur e)|CLCOG075|Report all loan and lease financing receivables consistent with the FR Y-9C instructions. Report ...|Dynamic|Mandatory|"Rounded whole dollar amount
+with no cents, e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|26|Line Reported on FR Y-9C (LineReportedOn FRY9C)|Line Reported on FR Y-9C (LineReportedOn FRY9C)|CLCOK449|Report the integer code corresponding to the line number on the FR Y-9C, Schedule HC-C, in which ...|Dynamic|Mandatory|"Enter number code of the
+description"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|27|Line of Business (LineOfBusiness)|Line of Business (LineOfBusiness)|CLCOK458|Provide the name of the internal line of business|Dynamic|Mandatory|"Free text describing the line of
+business. For example: Private
+Banking, Corporate Banking,
+Asset- Based Lending, etc.
+Must be consistent with line of
+business names as reported in
+Schedule H.3 (Line of Business
+Schedule), Field 1."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|27|Interest Rate (InterestRate)|Interest Rate (InterestRate)|7889|Report the current interest rate charged on the CRE Loan. If the facility includes multiple draws...|Dynamic|Mandatory|"Provide as a decimal, e.g.: 0.0575
+for 5.75%.
+Enter ‘NA’ if the facility is entirely
+fee based."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|28|Cumulative Charge-offs (CumulativeChar geoffs)|Cumulative Charge-offs (CumulativeChar geoffs)|CLCOG076|Report the cumulative net charge-offs associated with the credit facility on the reporting entity...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal).
+Should be 0 if there is no
+charge-off for the facility.
+Should be ‘NA’ for loans held for
+sale or accounted for under a
+fair value option."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|29|Interest Rate Spread (InterestRateS pread)|Interest Rate Spread (InterestRateS pread)|0575|For floating rate CRE Loans, report the spread from base rate in basis points (this can be either...|Dynamic|Mandatory|"Provide as a decimal, e.g.: 0.0575
+for 5.75%
+Enter ‘NA’ if the loan is fixed or
+entirely fee based.
+Negative numbers can be
+submitted. For negative values use
+a negative sign ‘-‘ not parenthesis
+()."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|30|Interest Rate Ceiling (InterestRateC eiling)|Interest Rate Ceiling (InterestRateC eiling)|0575|For floating rate CRE Loans, report the rate ceiling if one is contained in the credit agreement....|Dynamic|Mandatory|"Provide as a decimal, e.g.: 0.0575
+for 5.75%
+Enter ‘NA’ if the loan is fixed or
+entirely fee based
+Enter ‘NONE’ if no ceiling."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|31|Interest Rate Floor|Interest Rate Floor|0575|For floating rate CRE Loans, report the rate floor if one is contained in the credit agreement. I...|Dynamic|Mandatory|"Provide as a decimal, e.g.: 0.0575
+for 5.75%"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|32|# Days Principal or Interest Past Due (PastDue)|# Days Principal or Interest Past Due (PastDue)|CLCOG077|Report the longest number of days principal and/or interest payments are past due, if such paymen...|Dynamic|Mandatory|"Numbers only.
+For fully undrawn
+commitments, enter 0."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|33|Non-Accrual Date (NonAccrualDat e)|Non-Accrual Date (NonAccrualDat e)|CLCOG078|Report the date the credit facility was placed on non-accrual, if applicable. If a non-accrual da...|Dynamic|Mandatory|"Must be in yyyy- mm-dd format,
+e.g.:
+2005-02-01
+1999-12-14
+For fully undrawn
+commitments, enter 9999-12-
+31."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|34|Participation Flag (ParticipationFla g)|Participation Flag (ParticipationFla g)|CLCO6135|Indicate if the credit facility is participated or syndicated among other financial institutions ...|Dynamic|Mandatory|"1. No
+2. Yes, syndicate/participant in
+syndication but does not
+meet the definition of a
+Shared National Credit
+3. Yes, agent in syndication or
+participation but does not
+meet the definition of a
+Shared National Credit
+4. Yes, syndicate/participant
+in Shared National Credit
+5. Yes, agent in Shared
+National Credit"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|35|Lien Position (LienPosition)|Lien Position (LienPosition)|CLCOK450|Indicate using integer code if the credit facility is First Lien Senior, Second Lien, Senior Unse...|Dynamic|Mandatory|"1. First-Lien Senior
+2. Second Lien
+3. Senior Unsecured
+4. Contractually Subordinated"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|36|Security Type (SecurityType)|Security Type (SecurityType)|CLCOM298|If security is provided by collateral other than or in addition to Real Estate, indicate the pred...|Dynamic|Mandatory|"Enter number code of the
+description"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|37|Interest Rate Variability (InterestRateVar iability)|Interest Rate Variability (InterestRateVar iability)|CLCOK461|Indicate the variability of current interest rates (Fixed, Floating, or Mixed) to maturity. For f...|Dynamic|Mandatory|"0. DO NOT USE
+1. Fixed
+2. Floating
+3. Mixed
+4. Entirely fee based"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|38|Non-Accrual Date (NonAccrualD ate)|Non-Accrual Date (NonAccrualD ate)|9999|Report the date the credit facility was placed on non- accrual, if applicable. If there is no non...|Dynamic|Mandatory|"Must be in yyyy-mm-dd format,
+e.g.:
+2005-02-01
+1999-12-14"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|39|||CLCOK462||Dynamic|Mandatory||1|
+FR Y-14Q|Schedule H: Wholesale Risk|40|Interest Rate Spread (InterestRateSpr ead)|Interest Rate Spread (InterestRateSpr ead)|CLCOK463|For floating rate credit facilities, report the spread over base rate in basis points. If the cre...|Dynamic|Mandatory|"Provide as a decimal, e.g.:
+0.0575 for 5.75%
+Enter ‘NA’ if the credit facility is
+fixed or entirely fee based
+Negative numbers can be
+submitted. For negative values
+use a negative sign
+‘-‘ not parenthesis ()."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|41|Interest Rate Ceiling (InterestRateCeil ing)|Interest Rate Ceiling (InterestRateCeil ing)|CLCOK464|For floating rate credit facilities, report the rate ceiling if one is contained in the credit ag...|Dynamic|Mandatory|"Provide as a decimal, e.g.:
+0.0575 for 5.75%
+Enter ‘NA’ if the credit facility is
+fixed or entirely fee based
+Enter ‘NONE’ if no ceiling."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|41|Last NOI Date (LastNOIDate)|Last NOI Date (LastNOIDate)|2005|Report the date for the value provided in CurrentNetOperatingInc (Field 40).|Dynamic|Mandatory|"Must be in yyyy-mm-dd format,
+e.g.:
+2005-02-01
+1999-12-14
+Must be before or equal to the
+report date.
+This date may be Null (i.e. blank) if
+the Net Operating Income (NOI)
+Current (Field 40) is ‘NA’."|2|Schedule B: Securities
+FR Y-14Q|Schedule H: Wholesale Risk|42|Interest Rate Floor (InterestRateFlo or)|Interest Rate Floor (InterestRateFlo or)|CLCOK465|For floating rate credit facilities, report the rate floor if one is contained in the credit agre...|Dynamic|Mandatory|"Provide as a decimal, e.g.:
+0.0575 for 5.75% Enter ’NA’ if
+the credit facility is fixed or
+entirely fee based
+Enter ‘NONE’ if no floor."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|42|Current Value (CurrentValue)|Current Value (CurrentValue)|M209|Report the most recent value of the subject property, which may be either from an appraisal or an...|Dynamic|Mandatory|"Rounded whole dollar amount
+with no cents, e.g.: 20000000
+Supply numeric values without
+any non-numeric formatting such
+as dollar signs, commas or
+decimals."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|43|Interest Income Tax Status (TaxStatus)|Interest Income Tax Status (TaxStatus)|CLCOM299|Report the tax status of interest income for Federal or State Income Tax purposes. Interest Incom...|Dynamic|Mandatory|"1. Taxable
+2. Tax Exempt
+If federal or state tax exempt,
+choose ’2’."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|43|Last Valuation Date (LastValuation Date)|Last Valuation Date (LastValuation Date)|2005|Report the date of the most recent valuation provided in Current Value (Field 42).|Dynamic|Mandatory|"Must be in yyyy-mm-dd format,
+e.g.:
+2005-02-01
+1999-12-14
+Must be before or equal to the"|2|Schedule B: Securities
+FR Y-14Q|Schedule H: Wholesale Risk|44|Guarantor Flag (GuarantorFlag)|Guarantor Flag (GuarantorFlag)|CLCGM318|Indicate if the credit facility is guaranteed. Report the option that reflects the guarantee of t...|Dynamic|Mandatory|"1. Full guarantee
+2. Partial guarantee
+3. U.S. Government Agency
+Guarantee
+4. No guarantee"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|44|Cross Collateralized Loan Numbers (CrossCollaterl izedLoans)|Cross Collateralized Loan Numbers (CrossCollaterl izedLoans)|M290|Report the LoanNumbers (Field 1) for all the loans which are cross- collateralized with loans rep...|Dynamic|Mandatory|"Provide the LoanNumber
+separated by a , (comma). For
+example, if loans 123 and XYZ are
+cross- collateralized then enter
+123, XYZ.
+Leave blank if loan is not cross
+collateralized."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|45|Guarantor Internal ID (GuarantorInter nalID)|Guarantor Internal ID (GuarantorInter nalID)|CLCGM300|Report the unique guarantor identifier. For facilities with multiple guarantors, provide the uniq...|Dynamic|Mandatory|"Must not contain a carriage
+return, line feed, comma or any
+unprintable character.
+If the credit facility is not
+guaranteed, enter ‘NA’."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|45|Additional Collateral (AdditionalColl ateral)|Additional Collateral (AdditionalColl ateral)|M291|Report the value of any cash and marketable securities that are pledged as collateral and where t...|Dynamic|Mandatory|"Rounded whole dollar amount
+with no cents, e.g.: 20000000
+Supply numeric values without
+any non-numeric formatting such
+as dollar signs, commas or
+decimals."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|46|Guarantor Name (GuarantorNam e)|Guarantor Name (GuarantorNam e)|CLCG9017|Report the guarantor name on the credit facility. Full legal corporate name is desirable. If the ...|Dynamic|Mandatory|"Must not contain a carriage
+return, line feed, comma or any
+unprintable character.
+If the credit facility
+is not guaranteed, enter ‘NA’"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|47|Guarantor TIN (GuarantorTIN)|Guarantor TIN (GuarantorTIN)|CLCG6191|Report the Taxpayer Identification Number (TIN) assigned to the guarantor by the U.S. Internal Re...|Dynamic|Mandatory|"The 9 digit identification
+assigned by the Internal
+Revenue Service for the
+guarantor identified in Field
+45. Allowable forms are either
+##-#######,
+#########, or
+‘NA’.
+If the credit facility
+is not guaranteed, enter ‘NA’"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|48|Guarantor Internal Risk Rating (GuarantorInter nalRiskRating)|Guarantor Internal Risk Rating (GuarantorInter nalRiskRating)|CLCGG080|Report the guarantor rating grade from the reporting entity’s internal risk rating system. This i...|Dynamic|Mandatory|"Free text indicating the obligor
+rating grade.
+If the credit facility is not
+guaranteed or if the guarantor
+does not have a rating, enter
+‘NA’"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|49|Entity Internal ID (EntityInternalI D)|Entity Internal ID (EntityInternalI D)|CLCEM300|Report the reporting BHC’s or IHC’s or SLHC’s unique internal identifier for the entity that is t...|Dynamic|Mandatory|"Must not contain a carriage
+return, line feed, comma or any
+unprintable character.
+Leave blank if the entity is the
+same as the Obligor identified
+in Field 2."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|50|Entity Name (EntityName)|Entity Name (EntityName)|CLCE9017|Report the name of the entity that is the primary source of repayment for the facility in Field 1...|Dynamic|Mandatory|"Must not contain a carriage
+return, line feed, comma or any
+unprintable character.
+Leave blank if the entity is the
+same as the Obligor identified
+in Field 2."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|51|Entity Internal Risk Rating (EntityInternalRi skRating)|Entity Internal Risk Rating (EntityInternalRi skRating)|CLCEG080|For the entity identified in Field 49, report the entity rating grade from the reporting BHC’s or...|Dynamic|Mandatory|"Free text indicating the entity
+rating grade.
+Leave blank if the entity is the
+same as the Obligor identified
+in Field 2."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|52|Date of Financials (DateFinancials)|Date of Financials (DateFinancials)|CLCE9999|Report the as of date of the financial information, related to the entity identified in Field 2 o...|Dynamic|Mandatory|"Must be in yyyy- mm-dd format,
+e.g.:
+2005-02-01
+1999-12-14"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|53|Date of Last Audit (DateLastAudit)|Date of Last Audit (DateLastAudit)|CLCE4929|Report the date of the last audited financial statements of the entity identified in Field 2 or F...|Dynamic|Mandatory|"Must be in yyyy- mm-dd format,
+e.g.:
+2005-02-01
+1999-12-14"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|54|Net Sales Current (NetSalesCurrent )|Net Sales Current (NetSalesCurrent )|CLCEM301|Report the gross sales of the entity identified in Field 2 or Field 49 reduced by cash discounts,...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.:
+20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|54|Renewal Date (RenewalDate)|Renewal Date (RenewalDate)|9999|If the credit facility has been renewed per the terms of the original loan agreement, re-priced, ...|Dynamic|Mandatory|"Must be in yyyy- mm-dd format,
+e.g.:
+2005-02-01
+1999-12-14"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|55|Net Sales Prior Year (NetSalesPriorYe ar)|Net Sales Prior Year (NetSalesPriorYe ar)|CLCEM302|Report the gross sales of the entity identified in Field 2 or Field 49 reduced by cash discounts,...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.:
+20000000
+Supply numeric values without
+any non-numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|55|Credit Facility Currency (CreditFacility Currency)|Credit Facility Currency (CreditFacility Currency)|4217|Indicate the currency denomination for contractual principal and interest payments on the credit ...|Dynamic|Mandatory|"Standard ISO 4127 three-letter
+currency codes available at
+http://www.iso.org/iso/currency_c
+odes"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|56|Current Occupancy Date (CurrentOccup ancyDate)|Current Occupancy Date (CurrentOccup ancyDate)|2005|Report the date on which the most recent occupancy level indicated in Field 23 (Current Occupancy...|Dynamic|Mandatory|"Must be in yyyy-mm-dd format, e.g.:
+2005-02-01
+1999-12-14
+Must be before or equal to report
+date.
+This date may be Null (i.e. blank) if
+the Current Occupancy (Field 23) is
+‘NA’."|2|Schedule B: Securities
+FR Y-14Q|Schedule H: Wholesale Risk|57|Current Value Basis (CurrentValue Basis)|Current Value Basis (CurrentValue Basis)|2010|Provide integer code if the Current Value in Field 42 was calculated using an “as is,” “as stabil...|Dynamic|Mandatory|"1. As Is
+2. As Stabilized
+3. As Completed"|2|Schedule E: Operational Risk
+FR Y-14Q|Schedule H: Wholesale Risk|58|Interest Expense (InterestExpense )|Interest Expense (InterestExpense )|CLCEM305|Report the periodic expense to the entity identified in Field 2 or Field 49 of securing short and...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.:
+20000000
+Supply numeric values without
+any non-numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|59|Net Income Current (NetIncomeCurr ent)|Net Income Current (NetIncomeCurr ent)|CLCEM306|Report the income (or loss) reported by the entity identified in Field 2 or Field 49 after expens...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.:
+20000000
+Supply numeric values without
+any non-numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|59|Participation Interest (ParticipationI nterest)|Participation Interest (ParticipationI nterest)|0005|For participated or syndicated credit facilities, report the percentage of the total loan commitm...|Dynamic|Mandatory|"Express as a decimal to 4 decimal
+places, e.g., 0.05% is 0.0005. Use
+decimal format; do not use scientific
+notation."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|60|Net Income Prior Year (NetIncomePrior Year)|Net Income Prior Year (NetIncomePrior Year)|CLCEM307|Report the income (or loss) reported by the entity identified in Field 2 or Field 49 after expens...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.:
+20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|61|Cash & Marketable Securities (CashMarketable Securities)|Cash & Marketable Securities (CashMarketable Securities)|CLCEM308|Report the cash, depository accounts and marketable securities of the entity identified in Field ...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.:
+20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|62|Accounts Receivable (A/R) Current (AccountsReceiv ableCurrent)|Accounts Receivable (A/R) Current (AccountsReceiv ableCurrent)|CLCEM309|Report the money owed to the entity identified in Field 2 or Field 49 for merchandise or services...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|63|Accounts Receivable (A/R) Prior Year (AccountsReceiv ablePriorYear)|Accounts Receivable (A/R) Prior Year (AccountsReceiv ablePriorYear)|CLCEM310|Report the money owed to the entity identified in Field 2 or Field 49 for merchandise or services...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|63|ASC326-20 (ASC32620)|ASC326-20 (ASC32620)|ASC326|Report the allowance for credit losses per ASC 326- 20. Provide at the credit facility level if a...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without any
+non- numeric formatting such as
+no dollar signs, commas or
+decimals.
+Should be 0 if there is no ASC326-
+20 Reserve for the loan."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|64|Inventory Current (InventoryCurre nt)|Inventory Current (InventoryCurre nt)|CLCEM311|Report the value of the raw materials, work in process, supplies used in operations, finished goo...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|65|Inventory Prior Year (InventoryPriorY ear)|Inventory Prior Year (InventoryPriorY ear)|CLCEM312|Report the value of the raw materials, work in process, supplies used in operations, finished goo...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|65|Current Maturity Date (CurrentMatur ityDate)|Current Maturity Date (CurrentMatur ityDate)|9999|Report the maturity date as the last date upon which the funds must be repaid, exclusive of exten...|Dynamic|Mandatory|"Must be in yyyy- mm-dd format,
+e.g.:
+2005-02-01
+1999-12-14"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|66|Current Assets Current (CurrentAssetsCu rrent)|Current Assets Current (CurrentAssetsCu rrent)|CLCEM313|Report the cash, accounts receivable, inventory, and other assets of the entity identified in Fie...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|67|Current Assets Prior Year (CurrentAssetsPr iorYear)|Current Assets Prior Year (CurrentAssetsPr iorYear)|CLCEM314|Report the cash, accounts receivable, inventory, and other assets of the entity identified in Fie...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|68|Tangible Assets (TangibleAssets)|Tangible Assets (TangibleAssets)|CLCEM315|Report the assets of the entity identified in Field 2 or Field 49 having a physical existence, su...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|69|Fixed Assets (FixedAssets)|Fixed Assets (FixedAssets)|CLCEM316|Report the tangible property of the entity identified in Field 2 or Field 49 used in the business...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|70|Total Assets (TA) Current (TotalAssetsCurr ent)|Total Assets (TA) Current (TotalAssetsCurr ent)|CLCE2170|Report the sum of the current assets of the entity identified in Field 2 or Field 49 plus net pro...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.:
+20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|71|Total Assets (TA) Prior Year (TotalAssetsPrio rYear)|Total Assets (TA) Prior Year (TotalAssetsPrio rYear)|CLCEM317|Report the sum of the current assets of the entity identified in Field 2 or Field 49 plus net pro...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.:20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|72|Accounts Payable (A/P) Current (AccountsPayabl eCurrent)|Accounts Payable (A/P) Current (AccountsPayabl eCurrent)|CLCE3066|Report the obligations owed to the creditors of the entity identified in Field 2 or Field 49 aris...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|73|Accounts Payable (A/P) Prior Year (AccountsPayabl ePriorYear)|Accounts Payable (A/P) Prior Year (AccountsPayabl ePriorYear)|CLCEM325|Report the obligations owed to the creditors of the entity identified in Field 2 or Field 49 aris...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|74|Short Term Debt (ShortTermDebt )|Short Term Debt (ShortTermDebt )|CLCEM319|Report the debt obligations of the entity identified in Field 2 or Field 49 with a term of less t...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|75|Current Maturities of Long Term Debt (CurrentMaturiti esLongTermDebt )|Current Maturities of Long Term Debt (CurrentMaturiti esLongTermDebt )|CLCEM320|Report the portion of long-term debt of the entity identified in Field 2 or Field 49 due within o...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|76|Current Liabilities Current (CurrentLiabiliti esCurrent)|Current Liabilities Current (CurrentLiabiliti esCurrent)|CLCEM321|Report the short-term debt, accounts payable and other current liabilities of the entity identifi...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|77|Current Liabilities Prior Year (CurrentLiabiliti esPriorYear)|Current Liabilities Prior Year (CurrentLiabiliti esPriorYear)|CLCEM322|Report the short-term debt, accounts payable and other current liabilities of the entity identifi...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|78|Long Term Debt (LongTermDebt)|Long Term Debt (LongTermDebt)|CLCEM323|Report the liabilities of the entity identified in Field 2 or Field 49 that are due in one year o...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|79|Minority Interest (MinorityInteres t)|Minority Interest (MinorityInteres t)|CLCE4484|Report the interest of shareholders who, in the aggregate, own less than half the shares in a cor...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal).
+Enter ‘NA’ if not applicable."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|80|Total Liabilities (TotalLiabilities)|Total Liabilities (TotalLiabilities)|CLCE2950|Report the sum of current liabilities plus long- term debt plus other non-current liabilities (in...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|81|Retained Earnings (RetainedEarnin gs)|Retained Earnings (RetainedEarnin gs)|CLCE3247|Report the cumulative retained earnings of the entity identified in Field 2 or Field 49 less tota...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|82|Capital Expenditures (CapitalExpendit ures)|Capital Expenditures (CapitalExpendit ures)|CLCEM324|Report the funds used to acquire a long-term asset resulting in depreciation deductions over the ...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+(no dollar sign, commas or
+decimal)."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|88|Probability of Default (PD) (ProbabilityOfDe fault)|Probability of Default (PD) (ProbabilityOfDe fault)|0005|For firms that are subject to the advanced approaches for regulatory capital, report the advanced...|Dynamic|Mandatory|"Express as a decimal to 4
+decimal places, e.g., 0.05% is
+0.0005; 100% is 1. Use decimal
+format; do not use scientific
+notation.
+If the reporting entity does not
+assign a PD estimate to the
+Obligor Internal Risk Rating,
+report ‘NA.’"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|89|Loss Given Default (LGD)|Loss Given Default (LGD)|CLCOG081|For firms that are subject to the advanced approaches for regulatory capital, report the advanced...|Dynamic|Mandatory|"Express as a decimal to 4
+decimal places, e.g., 0.05% is
+0.0005. Use decimal format; do
+not use scientific notation.
+If the reporting entity does not
+assign a credit facility LGD
+estimate, report ‘NA.’"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|91|Renewal Date (RenewalDate)|Renewal Date (RenewalDate)|9999|If the credit facility has been renewed per the terms of the original loan agreement, re-priced, ...|Dynamic|Mandatory|"Must be in yyyy-mm-dd format,
+e.g.:
+2005-02-01
+1999-12-14"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|92|Credit Facility Currency (CreditFacilityCu rrency)|Credit Facility Currency (CreditFacilityCu rrency)|4217|Indicate the currency denomination for contractual principal and interest payments on the credit ...|Dynamic|Mandatory|"Standard ISO 4127 three-letter
+currency codes available at
+http://www.iso.org/iso/curren
+cy_codes"|1|
+FR Y-14Q|Schedule H: Wholesale Risk|96|Participation Interest (ParticipationInt erest)|Participation Interest (ParticipationInt erest)|0005|For participated or syndicated credit facilities that have closed and settled, report the percent...|Dynamic|Mandatory|"Express as a decimal to 4
+decimal places, e.g., 0.05% is
+0.0005. Use decimal format; do
+not use scientific notation.
+Report NA if the credit facility is
+reported as options 1, 2, or 3 in
+Field 100.
+For fronting exposures, report 1."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|101|Target Hold (TargetHold)|Target Hold (TargetHold)|0005|For loans in the syndicated loan pipeline (Options 1, 2 or 3 in Field 100), report the percentage...|Dynamic|Mandatory|"Express as a decimal to 4
+decimal places, e.g., 0.05% is
+0.0005. Use decimal format;
+do not use scientific notation.
+Report NA if the credit facility
+is reported as option 0 or 4 in
+Field 100."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|102|ASC326-20 (ASC32620)|ASC326-20 (ASC32620)|ASC326|Report the allowance for credit losses per ASC 326-20. Provide at the credit facility level if av...|Dynamic|Mandatory|"Rounded whole dollar amount,
+e.g.: 20000000
+Supply numeric values without
+any non- numeric formatting
+such as dollar sign, commas or
+decimals.
+Should be 0 if there is no
+ASC326-20 Reserve for the
+loan."|1|
+FR Y-14Q|Schedule H: Wholesale Risk|104|Current Maturity Date (CurrentMaturit yDate)|Current Maturity Date (CurrentMaturit yDate)|9999|Report the maturity date as the last date upon which the funds must be repaid, exclusive of exten...|Dynamic|Mandatory|"Must be in yyyy- mm-dd format,
+e.g.:
+2005-02-01
+1999-12-14"|1|
+FR Y-14Q|Schedule H: Wholesale Risk||te)|te)|1999|becomes a legally binding commitment). If there has been a major modification to the loan such th...|Dynamic|Mandatory|"1999-12-14
+Must be before or equal to the
+period end date of the data."|1|
+FR Y-14Q|Schedule L: Counterparty|10|consolidated counterparties with the largest sensitivities to a given risk factor (i.e. top 10 by...|consolidated counterparties with the largest sensitivities to a given risk factor (i.e. top 10 by...|CACUR526|) Report the risk factor category associated with the reported sensitivity. The risk factors cons...|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule L: Counterparty||Vanilla Interest Rate|Vanilla Interest Rate|CACSR592|CACSR606|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule L: Counterparty||Vanilla FX|Vanilla FX|CACSR593|CACSR607|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule L: Counterparty||Vanilla Commodity (Cash)|Vanilla Commodity (Cash)|CACSR594|CACSR608|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule L: Counterparty||Vanilla Credit|Vanilla Credit|CACSR595|CACSR609|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule L: Counterparty||Vanilla Equity|Vanilla Equity|CACSR596|CACSR610|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule L: Counterparty||Structured Interest Rate|Structured Interest Rate|CACSR597|CACSR611|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule L: Counterparty||Flow Exotic and Structured FX|Flow Exotic and Structured FX|CACSR598|CACSR612|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule L: Counterparty||Other Cash & Physical Commodity|Other Cash & Physical Commodity|CACSR599|CACSR613|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule L: Counterparty||Other (Single Name) Credit|Other (Single Name) Credit|CACSR600|CACSR614|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule L: Counterparty||Structured (Multi-Name) Credit|Structured (Multi-Name) Credit|CACSR601|CACSR615|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule L: Counterparty||Exotic Equity|Exotic Equity|CACSR602|CACSR616|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule L: Counterparty||Hybrids|Hybrids|CACSR603|CACSR617|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule L: Counterparty||Structured Products (MBS, ABS, TBAs)|Structured Products (MBS, ABS, TBAs)|CACSR604|CACSR618|Dynamic|Mandatory||1|
+FR Y-14Q|Schedule L: Counterparty||Other|Other|CACSR605|CACSR655|Dynamic|Mandatory||1|

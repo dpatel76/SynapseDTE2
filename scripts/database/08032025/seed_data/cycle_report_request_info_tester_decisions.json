@@ -1,0 +1,22 @@
+{
+  "table": "cycle_report_request_info_tester_decisions",
+  "row_count": 1,
+  "extracted_at": "2025-08-03T11:29:28.843907",
+  "data": [
+    {
+      "id": 1,
+      "phase_id": 471,
+      "evidence_id": 15,
+      "test_case_id": 74,
+      "decision": "approved",
+      "decision_notes": "Evidence approved",
+      "decision_date": "2025-07-31T17:19:31.064022",
+      "decided_by": 3,
+      "requires_resubmission": false,
+      "resubmission_deadline": null,
+      "follow_up_instructions": null,
+      "created_at": "2025-07-31T17:19:31.064025",
+      "updated_at": "2025-07-31T17:19:31.064027"
+    }
+  ]
+}

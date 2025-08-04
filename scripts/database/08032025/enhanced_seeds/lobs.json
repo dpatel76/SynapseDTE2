@@ -1,0 +1,38 @@
+[
+  {
+    "lob_id": 1,
+    "lob_name": "Consumer Banking",
+    "lob_code": "CB",
+    "description": "Consumer banking operations including retail accounts and loans",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "lob_id": 2,
+    "lob_name": "Commercial Banking",
+    "lob_code": "CMB",
+    "description": "Commercial banking operations for business clients",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "lob_id": 3,
+    "lob_name": "Investment Banking",
+    "lob_code": "IB",
+    "description": "Investment banking and capital markets",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "lob_id": 4,
+    "lob_name": "Wealth Management",
+    "lob_code": "WM",
+    "description": "Private wealth and asset management",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  }
+]

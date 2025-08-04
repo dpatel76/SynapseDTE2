@@ -1,0 +1,119 @@
+import React from 'react';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Stepper,
+  Step,
+  StepLabel,
+  StepContent,
+  Button,
+  Box,
+  Chip,
+  LinearProgress
+} from '@mui/material';
+import { PhaseStep } from '../hooks/usePhaseSteps';
+
+interface PhaseStepperCardProps {
+  title: string;
+  steps: PhaseStep[];
+  progress: number;
+  completedWorkSteps: number;
+  totalWorkSteps: number;
+}
+
+export const PhaseStepperCard: React.FC<PhaseStepperCardProps> = ({
+  title,
+  steps,
+  progress,
+  completedWorkSteps,
+  totalWorkSteps
+}) => {
+  const getStepColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'success';
+      case 'active':
+        return 'primary';
+      case 'pending':
+      default:
+        return 'default';
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="h6">{title}</Typography>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Chip
+              label={`${completedWorkSteps}/${totalWorkSteps} tasks`}
+              color="primary"
+              size="small"
+            />
+            <Typography variant="body2" color="text.secondary">
+              {progress.toFixed(0)}%
+            </Typography>
+          </Box>
+        </Box>
+        
+        <LinearProgress 
+          variant="determinate" 
+          value={progress} 
+          sx={{ mb: 3, height: 8, borderRadius: 1 }}
+        />
+
+        <Stepper orientation="vertical">
+          {steps.map((step, index) => (
+            <Step key={index} active={step.status === 'active'}>
+              <StepLabel
+                StepIconProps={{
+                  color: getStepColor(step.status) as any,
+                  sx: {
+                    ...(step.isWorkActivity ? {} : { opacity: 0.5 })
+                  }
+                }}
+              >
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Typography
+                    variant="body1"
+                    color={step.isWorkActivity ? 'text.primary' : 'text.secondary'}
+                    sx={{ fontWeight: step.isWorkActivity ? 500 : 400 }}
+                  >
+                    {step.label}
+                  </Typography>
+                  {!step.isWorkActivity && (
+                    <Chip label="Setup" size="small" variant="outlined" />
+                  )}
+                </Box>
+              </StepLabel>
+              <StepContent>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  {step.description}
+                </Typography>
+                {step.showButton && step.buttonAction && (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={step.buttonAction}
+                    sx={{ mt: 1 }}
+                  >
+                    {step.buttonText}
+                  </Button>
+                )}
+              </StepContent>
+            </Step>
+          ))}
+        </Stepper>
+
+        <Box mt={3} p={2} bgcolor="grey.50" borderRadius={1}>
+          <Typography variant="caption" color="text.secondary">
+            Progress is calculated based on {totalWorkSteps} work activities, 
+            excluding phase setup and completion steps.
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+};

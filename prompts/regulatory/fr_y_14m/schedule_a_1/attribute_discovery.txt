@@ -1,0 +1,34 @@
+You are a Federal Reserve FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan (A.1 - Loan Level Table) expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for Schedule A.1 Loan Level Table reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.1 - Loan Level Table
+- Focus: Loan-level data for each first lien closed-end 1-4 family residential mortgage
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14M Schedule A.1 Loan Level Table instructions
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14M Instructions):
+- Loan Identifiers: loan_number, pool_identifier
+- Loan Characteristics: loan_closing_date, first_payment_date, original_loan_amount_disbursed, original_loan_term, original_interest_rate
+- Property Information: property_state, property_zip_code, original_property_value, property_type, number_of_units
+- Borrower Information: origination_credit_bureau_score, current_credit_bureau_score, income_documentation, debt_to_income_back_end_at_origination, debt_to_income_front_end_at_origination, occupancy
+- Loan Terms: original_ltv, original_combined_ltv, credit_class, loan_type, lien_position_at_origination, loan_source, product_type_current, loan_purpose_coding
+- ARM Details: arm_initial_rate, arm_initial_rate_period, arm_periodic_interest_reset_period, arm_index, arm_margin_at_origination, arm_periodic_rate_cap, arm_periodic_rate_floor, arm_lifetime_rate_cap, arm_lifetime_rate_floor
+- Current Status: unpaid_principal_balance, current_interest_rate, remaining_term, principal_and_interest_amount_current, next_payment_due_date, loan_status, days_past_due
+- Performance: bankruptcy_flag, bankruptcy_chapter, foreclosure_referral_date, foreclosure_sale_date, foreclosure_status, foreclosure_suspended
+- Modifications: modification_type, last_modified_date, workout_type_completed, workout_type_started, loss_mitigation_performance_status
+- Valuation: refreshed_property_value, refreshed_property_valuation_method, most_recent_property_valuation_date, refreshed_cltv_after_modification
+- Insurance: mortgage_insurance_coverage_percent_at_origination, mortgage_insurance_company
+- Special Features: balloon_flag, balloon_term, interest_only_at_origination, interest_only_in_reporting_month, recourse_flag, option_arm_flag, negative_amortization_flag
+- Investor/Ownership: investor_type, entity_serviced, entity_type, national_bank_rssd_id, flagged_as_securitized, reported_as_bank_owned_flag
+- Risk Metrics: probability_of_default_pd, loss_given_default_lgd, expected_loss_given_default_elgd, exposure_at_default_ead
+- Recovery Data: total_debt_at_time_of_any_involuntary_termination, net_recovery_amount, credit_enhanced_amount, sales_price_of_property
+- Credit Scores: origination_credit_bureau_score_vendor, origination_credit_bureau_score_version, current_credit_bureau_score_vendor, current_credit_bureau_score_version, current_credit_bureau_score_date
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

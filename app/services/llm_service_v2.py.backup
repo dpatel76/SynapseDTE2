@@ -1,0 +1,546 @@
+"""
+Enhanced LLM Service V2
+Uses centralized configuration for batch sizes and parameters
+"""
+
+import logging
+from typing import Dict, Any, List, Optional, Tuple
+from datetime import datetime
+import asyncio
+from abc import ABC, abstractmethod
+
+import anthropic
+import google.generativeai as genai
+
+from app.core.config import get_settings
+from app.core.llm_config import (
+    LLMConfiguration, LLMProvider, LLMOperation,
+    RegulationPromptMapping, get_llm_config
+)
+from app.services.prompt_manager import get_prompt_manager
+from app.models.llm_audit import LLMAuditLog
+
+logger = logging.getLogger(__name__)
+settings = get_settings()
+
+
+class LLMProviderBase(ABC):
+    """Base class for LLM providers"""
+    
+    def __init__(self, provider: LLMProvider):
+        self.provider = provider
+        self.config = LLMConfiguration.get_provider_config(provider, settings)
+        self.metrics = {
+            "total_requests": 0,
+            "successful_requests": 0,
+            "failed_requests": 0,
+            "total_tokens": 0,
+            "total_cost": 0.0,
+            "total_duration": 0.0
+        }
+    
+    @abstractmethod
+    async def generate(self, prompt: str, system_prompt: Optional[str] = None) -> Dict[str, Any]:
+        """Generate response from LLM"""
+        pass
+    
+    @abstractmethod
+    async def health_check(self) -> Dict[str, Any]:
+        """Check provider health"""
+        pass
+    
+    def update_metrics(self, tokens: int, duration: float, success: bool, cost: float = 0.0):
+        """Update provider metrics"""
+        self.metrics["total_requests"] += 1
+        if success:
+            self.metrics["successful_requests"] += 1
+        else:
+            self.metrics["failed_requests"] += 1
+        self.metrics["total_tokens"] += tokens
+        self.metrics["total_cost"] += cost
+        self.metrics["total_duration"] += duration
+    
+    def get_batch_size(self, operation: LLMOperation, optimization: str = "default") -> int:
+        """Get batch size for operation"""
+        return LLMConfiguration.get_batch_size(self.provider, operation, optimization)
+
+
+class ClaudeProviderV2(LLMProviderBase):
+    """Enhanced Claude provider with configuration support"""
+    
+    def __init__(self):
+        super().__init__(LLMProvider.CLAUDE)
+        api_key = settings.anthropic_api_key
+        
+        if not api_key:
+            raise ValueError("ANTHROPIC_API_KEY is not set")
+        
+        self.client = anthropic.AsyncAnthropic(api_key=api_key)
+        logger.info(f"Claude provider initialized with model: {self.config.model}")
+    
+    async def generate(self, prompt: str, system_prompt: Optional[str] = None) -> Dict[str, Any]:
+        """Generate response using Claude API"""
+        start_time = datetime.utcnow()
+        
+        try:
+            messages = [{"role": "user", "content": prompt}]
+            
+            message = await self.client.messages.create(
+                model=self.config.model,
+                max_tokens=self.config.max_tokens,
+                temperature=self.config.temperature,
+                system=system_prompt,
+                messages=messages
+            )
+            
+            duration = (datetime.utcnow() - start_time).total_seconds()
+            
+            # Calculate cost
+            input_tokens = message.usage.input_tokens
+            output_tokens = message.usage.output_tokens
+            total_tokens = input_tokens + output_tokens
+            
+            # Claude pricing (approximate)
+            cost = (input_tokens * 3.0 + output_tokens * 15.0) / 1_000_000
+            
+            self.update_metrics(total_tokens, duration, True, cost)
+            
+            return {
+                "success": True,
+                "content": message.content[0].text,
+                "model": self.config.model,
+                "timestamp": start_time.isoformat(),
+                "usage": {
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                    "total_tokens": total_tokens
+                },
+                "cost": cost
+            }
+            
+        except Exception as e:
+            duration = (datetime.utcnow() - start_time).total_seconds()
+            self.update_metrics(0, duration, False)
+            raise Exception(f"Claude API error: {str(e)}")
+    
+    async def health_check(self) -> Dict[str, Any]:
+        """Check Claude service health"""
+        try:
+            response = await self.generate("Respond with 'OK' to confirm service is working.")
+            
+            if response.get("success") and "OK" in response.get("content", ""):
+                return {
+                    "provider": "claude",
+                    "status": "healthy",
+                    "model": self.config.model
+                }
+            else:
+                return {
+                    "provider": "claude",
+                    "status": "unhealthy",
+                    "error": "Invalid response"
+                }
+                
+        except Exception as e:
+            return {
+                "provider": "claude",
+                "status": "unhealthy",
+                "error": str(e)
+            }
+
+
+class GeminiProviderV2(LLMProviderBase):
+    """Enhanced Gemini provider with configuration support"""
+    
+    def __init__(self):
+        super().__init__(LLMProvider.GEMINI)
+        api_key = settings.google_api_key
+        
+        if not api_key:
+            raise ValueError("GOOGLE_API_KEY is not set")
+        
+        genai.configure(api_key=api_key)
+        
+        try:
+            self.model = genai.GenerativeModel(
+                model_name=self.config.model,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=self.config.temperature,
+                    max_output_tokens=self.config.max_tokens
+                )
+            )
+        except Exception as e:
+            raise Exception(f"Failed to initialize Gemini model: {str(e)}")
+        
+        logger.info(f"Gemini provider initialized with model: {self.config.model}")
+    
+    async def generate(self, prompt: str, system_prompt: Optional[str] = None) -> Dict[str, Any]:
+        """Generate response using Gemini API"""
+        start_time = datetime.utcnow()
+        
+        try:
+            # Combine prompts for Gemini
+            if system_prompt:
+                full_prompt = f"{system_prompt}\n\n{prompt}"
+            else:
+                full_prompt = prompt
+            
+            response = await asyncio.to_thread(
+                self.model.generate_content,
+                full_prompt
+            )
+            
+            duration = (datetime.utcnow() - start_time).total_seconds()
+            
+            # Estimate tokens for Gemini
+            estimated_tokens = len(full_prompt.split()) + len(response.text.split())
+            cost = estimated_tokens * 0.0005 / 1000  # Approximate Gemini pricing
+            
+            self.update_metrics(estimated_tokens, duration, True, cost)
+            
+            return {
+                "success": True,
+                "content": response.text,
+                "model": self.config.model,
+                "timestamp": start_time.isoformat(),
+                "usage": {
+                    "estimated_tokens": estimated_tokens
+                },
+                "cost": cost
+            }
+            
+        except Exception as e:
+            duration = (datetime.utcnow() - start_time).total_seconds()
+            self.update_metrics(0, duration, False)
+            raise Exception(f"Gemini API error: {str(e)}")
+    
+    async def health_check(self) -> Dict[str, Any]:
+        """Check Gemini service health"""
+        try:
+            response = await self.generate("Respond with 'OK' to confirm service is working.")
+            
+            if response.get("success") and "OK" in response.get("content", ""):
+                return {
+                    "provider": "gemini",
+                    "status": "healthy",
+                    "model": self.config.model
+                }
+            else:
+                return {
+                    "provider": "gemini",
+                    "status": "unhealthy",
+                    "error": "Invalid response"
+                }
+                
+        except Exception as e:
+            return {
+                "provider": "gemini",
+                "status": "unhealthy",
+                "error": str(e)
+            }
+
+
+class HybridLLMServiceV2:
+    """Enhanced hybrid LLM service with proper configuration support"""
+    
+    def __init__(self):
+        self.providers = {}
+        self.provider_health = {}
+        self.llm_config = get_llm_config()
+        self.prompt_manager = get_prompt_manager()
+        
+        # Initialize providers
+        self._initialize_providers()
+    
+    def _initialize_providers(self):
+        """Initialize available LLM providers"""
+        # Initialize Claude if API key available
+        if settings.anthropic_api_key:
+            try:
+                self.providers["claude"] = ClaudeProviderV2()
+                self.provider_health["claude"] = {"status": "healthy", "last_check": datetime.utcnow()}
+                logger.info("Claude provider initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize Claude provider: {e}")
+        
+        # Initialize Gemini if API key available
+        if settings.google_api_key:
+            try:
+                self.providers["gemini"] = GeminiProviderV2()
+                self.provider_health["gemini"] = {"status": "healthy", "last_check": datetime.utcnow()}
+                logger.info("Gemini provider initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize Gemini provider: {e}")
+        
+        if not self.providers:
+            logger.error("No LLM providers initialized! Check API keys.")
+    
+    async def generate(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        preferred_provider: Optional[str] = None,
+        operation: LLMOperation = LLMOperation.GENERAL,
+        regulation: Optional[str] = None,
+        schedule: Optional[str] = None,
+        audit_metadata: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Generate response with provider selection and failover.
+        
+        Args:
+            prompt: User prompt
+            system_prompt: System prompt
+            preferred_provider: Preferred provider name
+            operation: Type of operation for batch size selection
+            regulation: Regulation for prompt selection
+            schedule: Schedule for prompt selection
+            audit_metadata: Additional metadata for audit logging
+        """
+        # Select provider
+        provider_name = self._select_provider(preferred_provider, regulation, schedule)
+        if not provider_name:
+            raise Exception("No available LLM providers")
+        
+        provider = self.providers[provider_name]
+        
+        # Get regulation-specific prompts if needed
+        if regulation:
+            prompt_path = RegulationPromptMapping.get_prompt_path(
+                regulation, schedule, operation.value
+            )
+            # Load and customize prompt from path
+            # This would integrate with prompt_manager
+        
+        try:
+            # Generate response
+            response = await provider.generate(prompt, system_prompt)
+            
+            # Audit logging
+            if settings.llm_audit_enabled:
+                await self._create_audit_log(
+                    provider_name, prompt, system_prompt,
+                    response, operation, regulation, schedule,
+                    audit_metadata
+                )
+            
+            return response
+            
+        except Exception as e:
+            logger.error(f"Provider {provider_name} failed: {e}")
+            
+            # Try failover
+            fallback_provider = self._get_fallback_provider(provider_name)
+            if fallback_provider:
+                logger.info(f"Failing over to {fallback_provider}")
+                provider = self.providers[fallback_provider]
+                response = await provider.generate(prompt, system_prompt)
+                
+                # Audit failover
+                if settings.llm_audit_enabled:
+                    await self._create_audit_log(
+                        fallback_provider, prompt, system_prompt,
+                        response, operation, regulation, schedule,
+                        {**audit_metadata, "failover_from": provider_name}
+                    )
+                
+                return response
+            
+            raise
+    
+    async def process_in_batches(
+        self,
+        items: List[Any],
+        prompt_template: str,
+        system_prompt: Optional[str] = None,
+        operation: LLMOperation = LLMOperation.GENERAL,
+        preferred_provider: Optional[str] = None,
+        optimization: str = "default",
+        progress_callback: Optional[callable] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Process items in batches with proper configuration.
+        
+        Args:
+            items: Items to process
+            prompt_template: Template for generating prompts
+            system_prompt: System prompt
+            operation: Operation type for batch sizing
+            preferred_provider: Preferred provider
+            optimization: "default", "speed", or "quality"
+            progress_callback: Callback for progress updates
+        """
+        if not items:
+            return []
+        
+        # Select provider
+        provider_name = self._select_provider(preferred_provider)
+        provider = self.providers[provider_name]
+        
+        # Get batch size from configuration
+        batch_size = provider.get_batch_size(operation, optimization)
+        
+        # Dynamic adjustment based on input
+        avg_item_size = sum(len(str(item)) for item in items[:10]) / min(10, len(items))
+        complexity = "high" if avg_item_size > 500 else "medium" if avg_item_size > 200 else "low"
+        
+        batch_size = LLMConfiguration.get_dynamic_batch_size(
+            LLMProvider(provider_name),
+            operation,
+            int(avg_item_size),
+            complexity
+        )
+        
+        logger.info(f"Processing {len(items)} items in batches of {batch_size} using {provider_name}")
+        
+        results = []
+        total_batches = (len(items) + batch_size - 1) // batch_size
+        
+        for i in range(0, len(items), batch_size):
+            batch = items[i:i + batch_size]
+            batch_num = i // batch_size + 1
+            
+            # Generate batch prompt
+            batch_prompt = self._generate_batch_prompt(batch, prompt_template)
+            
+            try:
+                # Process batch
+                response = await self.generate(
+                    batch_prompt,
+                    system_prompt,
+                    provider_name,
+                    operation
+                )
+                
+                # Parse batch results
+                batch_results = self._parse_batch_response(response["content"], batch)
+                results.extend(batch_results)
+                
+                # Update progress
+                if progress_callback:
+                    await progress_callback(batch_num, total_batches, len(results))
+                
+            except Exception as e:
+                logger.error(f"Batch {batch_num} failed: {e}")
+                # Could implement retry logic here
+                raise
+        
+        return results
+    
+    def _select_provider(
+        self,
+        preferred: Optional[str] = None,
+        regulation: Optional[str] = None,
+        schedule: Optional[str] = None
+    ) -> Optional[str]:
+        """Select best available provider"""
+        # Check for regulation-specific preferences
+        if regulation and schedule:
+            special = RegulationPromptMapping.get_special_handling(regulation, schedule)
+            if special and "preferred_provider" in special:
+                preferred = special["preferred_provider"]
+        
+        # Use preferred if available and healthy
+        if preferred and preferred in self.providers:
+            if self.provider_health.get(preferred, {}).get("status") == "healthy":
+                return preferred
+        
+        # Return first healthy provider
+        for name, health in self.provider_health.items():
+            if health.get("status") == "healthy":
+                return name
+        
+        # Return any available provider
+        return list(self.providers.keys())[0] if self.providers else None
+    
+    def _get_fallback_provider(self, failed_provider: str) -> Optional[str]:
+        """Get fallback provider"""
+        for name in self.providers:
+            if name != failed_provider and self.provider_health.get(name, {}).get("status") == "healthy":
+                return name
+        return None
+    
+    def _generate_batch_prompt(self, items: List[Any], template: str) -> str:
+        """Generate prompt for batch processing"""
+        # Simple implementation - could be enhanced
+        items_text = "\n".join(f"Item {i+1}: {item}" for i, item in enumerate(items))
+        return template.format(items=items_text, count=len(items))
+    
+    def _parse_batch_response(self, response: str, items: List[Any]) -> List[Dict[str, Any]]:
+        """Parse batch response into individual results"""
+        # Simple implementation - would need proper parsing logic
+        results = []
+        for i, item in enumerate(items):
+            results.append({
+                "item": item,
+                "result": f"Processed result for item {i+1}",
+                "confidence": 0.9
+            })
+        return results
+    
+    async def _create_audit_log(
+        self,
+        provider: str,
+        prompt: str,
+        system_prompt: Optional[str],
+        response: Dict[str, Any],
+        operation: LLMOperation,
+        regulation: Optional[str],
+        schedule: Optional[str],
+        metadata: Optional[Dict[str, Any]]
+    ):
+        """Create audit log entry"""
+        # This would integrate with your audit logging system
+        log_entry = {
+            "provider": provider,
+            "operation": operation.value,
+            "regulation": regulation,
+            "schedule": schedule,
+            "prompt_length": len(prompt),
+            "response_length": len(response.get("content", "")),
+            "tokens": response.get("usage", {}).get("total_tokens", 0),
+            "cost": response.get("cost", 0),
+            "timestamp": datetime.utcnow(),
+            "metadata": metadata
+        }
+        logger.info(f"LLM Audit: {log_entry}")
+    
+    async def health_check(self) -> Dict[str, Any]:
+        """Check health of all providers"""
+        health_status = {}
+        
+        for name, provider in self.providers.items():
+            health = await provider.health_check()
+            self.provider_health[name] = {
+                "status": health["status"],
+                "last_check": datetime.utcnow(),
+                "details": health
+            }
+            health_status[name] = health
+        
+        return {
+            "providers": health_status,
+            "available_providers": [
+                name for name, health in health_status.items()
+                if health["status"] == "healthy"
+            ]
+        }
+    
+    def get_metrics(self) -> Dict[str, Any]:
+        """Get metrics for all providers"""
+        metrics = {}
+        for name, provider in self.providers.items():
+            metrics[name] = provider.metrics
+        return metrics
+
+
+# Service management
+_llm_service = None
+
+
+def get_llm_service() -> HybridLLMServiceV2:
+    """Get or create LLM service instance"""
+    global _llm_service
+    if _llm_service is None:
+        _llm_service = HybridLLMServiceV2()
+    return _llm_service

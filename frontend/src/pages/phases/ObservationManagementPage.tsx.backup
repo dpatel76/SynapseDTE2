@@ -1,0 +1,1363 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Paper,
+  Typography,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  IconButton,
+  Dialog,
+  CircularProgress,
+  AlertTitle,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  Stepper,
+  Step,
+  StepLabel,
+  Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tabs,
+  Tab,
+  Divider,
+  LinearProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Badge,
+  Avatar,
+  Rating,
+} from '@mui/material';
+import {
+  BugReport,
+  CheckCircle,
+  Error,
+  Warning,
+  Visibility,
+  Edit,
+  Add,
+  Assignment,
+  Person,
+  Timer,
+  Assessment,
+  ExpandMore,
+  Science,
+  Analytics,
+  Schedule,
+  TrendingUp,
+  Flag,
+  Send,
+  Security,
+} from '@mui/icons-material';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../../contexts/AuthContext';
+import { usePermissions } from '../../contexts/PermissionContext';
+import { PermissionGate } from '../../components/auth/PermissionGate';
+import { useParams } from 'react-router-dom';
+import apiClient from '../../api/client';
+import { usePhaseStatus, getStatusColor, getStatusIcon, formatStatusText } from '../../hooks/useUnifiedStatus';
+import { DynamicActivityCardsEnhanced as DynamicActivityCards } from '../../components/phase/DynamicActivityCardsEnhanced';
+// import WorkflowProgress from '../../components/WorkflowProgress';
+
+// Types for Observation Management Phase
+interface Observation {
+  observation_id: string;
+  test_case_id: string;
+  test_name: string;
+  attribute_name: string;
+  observation_type: 'Data Quality Issue' | 'Calculation Error' | 'Business Rule Violation' | 'System Error' | 'Process Gap';
+  severity: 'Low' | 'Medium' | 'High' | 'Critical';
+  status: 'Open' | 'In Review' | 'Assigned' | 'In Progress' | 'Resolved' | 'Closed' | 'Deferred';
+  description: string;
+  impact_assessment: string;
+  root_cause?: string;
+  recommended_action: string;
+  assigned_to?: string;
+  created_by: string;
+  created_date: string;
+  due_date?: string;
+  resolved_date?: string;
+  resolution_notes?: string;
+  evidence_files?: string[];
+  risk_rating: number; // 1-5 scale
+}
+
+interface Resolution {
+  resolution_id: string;
+  observation_id: string;
+  resolution_type: 'Fix Applied' | 'Process Change' | 'Documentation Update' | 'Training Required' | 'System Enhancement' | 'Risk Accepted';
+  resolution_description: string;
+  implemented_by: string;
+  implementation_date: string;
+  verification_status: 'Pending' | 'Verified' | 'Failed';
+  verification_notes?: string;
+}
+
+interface ObservationManagementPhase {
+  phase_id: string;
+  phase_status: string;
+  observation_deadline: Date;
+  days_until_deadline: number;
+  total_observations: number;
+  auto_detected_observations: number;
+  manual_observations: number;
+  approved_observations: number;
+  rejected_observations: number;
+  pending_observations: number;
+  completion_percentage: number;
+  detection_rate: number;
+  critical_observations?: number;
+  average_resolution_time: number;
+  started_at?: string;
+  completed_at?: string;
+}
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
+const ObservationManagementPage: React.FC = () => {
+  const { user } = useAuth();
+  const { hasPermission } = usePermissions();
+  const queryClient = useQueryClient();
+  const { cycleId, reportId } = useParams<{ cycleId: string; reportId: string }>();
+  
+  const cycleIdNum = cycleId ? parseInt(cycleId, 10) : 0;
+  const reportIdNum = reportId ? parseInt(reportId, 10) : 0;
+  
+  const { data: unifiedPhaseStatus, isLoading: statusLoading, refetch: refetchStatus } = usePhaseStatus('Observations', cycleIdNum, reportIdNum);
+  
+  // State management
+  const [selectedCycleId, setSelectedCycleId] = useState<number | null>(cycleId ? parseInt(cycleId) : null);
+  const [selectedReportId, setSelectedReportId] = useState<number | null>(reportId ? parseInt(reportId) : null);
+  const [observationDialogOpen, setObservationDialogOpen] = useState(false);
+  const [resolutionDialogOpen, setResolutionDialogOpen] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [selectedObservation, setSelectedObservation] = useState<Observation | null>(null);
+  const [activeStep, setActiveStep] = useState(0);
+  const [tabValue, setTabValue] = useState(0);
+  const [filterStatus, setFilterStatus] = useState<'All' | 'Open' | 'In Progress' | 'Resolved' | 'Critical'>('All');
+
+  // Form state
+  const [newObservation, setNewObservation] = useState({
+    test_case_id: '',
+    observation_type: 'Data Quality Issue',
+    severity: 'Medium',
+    description: '',
+    impact_assessment: '',
+    recommended_action: '',
+    due_date: '',
+    risk_rating: 3,
+  });
+
+  const [resolutionForm, setResolutionForm] = useState({
+    resolution_type: 'Fix Applied',
+    resolution_description: '',
+    verification_notes: '',
+  });
+
+  // Workflow steps
+  const steps = [
+    'Capture Observations',
+    'Assess Impact',
+    'Assign Resources',
+    'Implement Solutions',
+    'Verify Resolutions'
+  ];
+
+  // Fetch phase status
+  const { data: phaseStatus, isLoading: phaseLoading, error: phaseError } = useQuery({
+    queryKey: ['observation-phase-status', selectedCycleId, selectedReportId],
+    queryFn: async () => {
+      if (!selectedCycleId || !selectedReportId) return null;
+      try {
+        const response = await apiClient.get(
+          `/observation-management/${selectedCycleId}/reports/${selectedReportId}/status`
+        );
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching observation phase status:', error);
+        // Return mock data on error to ensure cards show
+        return null;
+      }
+    },
+    enabled: !!selectedCycleId && !!selectedReportId,
+  });
+
+  // Helper function to map backend observation to frontend format
+  const mapObservationFromBackend = (backendObs: any): Observation => {
+    // Map severity from backend format to frontend format
+    const mapSeverity = (severity: string): 'Low' | 'Medium' | 'High' | 'Critical' => {
+      switch (severity?.toUpperCase()) {
+        case 'CRITICAL': return 'Critical';
+        case 'HIGH': return 'High';
+        case 'MEDIUM': return 'Medium';
+        case 'LOW': return 'Low';
+        default: return 'Medium';
+      }
+    };
+
+    // Map observation type
+    const mapObservationType = (type: string): Observation['observation_type'] => {
+      if (type === 'Data Quality') return 'Data Quality Issue';
+      return 'Data Quality Issue'; // Default for now
+    };
+
+    // Map status
+    const mapStatus = (status: string): Observation['status'] => {
+      switch (status) {
+        case 'Detected': return 'Open';
+        case 'In Review': return 'In Review';
+        case 'Resolved': return 'Resolved';
+        default: return 'Open';
+      }
+    };
+
+    return {
+      observation_id: backendObs.observation_id?.toString() || '',
+      test_case_id: backendObs.source_test_execution_id?.toString() || '',
+      test_name: `Test Execution ${backendObs.source_test_execution_id || 'N/A'}`,
+      attribute_name: `Attribute ${backendObs.source_attribute_id || 'N/A'}`,
+      observation_type: mapObservationType(backendObs.observation_type),
+      severity: mapSeverity(backendObs.severity),
+      status: mapStatus(backendObs.status),
+      description: backendObs.observation_description || '',
+      impact_assessment: backendObs.impact_description || 'Impact assessment pending',
+      recommended_action: 'Review and validate the observation',
+      created_by: `User ${backendObs.detected_by || 'System'}`,
+      created_date: backendObs.detected_at || new Date().toISOString(),
+      risk_rating: backendObs.severity === 'CRITICAL' ? 5 : backendObs.severity === 'HIGH' ? 4 : backendObs.severity === 'MEDIUM' ? 3 : 2,
+      evidence_files: [],
+      assigned_to: backendObs.assigned_to ? `User ${backendObs.assigned_to}` : undefined,
+      due_date: undefined,
+      resolved_date: undefined,
+      resolution_notes: undefined,
+      root_cause: undefined
+    };
+  };
+
+  // Fetch observations
+  const { data: observations = [], isLoading: observationsLoading, error: observationsError } = useQuery({
+    queryKey: ['observations', selectedCycleId, selectedReportId],
+    queryFn: async () => {
+      if (!selectedCycleId || !selectedReportId) return [];
+      const response = await apiClient.get(
+        `/observation-management/${selectedCycleId}/reports/${selectedReportId}/observations`
+      );
+      // Map backend response to frontend format
+      return response.data.map(mapObservationFromBackend);
+    },
+    enabled: !!selectedCycleId && !!selectedReportId,
+  });
+
+  // Fetch analytics
+  const { data: analytics, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['observation-analytics', selectedCycleId, selectedReportId],
+    queryFn: async () => {
+      if (!selectedCycleId || !selectedReportId) return null;
+      const response = await apiClient.get(
+        `/observation-management/${selectedCycleId}/reports/${selectedReportId}/analytics`
+      );
+      return response.data;
+    },
+    enabled: !!selectedCycleId && !!selectedReportId,
+  });
+
+  // Mock data for development (fallback if no data)
+  const mockPhase = {
+    phase_id: 'observation_mgmt_001',
+    phase_status: 'In Progress',
+    started_at: '2025-01-12T16:00:00Z',
+    total_observations: 12,
+    pending_observations: 4,
+    approved_observations: 8,
+    rejected_observations: 0,
+    critical_observations: 2,
+    completion_percentage: 0.67,
+    average_resolution_time: 3.2,
+    auto_detected_observations: 10,
+    manual_observations: 2,
+    observation_deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    days_until_deadline: 7,
+    detection_rate: 0.83,
+  };
+
+  const mockObservations: Observation[] = [
+    {
+      observation_id: 'obs_001',
+      test_case_id: 'tc_002',
+      test_name: 'Total Assets Calculation Logic',
+      attribute_name: 'Total_Assets',
+      observation_type: 'Calculation Error',
+      severity: 'Critical',
+      status: 'In Progress',
+      description: 'Total Assets calculation shows 2.3% variance from expected values. The discrepancy appears to be in the derivative valuation component.',
+      impact_assessment: 'High impact on regulatory reporting accuracy. Could lead to compliance issues if not resolved.',
+      root_cause: 'Mark-to-market valuation methodology inconsistency between systems.',
+      recommended_action: 'Update derivative valuation logic to align with regulatory requirements and ensure consistency across all calculation components.',
+      assigned_to: 'John Doe',
+      created_by: 'Jane Smith',
+      created_date: '2025-01-16T14:30:00Z',
+      due_date: '2025-01-25T17:00:00Z',
+      evidence_files: ['Total_Assets_Calculation_Analysis.xlsx', 'Derivative_Valuation_Comparison.pdf'],
+      risk_rating: 5,
+    },
+    {
+      observation_id: 'obs_002',
+      test_case_id: 'tc_001',
+      test_name: 'Institution Name Validation',
+      attribute_name: 'Institution_Name',
+      observation_type: 'Data Quality Issue',
+      severity: 'Low',
+      status: 'Resolved',
+      description: 'Two records found with trailing whitespace in Institution_Name field.',
+      impact_assessment: 'Minimal impact on data quality. Could cause minor display issues in reports.',
+      root_cause: 'Data entry process does not include automatic trimming of whitespace.',
+      recommended_action: 'Implement data cleansing rules to automatically trim whitespace from text fields.',
+      assigned_to: 'Alice Johnson',
+      created_by: 'Jane Smith',
+      created_date: '2025-01-15T11:00:00Z',
+      due_date: '2025-01-20T17:00:00Z',
+      resolved_date: '2025-01-18T09:30:00Z',
+      resolution_notes: 'Data cleansing rule implemented. All existing records cleaned and validation added to prevent future occurrences.',
+      evidence_files: ['Whitespace_Analysis.xlsx'],
+      risk_rating: 2,
+    },
+    {
+      observation_id: 'obs_003',
+      test_case_id: 'tc_003',
+      test_name: 'Reporting Date Consistency',
+      attribute_name: 'Reporting_Date',
+      observation_type: 'Business Rule Violation',
+      severity: 'Medium',
+      status: 'Open',
+      description: 'Three records show mid-month reporting dates instead of quarter-end dates for quarterly reporting.',
+      impact_assessment: 'Medium impact on data consistency. May indicate process gaps in data collection timing.',
+      recommended_action: 'Review data collection processes and implement validation to ensure quarter-end reporting dates.',
+      created_by: 'John Doe',
+      created_date: '2025-01-17T10:15:00Z',
+      due_date: '2025-01-30T17:00:00Z',
+      evidence_files: ['Reporting_Date_Analysis.pdf'],
+      risk_rating: 3,
+    },
+    {
+      observation_id: 'obs_004',
+      test_case_id: 'tc_004',
+      test_name: 'Subsidiary Count Business Logic',
+      attribute_name: 'Subsidiary_Count',
+      observation_type: 'Process Gap',
+      severity: 'High',
+      status: 'Assigned',
+      description: 'Subsidiary counting logic inconsistent with documented business rules. Some subsidiaries below materiality threshold are being included.',
+      impact_assessment: 'High impact on business logic accuracy. Could affect regulatory calculations and reporting.',
+      recommended_action: 'Update subsidiary counting logic to align with documented materiality thresholds and business rules.',
+      assigned_to: 'Michael Chen',
+      created_by: 'Jane Smith',
+      created_date: '2025-01-16T16:45:00Z',
+      due_date: '2025-01-28T17:00:00Z',
+      evidence_files: ['Subsidiary_Logic_Review.docx'],
+      risk_rating: 4,
+    },
+  ];
+
+  const mockResolutions: Resolution[] = [
+    {
+      resolution_id: 'res_001',
+      observation_id: 'obs_002',
+      resolution_type: 'Fix Applied',
+      resolution_description: 'Implemented automatic whitespace trimming in data validation pipeline and cleaned existing records.',
+      implemented_by: 'Alice Johnson',
+      implementation_date: '2025-01-18T09:30:00Z',
+      verification_status: 'Verified',
+      verification_notes: 'Tested with sample data. All whitespace issues resolved and new validation prevents recurrence.',
+    },
+  ];
+
+  // Handler functions
+  const handleCreateObservation = () => {
+    console.log('Creating observation:', newObservation);
+    // TODO: Implement observation creation API
+    setObservationDialogOpen(false);
+    setNewObservation({
+      test_case_id: '',
+      observation_type: 'Data Quality Issue',
+      severity: 'Medium',
+      description: '',
+      impact_assessment: '',
+      recommended_action: '',
+      due_date: '',
+      risk_rating: 3,
+    });
+  };
+
+  const handleResolveObservation = (observation: Observation) => {
+    setSelectedObservation(observation);
+    setResolutionDialogOpen(true);
+  };
+
+  const handleSaveResolution = () => {
+    console.log('Saving resolution:', resolutionForm);
+    // TODO: Implement resolution saving API
+    setResolutionDialogOpen(false);
+    setSelectedObservation(null);
+  };
+
+  const handleReviewObservation = (observation: Observation) => {
+    setSelectedObservation(observation);
+    setReviewDialogOpen(true);
+  };
+
+  // Utility functions
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Resolved':
+      case 'Closed': return 'success';
+      case 'In Progress':
+      case 'Assigned': return 'primary';
+      case 'In Review': return 'info';
+      case 'Open': return 'warning';
+      case 'Deferred': return 'default';
+      default: return 'default';
+    }
+  };
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'Critical': return 'error';
+      case 'High': return 'warning';
+      case 'Medium': return 'primary';
+      case 'Low': return 'success';
+      default: return 'default';
+    }
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'Data Quality Issue': return '📊';
+      case 'Calculation Error': return '🧮';
+      case 'Business Rule Violation': return '📋';
+      case 'System Error': return '💻';
+      case 'Process Gap': return '🔄';
+      default: return '🔍';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'Resolved': return <CheckCircle color="success" />;
+      case 'Closed': return <CheckCircle color="success" />;
+      case 'In Progress': return <Timer color="primary" />;
+      case 'Open': return <Warning color="warning" />;
+      default: return undefined;
+    }
+  };
+
+  // Use real observations if available, otherwise fall back to mock data
+  const actualObservations = observations.length > 0 ? observations : mockObservations;
+  
+  const filteredObservations = actualObservations.filter((obs: Observation) => {
+    if (filterStatus === 'All') return true;
+    if (filterStatus === 'Critical') return obs.severity === 'Critical';
+    if (filterStatus === 'Open') return obs.status === 'Open';
+    if (filterStatus === 'In Progress') return obs.status === 'In Progress';
+    if (filterStatus === 'Resolved') return ['Resolved', 'Closed'].includes(obs.status);
+    return true;
+  });
+
+  const getObservationStats = () => {
+    const open = actualObservations.filter((obs: Observation) => obs.status === 'Open').length;
+    const inProgress = actualObservations.filter((obs: Observation) => ['In Progress', 'Assigned'].includes(obs.status)).length;
+    const resolved = actualObservations.filter((obs: Observation) => ['Resolved', 'Closed'].includes(obs.status)).length;
+    const critical = actualObservations.filter((obs: Observation) => obs.severity === 'Critical').length;
+    return { open, inProgress, resolved, critical };
+  };
+
+  const getDaysOverdue = (dueDate: string) => {
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diffDays = Math.ceil((now.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  // Use real phase status if available, otherwise fall back to mock data
+  const actualPhaseStatus = phaseStatus || mockPhase;
+  const phaseCompleted = unifiedPhaseStatus?.phase_status === 'completed';
+  
+  // Debug logging
+  console.log('Observation Management Debug:', {
+    phaseStatus,
+    mockPhase,
+    actualPhaseStatus,
+    selectedCycleId,
+    selectedReportId
+  });
+  
+  useEffect(() => {
+    // Determine current step based on phase status
+    if (actualPhaseStatus.total_observations === 0) {
+      setActiveStep(0);
+    } else if (actualPhaseStatus.pending_observations > 0) {
+      setActiveStep(2);
+    } else if (actualPhaseStatus.approved_observations < actualPhaseStatus.total_observations) {
+      setActiveStep(3);
+    } else {
+      setActiveStep(4);
+    }
+  }, [actualPhaseStatus]);
+
+  const stats = getObservationStats();
+
+  // Show loading state only for observations
+  if (observationsLoading && !observations.length) {
+    return (
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const getObservationSteps = () => {
+    const hasStarted = unifiedPhaseStatus?.phase_status !== 'not_started' && unifiedPhaseStatus?.phase_status !== undefined;
+    const hasObservations = actualPhaseStatus.total_observations > 0;
+    const hasAssignments = actualPhaseStatus.pending_observations > 0;
+    const hasResolutions = actualPhaseStatus.approved_observations > 0;
+    const isComplete = phaseCompleted;
+    
+    console.log('getObservationSteps debug:', {
+      actualPhaseStatus,
+      hasStarted,
+      hasObservations,
+      hasAssignments,
+      hasResolutions,
+      isComplete
+    });
+    
+    return [
+      {
+        label: 'Start Observation Management Phase',
+        description: 'Initialize observation management',
+        icon: <Flag color="primary" />,
+        status: hasStarted ? 'completed' : 'active',
+        showButton: unifiedPhaseStatus?.phase_status === 'not_started',
+        buttonText: 'Start Observation Management Phase',
+        buttonAction: async () => {
+          try {
+            // Add API call to start phase when endpoint is available
+            console.log('Start observation management phase');
+            refetchStatus();
+          } catch (error) {
+            console.error('Error starting phase:', error);
+          }
+        },
+        buttonIcon: <Flag />
+      },
+      {
+        label: 'Capture Observations',
+        description: 'Document testing findings',
+        icon: <BugReport color="primary" />,
+        status: hasObservations ? 'completed' : hasStarted ? 'active' : 'pending',
+        showButton: hasStarted && !isComplete,
+        buttonText: 'Add Observation',
+        buttonAction: () => setObservationDialogOpen(true),
+        buttonIcon: <Add />
+      },
+      {
+        label: 'Assess & Assign',
+        description: 'Evaluate impact and assign resources',
+        icon: <Analytics color="primary" />,
+        status: hasAssignments ? 'completed' : hasObservations ? 'active' : 'pending',
+        showButton: false,
+        buttonText: null,
+        buttonAction: null,
+        buttonIcon: null
+      },
+      {
+        label: 'Resolve Issues',
+        description: 'Implement corrective actions',
+        icon: <Science color="primary" />,
+        status: hasResolutions ? 'completed' : hasAssignments ? 'active' : 'pending',
+        showButton: false,
+        buttonText: null,
+        buttonAction: null,
+        buttonIcon: null
+      },
+      {
+        label: 'Complete Phase',
+        description: 'Finalize observation management',
+        icon: <CheckCircle color="primary" />,
+        status: isComplete ? 'completed' : hasResolutions ? 'active' : 'pending',
+        showButton: hasResolutions && !isComplete,
+        buttonText: 'Complete Phase',
+        buttonAction: async () => {
+          try {
+            // Add API call to complete phase when endpoint is available
+            console.log('Complete observation phase');
+            refetchStatus();
+          } catch (error) {
+            console.error('Error completing phase:', error);
+          }
+        },
+        buttonIcon: <CheckCircle />
+      }
+    ];
+  };
+
+  const getStepColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'success';
+      case 'active': return 'primary';
+      case 'pending': return 'default';
+      default: return 'default';
+    }
+  };
+
+  return (
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h1" color="error">DEBUG: ObservationManagementPage is rendering!</Typography>
+      
+      {/* Workflow Progress - Removed as it doesn't belong on phase detail pages */}
+      
+      {/* Header */}
+      <Box sx={{ mb: 4, mt: 3 }}>
+        <Typography variant="h4" gutterBottom>
+          Observation Management Phase
+        </Typography>
+        <Typography variant="body1" color="text.secondary" gutterBottom>
+          Document, track, and resolve testing observations and findings.
+        </Typography>
+        
+        {/* Progress Stepper */}
+        <Paper sx={{ p: 2, mt: 2 }}>
+          <Stepper activeStep={activeStep} alternativeLabel>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+        </Paper>
+      </Box>
+
+      {/* Observation Management Workflow Cards */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Assignment color="primary" />
+            Observation Management Workflow
+          </Typography>
+          
+          {unifiedPhaseStatus ? (
+            <DynamicActivityCards
+              activities={unifiedPhaseStatus.activities}
+              cycleId={selectedCycleId!}
+              reportId={selectedReportId!}
+              phaseName="Observations"
+              phaseStatus={unifiedPhaseStatus.phase_status}
+              overallCompletion={unifiedPhaseStatus.overall_completion_percentage}
+            />
+          ) : (
+            <Box sx={{ p: 2 }}>
+              <CircularProgress />
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Phase Status */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Box display="flex" flexWrap="wrap" gap={3} alignItems="center">
+            <Box flex={1} minWidth={200}>
+              <Typography variant="h6" gutterBottom>
+                Phase Status
+              </Typography>
+              <Chip 
+                label={actualPhaseStatus.phase_status || 'Not Started'}
+                color={getStatusColor(actualPhaseStatus.phase_status || 'Not Started') as any}
+                size="medium"
+                icon={<Assessment />}
+              />
+            </Box>
+            <Box flex={1} minWidth={200}>
+              <Typography variant="body2" color="text.secondary">
+                Total Observations
+              </Typography>
+              <Typography variant="h4">
+                {actualPhaseStatus.total_observations}
+              </Typography>
+            </Box>
+            <Box flex={1} minWidth={200}>
+              <Typography variant="body2" color="text.secondary">
+                Resolution Rate
+              </Typography>
+              <Box display="flex" alignItems="center" gap={2}>
+                <Typography variant="h4" color="primary">
+                  {Math.round(actualPhaseStatus.completion_percentage)}%
+                </Typography>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={actualPhaseStatus.completion_percentage}
+                  sx={{ width: 60 }}
+                />
+              </Box>
+            </Box>
+            <Box flex={1} minWidth={200}>
+              <Typography variant="body2" color="text.secondary">
+                Avg Resolution Time
+              </Typography>
+              <Box display="flex" alignItems="center" gap={2}>
+                <Typography variant="h4" color="success.main">
+                  {actualPhaseStatus.average_resolution_time}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  days
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Observation Summary */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Observation Status Summary
+          </Typography>
+          <Box display="flex" gap={2} flexWrap="wrap">
+            <Paper sx={{ p: 2, textAlign: 'center', flex: 1, minWidth: 120 }}>
+              <Typography variant="h3" color="success.main">{stats.resolved}</Typography>
+              <Typography variant="caption">Resolved</Typography>
+            </Paper>
+            <Paper sx={{ p: 2, textAlign: 'center', flex: 1, minWidth: 120 }}>
+              <Typography variant="h3" color="primary.main">{stats.inProgress}</Typography>
+              <Typography variant="caption">In Progress</Typography>
+            </Paper>
+            <Paper sx={{ p: 2, textAlign: 'center', flex: 1, minWidth: 120 }}>
+              <Typography variant="h3" color="warning.main">{stats.open}</Typography>
+              <Typography variant="caption">Open</Typography>
+            </Paper>
+            <Paper sx={{ p: 2, textAlign: 'center', flex: 1, minWidth: 120 }}>
+              <Typography variant="h3" color="error.main">{stats.critical}</Typography>
+              <Typography variant="caption">Critical</Typography>
+            </Paper>
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Main Content */}
+      <Card>
+        <CardContent>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Typography variant="h6">
+              Observation Management
+            </Typography>
+            <Box display="flex" gap={2} alignItems="center">
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>Filter</InputLabel>
+                <Select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value as any)}
+                >
+                  <MenuItem value="All">All</MenuItem>
+                  <MenuItem value="Open">Open</MenuItem>
+                  <MenuItem value="In Progress">In Progress</MenuItem>
+                  <MenuItem value="Resolved">Resolved</MenuItem>
+                  <MenuItem value="Critical">Critical</MenuItem>
+                </Select>
+              </FormControl>
+              <PermissionGate resource="observations" action="identify">
+                <Button
+                  variant="contained"
+                  startIcon={<Add />}
+                  onClick={() => setObservationDialogOpen(true)}
+                >
+                  Add Observation
+                </Button>
+              </PermissionGate>
+            </Box>
+          </Box>
+
+          <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} sx={{ mb: 2 }}>
+            <Tab label="Observations" icon={<BugReport />} />
+            <Tab label="Resolutions" icon={<CheckCircle />} />
+            <Tab label="Analytics" icon={<Analytics />} />
+          </Tabs>
+
+          <TabPanel value={tabValue} index={0}>
+            <Box>
+              {filteredObservations.length > 0 ? (
+                filteredObservations.map((observation: Observation) => {
+                  const overdue = observation.due_date && getDaysOverdue(observation.due_date) > 0;
+                  
+                  return (
+                    <Accordion key={observation.observation_id}>
+                      <AccordionSummary expandIcon={<ExpandMore />}>
+                        <Box display="flex" alignItems="center" width="100%" gap={2}>
+                          <Box flex={1}>
+                            <Box display="flex" alignItems="center" gap={1} mb={1}>
+                              <span>{getTypeIcon(observation.observation_type)}</span>
+                              <Typography variant="subtitle1">
+                                {observation.test_name}
+                              </Typography>
+                              {getStatusIcon(observation.status)}
+                              {overdue && <Flag color="error" />}
+                            </Box>
+                            <Typography variant="body2" color="text.secondary">
+                              {observation.attribute_name} • {observation.observation_type} • Created by {observation.created_by}
+                            </Typography>
+                          </Box>
+                          <Box display="flex" gap={1} alignItems="center">
+                            <Chip 
+                              label={observation.status}
+                              color={getStatusColor(observation.status) as any}
+                              size="small"
+                            />
+                            <Chip 
+                              label={observation.severity}
+                              color={getSeverityColor(observation.severity) as any}
+                              size="small"
+                              variant="outlined"
+                            />
+                            <Rating 
+                              value={observation.risk_rating} 
+                              readOnly 
+                              size="small" 
+                              max={5}
+                            />
+                            {overdue && (
+                              <Typography variant="caption" color="error">
+                                {getDaysOverdue(observation.due_date!)}d overdue
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Box>
+                          <Typography variant="subtitle2" gutterBottom>
+                            Description:
+                          </Typography>
+                          <Typography variant="body2" paragraph>
+                            {observation.description}
+                          </Typography>
+
+                          <Typography variant="subtitle2" gutterBottom>
+                            Impact Assessment:
+                          </Typography>
+                          <Typography variant="body2" paragraph>
+                            {observation.impact_assessment}
+                          </Typography>
+
+                          {observation.root_cause && (
+                            <Box>
+                              <Typography variant="subtitle2" gutterBottom>
+                                Root Cause:
+                              </Typography>
+                              <Typography variant="body2" paragraph>
+                                {observation.root_cause}
+                              </Typography>
+                            </Box>
+                          )}
+
+                          <Typography variant="subtitle2" gutterBottom>
+                            Recommended Action:
+                          </Typography>
+                          <Typography variant="body2" paragraph>
+                            {observation.recommended_action}
+                          </Typography>
+
+                          <Divider sx={{ my: 2 }} />
+
+                          <Box display="flex" gap={2} mb={2} flexWrap="wrap">
+                            <Typography variant="body2">
+                              <strong>Created:</strong> {new Date(observation.created_date).toLocaleDateString()}
+                            </Typography>
+                            {observation.due_date && (
+                              <Typography variant="body2">
+                                <strong>Due:</strong> {new Date(observation.due_date).toLocaleDateString()}
+                              </Typography>
+                            )}
+                            {observation.assigned_to && (
+                              <Typography variant="body2">
+                                <strong>Assigned to:</strong> {observation.assigned_to}
+                              </Typography>
+                            )}
+                            {observation.resolved_date && (
+                              <Typography variant="body2">
+                                <strong>Resolved:</strong> {new Date(observation.resolved_date).toLocaleDateString()}
+                              </Typography>
+                            )}
+                          </Box>
+
+                          {observation.evidence_files && observation.evidence_files.length > 0 && (
+                            <Box mb={2}>
+                              <Typography variant="subtitle2" gutterBottom>
+                                Evidence Files:
+                              </Typography>
+                              <Box display="flex" gap={1} flexWrap="wrap">
+                                {observation.evidence_files?.map((file: string, index: number) => (
+                                  <Chip 
+                                    key={index}
+                                    label={file}
+                                    size="small"
+                                    variant="outlined"
+                                    icon={<Assignment />}
+                                  />
+                                ))}
+                              </Box>
+                            </Box>
+                          )}
+
+                          {observation.resolution_notes && (
+                            <Alert severity="success" sx={{ mb: 2 }}>
+                              <Typography variant="subtitle2">Resolution Notes:</Typography>
+                              <Typography variant="body2">{observation.resolution_notes}</Typography>
+                            </Alert>
+                          )}
+
+                          <Box sx={{ mt: 2, textAlign: 'right' }}>
+                            {observation.status === 'Open' && hasPermission('observations', 'assign') && (
+                              <Button
+                                variant="outlined"
+                                startIcon={<Person />}
+                                size="small"
+                                sx={{ mr: 1 }}
+                              >
+                                Assign
+                              </Button>
+                            )}
+                            {['Open', 'Assigned', 'In Progress'].includes(observation.status) && hasPermission('observations', 'execute') && (
+                              <Button
+                                variant="contained"
+                                startIcon={<CheckCircle />}
+                                onClick={() => handleResolveObservation(observation)}
+                                size="small"
+                                sx={{ mr: 1 }}
+                                color="success"
+                              >
+                                Resolve
+                              </Button>
+                            )}
+                            <Button
+                              variant="outlined"
+                              startIcon={<Visibility />}
+                              onClick={() => handleReviewObservation(observation)}
+                              size="small"
+                              sx={{ mr: 1 }}
+                            >
+                              Review
+                            </Button>
+                            {hasPermission('observations', 'update') && (
+                              <Button
+                                variant="outlined"
+                                startIcon={<Edit />}
+                                size="small"
+                              >
+                                Edit
+                              </Button>
+                            )}
+                          </Box>
+                        </Box>
+                      </AccordionDetails>
+                    </Accordion>
+                  );
+                })
+              ) : (
+                <Box textAlign="center" py={4}>
+                  <BugReport sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+                  <Typography variant="body1" color="text.secondary">
+                    No observations found for current filter
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={1}>
+            <TableContainer component={Paper} variant="outlined">
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Observation</TableCell>
+                    <TableCell>Resolution Type</TableCell>
+                    <TableCell>Implemented By</TableCell>
+                    <TableCell>Implementation Date</TableCell>
+                    <TableCell align="center">Verification</TableCell>
+                    <TableCell align="center">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {mockResolutions.map((resolution) => {
+                    const observation = mockObservations.find(obs => obs.observation_id === resolution.observation_id);
+                    
+                    return (
+                      <TableRow key={resolution.resolution_id}>
+                        <TableCell>{observation?.test_name}</TableCell>
+                        <TableCell>{resolution.resolution_type}</TableCell>
+                        <TableCell>{resolution.implemented_by}</TableCell>
+                        <TableCell>{new Date(resolution.implementation_date).toLocaleDateString()}</TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={resolution.verification_status}
+                            color={getStatusColor(resolution.verification_status) as any}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell align="center">
+                          <IconButton size="small">
+                            <Visibility />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={2}>
+            <Box display="flex" flexDirection="column" gap={3}>
+              <Typography variant="h6" gutterBottom>
+                Observation Analytics
+              </Typography>
+              
+              <Box display="flex" gap={3} flexWrap="wrap">
+                <Card sx={{ flex: 1, minWidth: 300 }}>
+                  <CardContent>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Observations by Type
+                    </Typography>
+                    {['Data Quality Issue', 'Calculation Error', 'Business Rule Violation', 'System Error', 'Process Gap'].map((type) => {
+                      const typeCount = mockObservations.filter(obs => obs.observation_type === type).length;
+                      const percentage = mockObservations.length > 0 ? (typeCount / mockObservations.length) * 100 : 0;
+                      
+                      return (
+                        <Box key={type} mb={1}>
+                          <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
+                            <Typography variant="body2">{type}</Typography>
+                            <Typography variant="body2">{typeCount} ({Math.round(percentage)}%)</Typography>
+                          </Box>
+                          <LinearProgress 
+                            variant="determinate" 
+                            value={percentage}
+                            color="primary"
+                          />
+                        </Box>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+
+                <Card sx={{ flex: 1, minWidth: 300 }}>
+                  <CardContent>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Resolution Metrics
+                    </Typography>
+                    <Box mb={2}>
+                      <Typography variant="body2" color="text.secondary">
+                        Average Resolution Time
+                      </Typography>
+                      <Typography variant="h4">
+                        {actualPhaseStatus.average_resolution_time} days
+                      </Typography>
+                    </Box>
+                    <Box mb={2}>
+                      <Typography variant="body2" color="text.secondary">
+                        Resolution Rate
+                      </Typography>
+                      <Typography variant="h4" color="success.main">
+                        {Math.round(actualPhaseStatus.completion_percentage)}%
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Critical Observations
+                      </Typography>
+                      <Typography variant="h4" color="error.main">
+                        {stats.critical}
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Box>
+            </Box>
+          </TabPanel>
+        </CardContent>
+      </Card>
+
+      {/* Create Observation Dialog */}
+      <Dialog open={observationDialogOpen} onClose={() => setObservationDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Create Observation</DialogTitle>
+        <DialogContent>
+          <Box display="flex" flexDirection="column" gap={3} sx={{ mt: 1 }}>
+            <TextField
+              label="Test Case ID"
+              value={newObservation.test_case_id}
+              onChange={(e) => setNewObservation({ ...newObservation, test_case_id: e.target.value })}
+              fullWidth
+            />
+
+            <Box display="flex" gap={2}>
+              <FormControl fullWidth>
+                <InputLabel>Type</InputLabel>
+                <Select
+                  value={newObservation.observation_type}
+                  onChange={(e) => setNewObservation({ ...newObservation, observation_type: e.target.value })}
+                >
+                  <MenuItem value="Data Quality Issue">Data Quality Issue</MenuItem>
+                  <MenuItem value="Calculation Error">Calculation Error</MenuItem>
+                  <MenuItem value="Business Rule Violation">Business Rule Violation</MenuItem>
+                  <MenuItem value="System Error">System Error</MenuItem>
+                  <MenuItem value="Process Gap">Process Gap</MenuItem>
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth>
+                <InputLabel>Severity</InputLabel>
+                <Select
+                  value={newObservation.severity}
+                  onChange={(e) => setNewObservation({ ...newObservation, severity: e.target.value })}
+                >
+                  <MenuItem value="Low">Low</MenuItem>
+                  <MenuItem value="Medium">Medium</MenuItem>
+                  <MenuItem value="High">High</MenuItem>
+                  <MenuItem value="Critical">Critical</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            <TextField
+              label="Description"
+              multiline
+              rows={4}
+              value={newObservation.description}
+              onChange={(e) => setNewObservation({ ...newObservation, description: e.target.value })}
+              placeholder="Describe the observation in detail..."
+              fullWidth
+            />
+
+            <TextField
+              label="Impact Assessment"
+              multiline
+              rows={3}
+              value={newObservation.impact_assessment}
+              onChange={(e) => setNewObservation({ ...newObservation, impact_assessment: e.target.value })}
+              placeholder="Assess the potential impact of this observation..."
+              fullWidth
+            />
+
+            <TextField
+              label="Recommended Action"
+              multiline
+              rows={2}
+              value={newObservation.recommended_action}
+              onChange={(e) => setNewObservation({ ...newObservation, recommended_action: e.target.value })}
+              placeholder="What action should be taken to resolve this observation?"
+              fullWidth
+            />
+
+            <Box display="flex" gap={2}>
+              <TextField
+                label="Due Date"
+                type="date"
+                value={newObservation.due_date}
+                onChange={(e) => setNewObservation({ ...newObservation, due_date: e.target.value })}
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+              />
+
+              <Box flex={1}>
+                <Typography variant="body2" gutterBottom>
+                  Risk Rating
+                </Typography>
+                <Rating
+                  value={newObservation.risk_rating}
+                  onChange={(e, newValue) => setNewObservation({ ...newObservation, risk_rating: newValue || 1 })}
+                  max={5}
+                />
+              </Box>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setObservationDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleCreateObservation}>
+            Create Observation
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Resolution Dialog */}
+      <Dialog open={resolutionDialogOpen} onClose={() => setResolutionDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          Resolve Observation: {selectedObservation?.test_name}
+        </DialogTitle>
+        <DialogContent>
+          {selectedObservation && (
+            <Box>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                <Typography variant="subtitle2">Observation:</Typography>
+                <Typography variant="body2">{selectedObservation.description}</Typography>
+              </Alert>
+
+              <Box display="flex" flexDirection="column" gap={3} sx={{ mt: 2 }}>
+                <FormControl fullWidth>
+                  <InputLabel>Resolution Type</InputLabel>
+                  <Select
+                    value={resolutionForm.resolution_type}
+                    onChange={(e) => setResolutionForm({ ...resolutionForm, resolution_type: e.target.value })}
+                  >
+                    <MenuItem value="Fix Applied">Fix Applied</MenuItem>
+                    <MenuItem value="Process Change">Process Change</MenuItem>
+                    <MenuItem value="Documentation Update">Documentation Update</MenuItem>
+                    <MenuItem value="Training Required">Training Required</MenuItem>
+                    <MenuItem value="System Enhancement">System Enhancement</MenuItem>
+                    <MenuItem value="Risk Accepted">Risk Accepted</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <TextField
+                  label="Resolution Description"
+                  multiline
+                  rows={4}
+                  value={resolutionForm.resolution_description}
+                  onChange={(e) => setResolutionForm({ ...resolutionForm, resolution_description: e.target.value })}
+                  placeholder="Describe how the observation was resolved..."
+                  fullWidth
+                />
+
+                <TextField
+                  label="Verification Notes"
+                  multiline
+                  rows={2}
+                  value={resolutionForm.verification_notes}
+                  onChange={(e) => setResolutionForm({ ...resolutionForm, verification_notes: e.target.value })}
+                  placeholder="How was the resolution verified?"
+                  fullWidth
+                />
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setResolutionDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleSaveResolution} color="success">
+            Mark as Resolved
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Review Dialog */}
+      <Dialog open={reviewDialogOpen} onClose={() => setReviewDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          Observation Details: {selectedObservation?.test_name}
+        </DialogTitle>
+        <DialogContent>
+          {selectedObservation && (
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>
+                Type & Severity:
+              </Typography>
+              <Box display="flex" gap={2} mb={2}>
+                <Chip 
+                  label={selectedObservation.observation_type}
+                  color="primary"
+                />
+                <Chip 
+                  label={selectedObservation.severity}
+                  color={getSeverityColor(selectedObservation.severity) as any}
+                />
+                <Box display="flex" alignItems="center" gap={1}>
+                  <Typography variant="body2">Risk:</Typography>
+                  <Rating value={selectedObservation.risk_rating} readOnly size="small" />
+                </Box>
+              </Box>
+
+              <Typography variant="subtitle2" gutterBottom>
+                Description:
+              </Typography>
+              <Typography variant="body2" paragraph>
+                {selectedObservation.description}
+              </Typography>
+
+              <Typography variant="subtitle2" gutterBottom>
+                Impact Assessment:
+              </Typography>
+              <Typography variant="body2" paragraph>
+                {selectedObservation.impact_assessment}
+              </Typography>
+
+              <Typography variant="subtitle2" gutterBottom>
+                Recommended Action:
+              </Typography>
+              <Typography variant="body2" paragraph>
+                {selectedObservation.recommended_action}
+              </Typography>
+
+              {selectedObservation.evidence_files && selectedObservation.evidence_files.length > 0 && (
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Evidence Files:
+                  </Typography>
+                  <Box display="flex" gap={1} flexWrap="wrap">
+                    {selectedObservation.evidence_files?.map((file, index) => (
+                      <Chip 
+                        key={index}
+                        label={file}
+                        size="small"
+                        variant="outlined"
+                        icon={<Assignment />}
+                        clickable
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReviewDialogOpen(false)}>Close</Button>
+          <Button variant="outlined" startIcon={<Assignment />}>
+            Download Report
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+};
+
+export default ObservationManagementPage; 

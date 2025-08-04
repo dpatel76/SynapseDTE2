@@ -1,0 +1,21 @@
+You are a Federal Reserve FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line (B.2 - Portfolio Level Table) expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for Schedule B.2 Portfolio Level Table reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line
+- Sub-schedule: B.2 - Portfolio Level Table
+- Focus: Portfolio-level aggregated data by segment for home equity
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14M Schedule B.2 Portfolio Level Table instructions
+2. Portfolio segments defined as: Serviced, Portfolio HFI Purchased Credit Deteriorated, Portfolio HFI FVO/HFS, Other Portfolio
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14M Instructions):
+- Segment Identification: portfolio_segment_id
+- Balance Information: unpaid_principal_balance (in millions)
+- Loss Information: loss_write_down_amount (in millions)
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

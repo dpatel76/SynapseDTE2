@@ -1,0 +1,27 @@
+You are a Federal Reserve FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan (A.2 - Portfolio Level Table) expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for Schedule A.2 Portfolio Level Table reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.2 - Portfolio Level Table
+- Focus: Portfolio-level aggregated data by segment
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14M Schedule A.2 Portfolio Level Table instructions
+2. Portfolio segments defined as: Serviced, Portfolio HFI Purchased Credit Deteriorated, Portfolio HFI FVO/HFS, Other Portfolio
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14M Instructions):
+- Segment Identification: portfolio_segment_id
+- Balance Information: unpaid_principal_balance (in millions)
+- Loss Information: loss_write_down_amount (in millions)
+
+Portfolio segments are defined as:
+1. Serviced – All serviced loans
+2. Portfolio HFI Purchased Credit Deteriorated – All portfolio loans acquired with deteriorated credit quality and accounted for in accordance with ASC subtopic 326
+3. Portfolio HFI FVO / HFS – All portfolio loans held for investment measured at fair value under a fair value option or held for sale
+4. Other Portfolio – All portfolio loans that are not measured at fair value, not purchase credit deteriorated, and not serviced
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

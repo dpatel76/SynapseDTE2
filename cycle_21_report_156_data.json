@@ -1,0 +1,42 @@
+{
+  "planning": {
+    "total_attributes": 118,
+    "cde_count": 1,
+    "pk_count": 4,
+    "historical_issues_count": 1,
+    "approved_count": 118
+  },
+  "data_profiling": {
+    "attributes_profiled": 118,
+    "total_rules": 385,
+    "approved_rules": 6,
+    "executed_rules": 7,
+    "anomalies_found": 0
+  },
+  "scoping": {
+    "total_testable_attributes": 114,
+    "selected_for_testing": 5,
+    "approved_by_report_owner": 5,
+    "risk_distribution": {}
+  },
+  "sample_selection": {
+    "sample_sets": 1,
+    "total_samples": 5,
+    "sample_distribution": {
+      "Test Sample Set for Request Info Phase": 5
+    }
+  },
+  "test_execution": {
+    "attributes_tested": 1,
+    "total_test_cases": 2,
+    "passed": 2,
+    "failed": 0,
+    "inconclusive": 0,
+    "pending_review": 0,
+    "pass_rate": 100.0
+  },
+  "observations": {
+    "total_observations": 0,
+    "severity_distribution": {}
+  }
+}

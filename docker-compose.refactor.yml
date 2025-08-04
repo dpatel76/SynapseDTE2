@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  postgres-refactor:
+    image: postgres:15-alpine
+    container_name: synapse_dte_postgres_refactor
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: synapse_dte_refactor
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_refactor_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-refactor:
+    image: redis:7-alpine
+    container_name: synapse_dte_redis_refactor
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_refactor_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  celery-worker:
+    build: .
+    container_name: synapse_dte_celery_worker
+    command: celery -A app.core.celery_app worker --loglevel=info
+    env_file:
+      - .env.refactor
+    depends_on:
+      - redis-refactor
+      - postgres-refactor
+    volumes:
+      - ./app:/app
+      - ./uploads:/uploads
+
+  celery-beat:
+    build: .
+    container_name: synapse_dte_celery_beat
+    command: celery -A app.core.celery_app beat --loglevel=info
+    env_file:
+      - .env.refactor
+    depends_on:
+      - redis-refactor
+      - postgres-refactor
+    volumes:
+      - ./app:/app
+
+  flower:
+    build: .
+    container_name: synapse_dte_flower
+    command: celery -A app.core.celery_app flower --port=5555
+    env_file:
+      - .env.refactor
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis-refactor
+      - celery-worker
+
+volumes:
+  postgres_refactor_data:
+  redis_refactor_data:

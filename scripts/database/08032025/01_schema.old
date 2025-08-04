@@ -1,0 +1,337 @@
+-- SynapseDTE Complete Database Schema
+-- Fixed version for PostgreSQL 15
+-- Date: 2025-08-03
+
+-- Drop existing types if they exist (for clean restart)
+DROP TYPE IF EXISTS securityclassification CASCADE;
+DROP TYPE IF EXISTS activity_status_enum CASCADE;
+DROP TYPE IF EXISTS activity_type_enum CASCADE;
+DROP TYPE IF EXISTS evidence_status_enum CASCADE;
+DROP TYPE IF EXISTS evidence_type_enum CASCADE;
+DROP TYPE IF EXISTS test_case_status_enum CASCADE;
+DROP TYPE IF EXISTS tester_decision_enum CASCADE;
+DROP TYPE IF EXISTS observation_type_enum CASCADE;
+DROP TYPE IF EXISTS observation_status_enum CASCADE;
+DROP TYPE IF EXISTS observation_priority_enum CASCADE;
+DROP TYPE IF EXISTS rule_type_enum CASCADE;
+DROP TYPE IF EXISTS rule_category_enum CASCADE;
+DROP TYPE IF EXISTS rule_status_enum CASCADE;
+DROP TYPE IF EXISTS profiling_status_enum CASCADE;
+DROP TYPE IF EXISTS samplingstrategy CASCADE;
+DROP TYPE IF EXISTS samplecategory CASCADE;
+DROP TYPE IF EXISTS workflow_phase_enum CASCADE;
+DROP TYPE IF EXISTS phase_status_enum CASCADE;
+DROP TYPE IF EXISTS scoping_recommendation_enum CASCADE;
+DROP TYPE IF EXISTS scoping_decision_enum CASCADE;
+DROP TYPE IF EXISTS universal_assignment_type_enum CASCADE;
+DROP TYPE IF EXISTS universal_assignment_status_enum CASCADE;
+DROP TYPE IF EXISTS universal_assignment_priority_enum CASCADE;
+
+-- Enable required extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- =====================================================
+-- CUSTOM TYPES (ENUMS) - Required for tables
+-- =====================================================
+
+-- Security classification (required by multiple tables)
+CREATE TYPE securityclassification AS ENUM (
+    'HRCI', 'Confidential', 'Proprietary', 'Public'
+);
+
+-- Activity related enums
+CREATE TYPE activity_status_enum AS ENUM (
+    'NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'REVISION_REQUESTED', 'BLOCKED', 'SKIPPED'
+);
+
+CREATE TYPE activity_type_enum AS ENUM (
+    'START', 'TASK', 'REVIEW', 'APPROVAL', 'COMPLETE', 'CUSTOM'
+);
+
+-- Evidence enums
+CREATE TYPE evidence_status_enum AS ENUM (
+    'pending', 'submitted', 'approved', 'rejected', 'expired'
+);
+
+CREATE TYPE evidence_type_enum AS ENUM (
+    'document', 'screenshot', 'data_export', 'manual_entry', 'api_response'
+);
+
+-- Test case enums
+CREATE TYPE test_case_status_enum AS ENUM (
+    'Pending', 'Submitted', 'Overdue'
+);
+
+CREATE TYPE tester_decision_enum AS ENUM (
+    'approved', 'rejected', 'requires_revision'
+);
+
+-- Observation enums
+CREATE TYPE observation_type_enum AS ENUM (
+    'data_quality', 'process', 'control', 'compliance', 'other'
+);
+
+CREATE TYPE observation_status_enum AS ENUM (
+    'open', 'in_progress', 'resolved', 'closed', 'deferred'
+);
+
+CREATE TYPE observation_priority_enum AS ENUM (
+    'low', 'medium', 'high', 'critical'
+);
+
+-- Rule enums
+CREATE TYPE rule_type_enum AS ENUM (
+    'not_null', 'unique', 'range', 'pattern', 'reference', 'custom'
+);
+
+CREATE TYPE rule_category_enum AS ENUM (
+    'Completeness', 'Accuracy', 'Consistency', 'Timeliness', 'Validity', 'Uniqueness'
+);
+
+CREATE TYPE rule_status_enum AS ENUM (
+    'draft', 'pending_approval', 'approved', 'rejected', 'deprecated'
+);
+
+-- Profiling enums
+CREATE TYPE profiling_status_enum AS ENUM (
+    'pending', 'running', 'completed', 'failed'
+);
+
+-- Sampling enums
+CREATE TYPE samplingstrategy AS ENUM (
+    'random', 'stratified', 'anomaly_based', 'boundary', 'risk_based', 'systematic', 'cluster', 'hybrid'
+);
+
+CREATE TYPE samplecategory AS ENUM (
+    'normal', 'anomaly', 'boundary_high', 'boundary_low', 'outlier', 'edge_case', 'high_risk'
+);
+
+-- Workflow enums
+CREATE TYPE workflow_phase_enum AS ENUM (
+    'Planning', 'Data Profiling', 'Scoping', 'Data Provider ID', 
+    'Data Owner Identification', 'Sampling', 'Request Info', 'Testing', 
+    'Observations', 'Sample Selection', 'Data Owner ID', 'Test Execution', 
+    'Preparing Test Report', 'Finalize Test Report'
+);
+
+CREATE TYPE phase_status_enum AS ENUM (
+    'not_started', 'in_progress', 'completed', 'blocked', 'skipped'
+);
+
+-- Scoping enums
+CREATE TYPE scoping_recommendation_enum AS ENUM (
+    'Test', 'Skip'
+);
+
+CREATE TYPE scoping_decision_enum AS ENUM (
+    'Accept', 'Decline', 'Override'
+);
+
+-- Universal assignment enums
+CREATE TYPE universal_assignment_type_enum AS ENUM (
+    'Data Upload Request', 'File Review', 'File Approval', 'Document Review', 
+    'Data Validation', 'Scoping Approval', 'Sample Selection Approval', 'Rule Approval', 
+    'Observation Approval', 'Report Approval', 'Version Approval', 'Phase Review', 
+    'Phase Approval', 'Phase Completion', 'Workflow Progression', 'LOB Assignment', 
+    'Test Execution Review', 'Quality Review', 'Compliance Review', 'Risk Assessment', 
+    'Information Request', 'Clarification Required', 'Additional Data Required', 
+    'Role Assignment', 'Permission Grant', 'System Configuration', 'data_owner_identification'
+);
+
+CREATE TYPE universal_assignment_status_enum AS ENUM (
+    'Assigned', 'Acknowledged', 'In Progress', 'Completed', 'Approved', 
+    'Rejected', 'Cancelled', 'Overdue', 'Escalated', 'On Hold', 'Delegated'
+);
+
+CREATE TYPE universal_assignment_priority_enum AS ENUM (
+    'Low', 'Medium', 'High', 'Critical', 'Urgent'
+);
+
+-- =====================================================
+-- CORE TABLES
+-- =====================================================
+
+-- Users table (no dependencies)
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255),
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    is_active BOOLEAN DEFAULT true,
+    is_admin BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Roles table (no dependencies)
+CREATE TABLE roles (
+    role_id SERIAL PRIMARY KEY,
+    role_name VARCHAR(255) UNIQUE NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Permissions table (no dependencies)
+CREATE TABLE permissions (
+    permission_id SERIAL PRIMARY KEY,
+    resource VARCHAR(255) NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_permission UNIQUE (resource, action)
+);
+
+-- Role permissions mapping
+CREATE TABLE role_permissions (
+    id SERIAL PRIMARY KEY,
+    role_id INTEGER NOT NULL REFERENCES roles(role_id) ON DELETE CASCADE,
+    permission_id INTEGER NOT NULL REFERENCES permissions(permission_id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_role_permission UNIQUE (role_id, permission_id)
+);
+
+-- User roles mapping
+CREATE TABLE user_roles (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    role_id INTEGER NOT NULL REFERENCES roles(role_id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_user_role UNIQUE (user_id, role_id)
+);
+
+-- LOBs table
+CREATE TABLE lobs (
+    lob_id SERIAL PRIMARY KEY,
+    lob_name VARCHAR(255) NOT NULL,
+    lob_code VARCHAR(50) NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Reports table
+CREATE TABLE reports (
+    report_id SERIAL PRIMARY KEY,
+    report_name VARCHAR(255) NOT NULL,
+    report_code VARCHAR(50),
+    description TEXT,
+    frequency VARCHAR(50),
+    regulatory_framework VARCHAR(100),
+    lob_id INTEGER REFERENCES lobs(lob_id),
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Report attributes table
+CREATE TABLE report_attributes (
+    attribute_id SERIAL PRIMARY KEY,
+    report_id INTEGER NOT NULL REFERENCES reports(report_id) ON DELETE CASCADE,
+    attribute_name VARCHAR(255) NOT NULL,
+    attribute_code VARCHAR(100),
+    data_type VARCHAR(50),
+    is_required BOOLEAN DEFAULT false,
+    description TEXT,
+    validation_rules JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Test cycles table
+CREATE TABLE test_cycles (
+    cycle_id SERIAL PRIMARY KEY,
+    cycle_name VARCHAR(255) NOT NULL,
+    cycle_year INTEGER NOT NULL,
+    cycle_quarter INTEGER NOT NULL,
+    start_date DATE,
+    end_date DATE,
+    status VARCHAR(50) DEFAULT 'planning',
+    created_by_id INTEGER REFERENCES users(user_id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Workflow phases
+CREATE TABLE workflow_phases (
+    phase_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    phase_name VARCHAR(100) NOT NULL,
+    phase_order INTEGER NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Activity definitions
+CREATE TABLE activity_definitions (
+    id SERIAL PRIMARY KEY,
+    phase_name VARCHAR(50) NOT NULL,
+    activity_name VARCHAR(100) NOT NULL,
+    activity_code VARCHAR(50) UNIQUE NOT NULL,
+    description VARCHAR(500),
+    activity_type VARCHAR(50) NOT NULL,
+    requires_backend_action BOOLEAN DEFAULT false,
+    backend_endpoint VARCHAR(200),
+    sequence_order INTEGER NOT NULL,
+    depends_on_activity_codes JSON DEFAULT '[]'::json,
+    button_text VARCHAR(50),
+    success_message VARCHAR(200),
+    instructions VARCHAR(500),
+    can_skip BOOLEAN DEFAULT false,
+    can_reset BOOLEAN DEFAULT true,
+    auto_complete_on_condition JSON,
+    is_active BOOLEAN DEFAULT true,
+    auto_complete BOOLEAN DEFAULT false,
+    conditional_skip_rules JSON,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_phase_activity UNIQUE (phase_name, activity_name)
+);
+
+-- Activity states
+CREATE TABLE activity_states (
+    id SERIAL PRIMARY KEY,
+    activity_id INTEGER NOT NULL REFERENCES activity_definitions(id),
+    entity_type VARCHAR(50) NOT NULL,
+    entity_id VARCHAR(255) NOT NULL,
+    status activity_status_enum NOT NULL DEFAULT 'NOT_STARTED',
+    started_at TIMESTAMP WITHOUT TIME ZONE,
+    completed_at TIMESTAMP WITHOUT TIME ZONE,
+    completed_by INTEGER REFERENCES users(user_id),
+    notes TEXT,
+    metadata JSONB DEFAULT '{}',
+    reset_count INTEGER DEFAULT 0,
+    last_reset_at TIMESTAMP WITHOUT TIME ZONE,
+    last_reset_by INTEGER REFERENCES users(user_id),
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_activity_entity UNIQUE (activity_id, entity_type, entity_id)
+);
+
+-- Alembic version table (for migrations)
+CREATE TABLE alembic_version (
+    version_num VARCHAR(32) NOT NULL,
+    CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
+);
+
+-- Insert a version to prevent migrations from running
+INSERT INTO alembic_version (version_num) VALUES ('containerized_initial');
+
+-- Create indexes for better performance
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_reports_lob_id ON reports(lob_id);
+CREATE INDEX idx_report_attributes_report_id ON report_attributes(report_id);
+CREATE INDEX idx_user_roles_user_id ON user_roles(user_id);
+CREATE INDEX idx_user_roles_role_id ON user_roles(role_id);
+CREATE INDEX idx_role_permissions_role_id ON role_permissions(role_id);
+CREATE INDEX idx_activity_states_entity ON activity_states(entity_type, entity_id);
+CREATE INDEX idx_activity_states_activity_id ON activity_states(activity_id);

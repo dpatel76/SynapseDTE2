@@ -1,0 +1,264 @@
+{
+  "test_summary": {
+    "total_endpoints_tested": 116,
+    "total_tests_executed": 121,
+    "successful_tests": 17,
+    "failed_tests": 104,
+    "success_rate_percentage": 14.0,
+    "authenticated_users": 5,
+    "avg_response_time_ms": 25.56,
+    "test_execution_time": "2025-07-19T23:15:42"
+  },
+  "category_results": {
+    "Authentication": {
+      "passed": 3,
+      "total": 5,
+      "rate": 60.0,
+      "critical": true
+    },
+    "User Management": {
+      "passed": 2,
+      "total": 5,
+      "rate": 40.0,
+      "critical": true
+    },
+    "Lines of Business": {
+      "passed": 2,
+      "total": 5,
+      "rate": 40.0,
+      "critical": true
+    },
+    "Report Management": {
+      "passed": 1,
+      "total": 6,
+      "rate": 16.7,
+      "critical": true
+    },
+    "Cycle Management": {
+      "passed": 1,
+      "total": 6,
+      "rate": 16.7,
+      "critical": true
+    },
+    "System Health": {
+      "passed": 2,
+      "total": 2,
+      "rate": 100.0,
+      "critical": true
+    },
+    "Cycle Reports": {
+      "passed": 1,
+      "total": 5,
+      "rate": 20.0,
+      "critical": false
+    },
+    "Universal Assignments": {
+      "passed": 1,
+      "total": 4,
+      "rate": 25.0,
+      "critical": false
+    },
+    "Report Inventory": {
+      "passed": 0,
+      "total": 4,
+      "rate": 0.0,
+      "critical": false
+    },
+    "Data Sources": {
+      "passed": 0,
+      "total": 4,
+      "rate": 0.0,
+      "critical": false
+    },
+    "Planning Phase": {
+      "passed": 0,
+      "total": 6,
+      "rate": 0.0,
+      "critical": false
+    },
+    "Data Profiling": {
+      "passed": 0,
+      "total": 6,
+      "rate": 0.0,
+      "critical": false
+    },
+    "Scoping Phase": {
+      "passed": 0,
+      "total": 6,
+      "rate": 0.0,
+      "critical": false
+    },
+    "Data Owner": {
+      "passed": 0,
+      "total": 4,
+      "rate": 0.0,
+      "critical": false
+    },
+    "Sample Selection": {
+      "passed": 0,
+      "total": 5,
+      "rate": 0.0,
+      "critical": false
+    },
+    "Request Info": {
+      "passed": 0,
+      "total": 5,
+      "rate": 0.0,
+      "critical": false
+    },
+    "Test Execution": {
+      "passed": 0,
+      "total": 6,
+      "rate": 0.0,
+      "critical": false
+    },
+    "Observation Management": {
+      "passed": 0,
+      "total": 5,
+      "rate": 0.0,
+      "critical": false
+    },
+    "Test Report": {
+      "passed": 0,
+      "total": 5,
+      "rate": 0.0,
+      "critical": false
+    },
+    "Admin & RBAC": {
+      "passed": 0,
+      "total": 6,
+      "rate": 0.0,
+      "critical": false
+    },
+    "Metrics & Analytics": {
+      "passed": 0,
+      "total": 6,
+      "rate": 0.0,
+      "critical": false
+    },
+    "Workflow Management": {
+      "passed": 0,
+      "total": 5,
+      "rate": 0.0,
+      "critical": false
+    },
+    "Document Management": {
+      "passed": 0,
+      "total": 5,
+      "rate": 0.0,
+      "critical": false
+    }
+  },
+  "error_analysis": {
+    "HTTP 422 (Validation Error)": {
+      "count": 16,
+      "percentage": 15.4,
+      "fixable": true
+    },
+    "HTTP 404 (Not Found)": {
+      "count": 71,
+      "percentage": 68.3,
+      "fixable": true
+    },
+    "HTTP 403 (Forbidden)": {
+      "count": 9,
+      "percentage": 8.7,
+      "fixable": true
+    },
+    "HTTP 500 (Server Error)": {
+      "count": 5,
+      "percentage": 4.8,
+      "fixable": true
+    },
+    "HTTP 400 (Bad Request)": {
+      "count": 2,
+      "percentage": 1.9,
+      "fixable": true
+    },
+    "HTTP 405 (Method Not Allowed)": {
+      "count": 1,
+      "percentage": 1.0,
+      "fixable": true
+    }
+  },
+  "critical_findings": [
+    "\u2705 All 5 test users (test.manager, tester, report.owner, cdo, data.provider) authenticated successfully",
+    "\u2705 System health endpoints are 100% functional",
+    "\u2705 Basic user and LOB management endpoints are partially working",
+    "\u274c 68.3% of failures are HTTP 404 - missing test data or incorrect endpoints",
+    "\u274c 15.4% of failures are HTTP 422 - validation errors in request schemas",
+    "\u274c 8.7% of failures are HTTP 403 - RBAC permission issues",
+    "\u274c Phase-specific APIs (Planning, Data Profiling, Scoping) are 0% functional",
+    "\u26a0\ufe0f Performance is good (25.56ms avg) but many endpoints are not accessible"
+  ],
+  "corrective_actions": [
+    {
+      "priority": "HIGH",
+      "category": "Data Validation (HTTP 422)",
+      "issue": "Request schema field name mismatches",
+      "action": "Update API request schemas to match frontend expectations",
+      "endpoints_affected": 16,
+      "fix_complexity": "LOW"
+    },
+    {
+      "priority": "HIGH",
+      "category": "Missing Test Data (HTTP 404)",
+      "issue": "No test data exists for entity operations",
+      "action": "Create comprehensive seed data for all entity types",
+      "endpoints_affected": 71,
+      "fix_complexity": "MEDIUM"
+    },
+    {
+      "priority": "MEDIUM",
+      "category": "RBAC Permissions (HTTP 403)",
+      "issue": "User roles lack required permissions",
+      "action": "Update RBAC configuration to grant appropriate permissions",
+      "endpoints_affected": 9,
+      "fix_complexity": "MEDIUM"
+    },
+    {
+      "priority": "HIGH",
+      "category": "Server Errors (HTTP 500)",
+      "issue": "Backend implementation bugs",
+      "action": "Debug and fix server-side errors",
+      "endpoints_affected": 5,
+      "fix_complexity": "HIGH"
+    },
+    {
+      "priority": "MEDIUM",
+      "category": "Endpoint Implementation",
+      "issue": "Phase-specific endpoints not implemented",
+      "action": "Complete implementation of workflow phase APIs",
+      "endpoints_affected": 33,
+      "fix_complexity": "HIGH"
+    }
+  ],
+  "critical_path_analysis": {
+    "Core Authentication": {
+      "status": "WORKING",
+      "success_rate": 60.0
+    },
+    "User Management": {
+      "status": "PARTIAL",
+      "success_rate": 40.0
+    },
+    "Cycle Management": {
+      "status": "MINIMAL",
+      "success_rate": 16.7
+    },
+    "Report Management": {
+      "status": "MINIMAL",
+      "success_rate": 16.7
+    },
+    "Workflow Operations": {
+      "status": "BROKEN",
+      "success_rate": 0.0
+    },
+    "System Health": {
+      "status": "WORKING",
+      "success_rate": 100.0
+    }
+  },
+  "report_timestamp": "2025-07-19T23:17:25.943689",
+  "testing_methodology": "Comprehensive automated testing with 5 real user accounts across 116 endpoints"
+}

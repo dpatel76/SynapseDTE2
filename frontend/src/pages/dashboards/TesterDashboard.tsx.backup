@@ -1,0 +1,4 @@
+import TesterDashboardRedesigned from './TesterDashboardRedesigned';
+
+// Re-export the redesigned dashboard as the main TesterDashboard
+export default TesterDashboardRedesigned;

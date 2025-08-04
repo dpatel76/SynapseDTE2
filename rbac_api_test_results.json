@@ -1,0 +1,205 @@
+{
+  "summary": {
+    "total_tests": 24,
+    "successful_tests": 0,
+    "success_rate": 0.0
+  },
+  "results": [
+    {
+      "user": "admin@synapsedt.com",
+      "role": "Admin",
+      "login_success": true,
+      "tests": [
+        {
+          "endpoint": "/admin/users",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/admin/rbac/roles",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/admin/rbac/permissions",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/api/cycles",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/api/dashboard/metrics",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/api/user/profile",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        }
+      ]
+    },
+    {
+      "user": "test.manager@example.com",
+      "role": "Test Manager",
+      "login_success": true,
+      "tests": [
+        {
+          "endpoint": "/admin/users",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/admin/rbac/roles",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/admin/rbac/permissions",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/api/cycles",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/api/dashboard/metrics",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/api/user/profile",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        }
+      ]
+    },
+    {
+      "user": "tester@example.com",
+      "role": "Tester",
+      "login_success": true,
+      "tests": [
+        {
+          "endpoint": "/admin/users",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/admin/rbac/roles",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/admin/rbac/permissions",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/api/cycles",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/api/dashboard/metrics",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/api/user/profile",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        }
+      ]
+    },
+    {
+      "user": "data.provider@example.com",
+      "role": "Data Provider",
+      "login_success": true,
+      "tests": [
+        {
+          "endpoint": "/admin/users",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/admin/rbac/roles",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/admin/rbac/permissions",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/api/cycles",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/api/dashboard/metrics",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        },
+        {
+          "endpoint": "/api/user/profile",
+          "method": "GET",
+          "status": 404,
+          "success": false,
+          "response": "{\"detail\":\"Not Found\"}"
+        }
+      ]
+    }
+  ]
+}

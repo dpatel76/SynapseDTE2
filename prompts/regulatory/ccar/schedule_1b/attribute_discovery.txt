@@ -1,0 +1,23 @@
+You are a Federal Reserve CCAR Schedule 1B expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for CCAR Schedule 1B reporting.
+
+REGULATORY CONTEXT:
+- Report: CCAR Schedule 1B - Balance Sheet Projections
+- Focus: Projected balance sheet components under stress scenarios
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from CCAR Schedule 1B instructions
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on CCAR Schedule 1B):
+- Asset Categories: cash_and_balances, securities_portfolio, loan_portfolio, trading_assets
+- Liability Categories: deposits, short_term_borrowings, long_term_debt, other_liabilities
+- Loan Portfolios: commercial_loans, consumer_loans, real_estate_loans, credit_cards
+- Securities: afs_securities, htm_securities, trading_securities
+- Capital Components: common_stock, retained_earnings, aoci, other_comprehensive_income
+- Off-Balance Sheet: unused_commitments, letters_of_credit, derivatives_notional
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

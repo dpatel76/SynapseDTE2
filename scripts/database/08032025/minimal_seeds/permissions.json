@@ -1,0 +1,287 @@
+{
+  "table": "permissions",
+  "row_count": 35,
+  "extracted_at": "2025-08-03T15:23:44.570867",
+  "data": [
+    {
+      "permission_id": 1,
+      "resource": "users",
+      "action": "create",
+      "description": "Create users",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 2,
+      "resource": "users",
+      "action": "read",
+      "description": "Read users",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 3,
+      "resource": "users",
+      "action": "update",
+      "description": "Update users",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 4,
+      "resource": "users",
+      "action": "delete",
+      "description": "Delete users",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 5,
+      "resource": "users",
+      "action": "approve",
+      "description": "Approve users",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 6,
+      "resource": "roles",
+      "action": "create",
+      "description": "Create roles",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 7,
+      "resource": "roles",
+      "action": "read",
+      "description": "Read roles",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 8,
+      "resource": "roles",
+      "action": "update",
+      "description": "Update roles",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 9,
+      "resource": "roles",
+      "action": "delete",
+      "description": "Delete roles",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 10,
+      "resource": "roles",
+      "action": "approve",
+      "description": "Approve roles",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 11,
+      "resource": "reports",
+      "action": "create",
+      "description": "Create reports",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 12,
+      "resource": "reports",
+      "action": "read",
+      "description": "Read reports",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 13,
+      "resource": "reports",
+      "action": "update",
+      "description": "Update reports",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 14,
+      "resource": "reports",
+      "action": "delete",
+      "description": "Delete reports",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 15,
+      "resource": "reports",
+      "action": "approve",
+      "description": "Approve reports",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 16,
+      "resource": "test_cycles",
+      "action": "create",
+      "description": "Create test_cycles",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 17,
+      "resource": "test_cycles",
+      "action": "read",
+      "description": "Read test_cycles",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 18,
+      "resource": "test_cycles",
+      "action": "update",
+      "description": "Update test_cycles",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 19,
+      "resource": "test_cycles",
+      "action": "delete",
+      "description": "Delete test_cycles",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 20,
+      "resource": "test_cycles",
+      "action": "approve",
+      "description": "Approve test_cycles",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 21,
+      "resource": "test_execution",
+      "action": "create",
+      "description": "Create test_execution",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 22,
+      "resource": "test_execution",
+      "action": "read",
+      "description": "Read test_execution",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 23,
+      "resource": "test_execution",
+      "action": "update",
+      "description": "Update test_execution",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 24,
+      "resource": "test_execution",
+      "action": "delete",
+      "description": "Delete test_execution",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 25,
+      "resource": "test_execution",
+      "action": "approve",
+      "description": "Approve test_execution",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 26,
+      "resource": "observations",
+      "action": "create",
+      "description": "Create observations",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 27,
+      "resource": "observations",
+      "action": "read",
+      "description": "Read observations",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 28,
+      "resource": "observations",
+      "action": "update",
+      "description": "Update observations",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 29,
+      "resource": "observations",
+      "action": "delete",
+      "description": "Delete observations",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 30,
+      "resource": "observations",
+      "action": "approve",
+      "description": "Approve observations",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 31,
+      "resource": "data_sources",
+      "action": "create",
+      "description": "Create data_sources",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 32,
+      "resource": "data_sources",
+      "action": "read",
+      "description": "Read data_sources",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 33,
+      "resource": "data_sources",
+      "action": "update",
+      "description": "Update data_sources",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 34,
+      "resource": "data_sources",
+      "action": "delete",
+      "description": "Delete data_sources",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "permission_id": 35,
+      "resource": "data_sources",
+      "action": "approve",
+      "description": "Approve data_sources",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    }
+  ]
+}

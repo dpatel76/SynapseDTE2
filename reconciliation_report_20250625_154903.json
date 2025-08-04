@@ -1,0 +1,56 @@
+{
+  "timestamp": "2025-06-25T15:49:02.888247",
+  "source_database": "synapse_dt",
+  "test_database": "synapse_dt_test",
+  "schema_differences": [],
+  "data_differences": [
+    {
+      "table": "role_permissions",
+      "type": "data_mismatch",
+      "primary_key": 1,
+      "column": "permission_id",
+      "source_value": "60",
+      "test_value": "73"
+    },
+    {
+      "table": "role_permissions",
+      "type": "data_mismatch",
+      "primary_key": 1,
+      "column": "granted_by",
+      "source_value": "None",
+      "test_value": "1"
+    },
+    {
+      "table": "role_permissions",
+      "type": "data_mismatch",
+      "primary_key": 2,
+      "column": "permission_id",
+      "source_value": "4",
+      "test_value": "79"
+    },
+    {
+      "table": "role_permissions",
+      "type": "data_mismatch",
+      "primary_key": 3,
+      "column": "permission_id",
+      "source_value": "79",
+      "test_value": "81"
+    },
+    {
+      "table": "role_permissions",
+      "type": "data_mismatch",
+      "primary_key": 4,
+      "column": "permission_id",
+      "source_value": "4",
+      "test_value": "83"
+    }
+  ],
+  "validation_errors": [],
+  "summary": {
+    "total_tables": 124,
+    "seed_tables": 12,
+    "schema_differences_count": 0,
+    "data_differences_count": 5,
+    "validation_errors_count": 0
+  }
+}

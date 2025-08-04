@@ -1,0 +1,539 @@
+{
+  "executive_summary": {
+    "total_tests": 46,
+    "successful_tests": 15,
+    "success_rate": 32.6,
+    "target_achieved": false,
+    "improvement_vs_naive": 18.6,
+    "workflow_completeness": 100.0,
+    "entities_created": {
+      "cycle": true
+    },
+    "avg_response_time_ms": 39.13
+  },
+  "category_analysis": {
+    "authentication": {
+      "success_rate": 33.33333333333333,
+      "successful": 1,
+      "total": 3
+    },
+    "foundation": {
+      "success_rate": 75.0,
+      "successful": 3,
+      "total": 4
+    },
+    "reports": {
+      "success_rate": 33.33333333333333,
+      "successful": 1,
+      "total": 3
+    },
+    "cycles": {
+      "success_rate": 80.0,
+      "successful": 4,
+      "total": 5
+    },
+    "workflow_phases": {
+      "success_rate": 0.0,
+      "successful": 0,
+      "total": 6
+    },
+    "execution": {
+      "success_rate": 0.0,
+      "successful": 0,
+      "total": 5
+    },
+    "management": {
+      "success_rate": 6.666666666666667,
+      "successful": 1,
+      "total": 15
+    }
+  },
+  "workflow_entities": {
+    "cycle": {
+      "entity_type": "cycle",
+      "entity_id": "57",
+      "entity_data": {
+        "cycle_name": "Comprehensive Test Cycle 2024",
+        "description": "Test cycle for comprehensive API testing",
+        "start_date": "2024-01-01",
+        "end_date": "2024-12-31",
+        "status": "Active"
+      },
+      "created": true
+    }
+  },
+  "error_analysis": {
+    "HTTP 500": 4,
+    "HTTP 403": 5,
+    "HTTP 422": 1,
+    "HTTP 404": 21
+  },
+  "performance_metrics": {
+    "fastest_response_ms": 1.4989999999999999,
+    "slowest_response_ms": 485.234,
+    "avg_response_time_ms": 39.13
+  },
+  "detailed_results": [
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 485.234,
+      "created_entity_id": null,
+      "category": "Authentication"
+    },
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 193.546,
+      "created_entity_id": null,
+      "category": "Authentication"
+    },
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 194.718,
+      "created_entity_id": null,
+      "category": "Authentication"
+    },
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 195.936,
+      "created_entity_id": null,
+      "category": "Authentication"
+    },
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 199.252,
+      "created_entity_id": null,
+      "category": "Authentication"
+    },
+    {
+      "endpoint": "/auth/me",
+      "method": "GET",
+      "status_code": 500,
+      "success": false,
+      "error_message": "{'detail': 'Internal server error'}",
+      "response_time_ms": 1.9189999999999998,
+      "created_entity_id": null,
+      "category": "Authentication"
+    },
+    {
+      "endpoint": "/auth/me",
+      "method": "GET",
+      "status_code": 500,
+      "success": false,
+      "error_message": "{'detail': 'Internal server error'}",
+      "response_time_ms": 1.4989999999999999,
+      "created_entity_id": null,
+      "category": "Authentication"
+    },
+    {
+      "endpoint": "/auth/logout",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 1.7249999999999999,
+      "created_entity_id": "2",
+      "category": "Authentication"
+    },
+    {
+      "endpoint": "/health",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 1.546,
+      "created_entity_id": null,
+      "category": "System Health"
+    },
+    {
+      "endpoint": "/lobs/",
+      "method": "POST",
+      "status_code": 403,
+      "success": false,
+      "error_message": "{'detail': 'Permission denied: lobs:create'}",
+      "response_time_ms": 33.286,
+      "created_entity_id": null,
+      "category": "LOB Management"
+    },
+    {
+      "endpoint": "/lobs/",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 32.434,
+      "created_entity_id": null,
+      "category": "LOB Management"
+    },
+    {
+      "endpoint": "/users/",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 26.186,
+      "created_entity_id": null,
+      "category": "User Management"
+    },
+    {
+      "endpoint": "/reports/",
+      "method": "POST",
+      "status_code": 422,
+      "success": false,
+      "error_message": "{'detail': [{'type': 'missing', 'loc': ['body', 'report_owner_id'], 'msg': 'Field required', 'input': {'report_name': 'Comprehensive Test Report 2024', 'description': 'Test report for comprehensive API testing', 'lob_id': 1, 'report_type': 'Regulatory', 'frequency': 'Annual'}}]}",
+      "response_time_ms": 20.426,
+      "created_entity_id": null,
+      "category": "Report Management"
+    },
+    {
+      "endpoint": "/reports/",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 32.301,
+      "created_entity_id": null,
+      "category": "Report Management"
+    },
+    {
+      "endpoint": "/report-inventory/",
+      "method": "GET",
+      "status_code": 500,
+      "success": false,
+      "error_message": "{'detail': 'Internal server error'}",
+      "response_time_ms": 25.846,
+      "created_entity_id": null,
+      "category": "Report Management"
+    },
+    {
+      "endpoint": "/cycles/",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 40.864,
+      "created_entity_id": "57",
+      "category": "Cycle Management"
+    },
+    {
+      "endpoint": "/cycles/",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 35.07,
+      "created_entity_id": null,
+      "category": "Cycle Management"
+    },
+    {
+      "endpoint": "/cycles/57",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 28.320999999999998,
+      "created_entity_id": null,
+      "category": "Cycle Management"
+    },
+    {
+      "endpoint": "/cycle-reports/",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 2.433,
+      "created_entity_id": null,
+      "category": "Cycle Management"
+    },
+    {
+      "endpoint": "/cycle-reports/by-tester/2",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 25.06,
+      "created_entity_id": null,
+      "category": "Cycle Management"
+    },
+    {
+      "endpoint": "/planning/activities",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 2.148,
+      "created_entity_id": null,
+      "category": "Planning Phase"
+    },
+    {
+      "endpoint": "/planning/activities?cycle_id=57",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.811,
+      "created_entity_id": null,
+      "category": "Planning Phase"
+    },
+    {
+      "endpoint": "/data-profiling/profiles",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.7750000000000001,
+      "created_entity_id": null,
+      "category": "Data Profiling"
+    },
+    {
+      "endpoint": "/scoping/decisions",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.782,
+      "created_entity_id": null,
+      "category": "Scoping Phase"
+    },
+    {
+      "endpoint": "/sample-selection/samples",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 2.072,
+      "created_entity_id": null,
+      "category": "Sample Selection"
+    },
+    {
+      "endpoint": "/request-info/requests",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 2.16,
+      "created_entity_id": null,
+      "category": "Request Info"
+    },
+    {
+      "endpoint": "/test-execution/tests",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.6980000000000002,
+      "created_entity_id": null,
+      "category": "Test Execution"
+    },
+    {
+      "endpoint": "/test-execution-legacy/tests",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.647,
+      "created_entity_id": null,
+      "category": "Test Execution Legacy"
+    },
+    {
+      "endpoint": "/observation-management/observations",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.624,
+      "created_entity_id": null,
+      "category": "Observation Management"
+    },
+    {
+      "endpoint": "/observation-enhanced/observations",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.6,
+      "created_entity_id": null,
+      "category": "Enhanced Observations"
+    },
+    {
+      "endpoint": "/test-report/reports",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.678,
+      "created_entity_id": null,
+      "category": "Test Report"
+    },
+    {
+      "endpoint": "/dashboards/executive",
+      "method": "GET",
+      "status_code": 403,
+      "success": false,
+      "error_message": "{'detail': 'Executive dashboard access requires Report Owner Executive role'}",
+      "response_time_ms": 22.218,
+      "created_entity_id": null,
+      "category": "Dashboards"
+    },
+    {
+      "endpoint": "/dashboards/tester/2",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.943,
+      "created_entity_id": null,
+      "category": "Dashboards"
+    },
+    {
+      "endpoint": "/metrics/dashboard",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.66,
+      "created_entity_id": null,
+      "category": "Metrics"
+    },
+    {
+      "endpoint": "/unified-metrics/summary",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.633,
+      "created_entity_id": null,
+      "category": "Unified Metrics"
+    },
+    {
+      "endpoint": "/analytics/trends",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.609,
+      "created_entity_id": null,
+      "category": "Analytics"
+    },
+    {
+      "endpoint": "/workflow/status",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.606,
+      "created_entity_id": null,
+      "category": "Workflow Management"
+    },
+    {
+      "endpoint": "/workflow-metrics/summary",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.9620000000000002,
+      "created_entity_id": null,
+      "category": "Workflow Metrics"
+    },
+    {
+      "endpoint": "/universal-assignments/assignments",
+      "method": "GET",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 40.507,
+      "created_entity_id": null,
+      "category": "Universal Assignments"
+    },
+    {
+      "endpoint": "/document-management/documents",
+      "method": "GET",
+      "status_code": 500,
+      "success": false,
+      "error_message": "{'detail': \"400: 'AsyncSession' object has no attribute 'query'\"}",
+      "response_time_ms": 23.307000000000002,
+      "created_entity_id": null,
+      "category": "Document Management"
+    },
+    {
+      "endpoint": "/admin/rbac/permissions",
+      "method": "GET",
+      "status_code": 403,
+      "success": false,
+      "error_message": "{'detail': \"Access denied. Required roles: ['Admin'], user role: Test Executive\", 'type': 'authorization_error'}",
+      "response_time_ms": 19.990000000000002,
+      "created_entity_id": null,
+      "category": "Admin RBAC"
+    },
+    {
+      "endpoint": "/admin/rbac/roles",
+      "method": "GET",
+      "status_code": 403,
+      "success": false,
+      "error_message": "{'detail': \"Access denied. Required roles: ['Admin'], user role: Test Executive\", 'type': 'authorization_error'}",
+      "response_time_ms": 18.564,
+      "created_entity_id": null,
+      "category": "Admin RBAC"
+    },
+    {
+      "endpoint": "/sla/",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.838,
+      "created_entity_id": null,
+      "category": "SLA Management"
+    },
+    {
+      "endpoint": "/data-dictionary/",
+      "method": "GET",
+      "status_code": 403,
+      "success": false,
+      "error_message": "{'detail': 'Permission denied: planning:execute'}",
+      "response_time_ms": 62.152,
+      "created_entity_id": null,
+      "category": "Data Dictionary"
+    },
+    {
+      "endpoint": "/activities/",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.9620000000000002,
+      "created_entity_id": null,
+      "category": "Activity States"
+    },
+    {
+      "endpoint": "/versions/",
+      "method": "GET",
+      "status_code": 404,
+      "success": false,
+      "error_message": "{'detail': 'Not Found'}",
+      "response_time_ms": 1.595,
+      "created_entity_id": null,
+      "category": "Version Management"
+    }
+  ],
+  "timestamp": "2025-07-19T23:30:30.322701"
+}

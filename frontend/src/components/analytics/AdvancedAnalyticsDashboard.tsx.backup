@@ -1,0 +1,713 @@
+import React, { useState, useMemo } from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Chip,
+  Paper,
+  LinearProgress,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tabs,
+  Tab,
+  Alert,
+  Tooltip,
+  Avatar,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Divider,
+} from '@mui/material';
+import {
+  TrendingUp,
+  TrendingDown,
+  Timeline,
+  Assessment,
+  Speed,
+  CheckCircle,
+  Error,
+  Warning,
+  Schedule,
+  Person,
+  Science,
+  BugReport,
+  DataUsage,
+  Analytics,
+  Security,
+  Insights,
+} from '@mui/icons-material';
+
+// Mock data for analytics
+interface AnalyticsMetric {
+  label: string;
+  value: number;
+  unit: string;
+  trend: 'up' | 'down' | 'stable';
+  trendPercentage: number;
+  color: 'primary' | 'success' | 'warning' | 'error' | 'info';
+  icon: React.ReactNode;
+  description: string;
+}
+
+interface ChartDataPoint {
+  date: string;
+  value: number;
+  category?: string;
+  status?: string;
+}
+
+interface PerformanceMetric {
+  name: string;
+  current: number;
+  target: number;
+  status: 'good' | 'warning' | 'critical';
+  unit: string;
+  description: string;
+}
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div role="tabpanel" hidden={value !== index} {...other}>
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
+const AdvancedAnalyticsDashboard: React.FC = () => {
+  const [selectedPeriod, setSelectedPeriod] = useState('30d');
+  const [selectedCycle, setSelectedCycle] = useState('all');
+  const [tabValue, setTabValue] = useState(0);
+
+  // Mock analytics data
+  const keyMetrics: AnalyticsMetric[] = [
+    {
+      label: 'Test Execution Rate',
+      value: 87.5,
+      unit: '%',
+      trend: 'up',
+      trendPercentage: 12.3,
+      color: 'success',
+      icon: <Speed />,
+      description: 'Percentage of test cases executed on schedule',
+    },
+    {
+      label: 'Quality Score',
+      value: 94.2,
+      unit: '%',
+      trend: 'up',
+      trendPercentage: 5.7,
+      color: 'primary',
+      icon: <CheckCircle />,
+      description: 'Overall quality score based on test results',
+    },
+    {
+      label: 'Critical Observations',
+      value: 3,
+      unit: 'items',
+      trend: 'down',
+      trendPercentage: 25.0,
+      color: 'error',
+      icon: <Error />,
+      description: 'Number of critical observations requiring attention',
+    },
+    {
+      label: 'Avg Resolution Time',
+      value: 2.8,
+      unit: 'days',
+      trend: 'down',
+      trendPercentage: 15.2,
+      color: 'success',
+      icon: <Schedule />,
+      description: 'Average time to resolve observations',
+    },
+    {
+      label: 'Data Owner Compliance',
+      value: 96.4,
+      unit: '%',
+      trend: 'stable',
+      trendPercentage: 0.8,
+      color: 'info',
+      icon: <Security />,
+      description: 'Percentage of data providers meeting requirements',
+    },
+    {
+      label: 'Automation Coverage',
+      value: 78.9,
+      unit: '%',
+      trend: 'up',
+      trendPercentage: 8.5,
+      color: 'primary',
+      icon: <Analytics />,
+      description: 'Percentage of tests automated',
+    },
+  ];
+
+  const performanceMetrics: PerformanceMetric[] = [
+    {
+      name: 'Test Case Pass Rate',
+      current: 92.5,
+      target: 95.0,
+      status: 'warning',
+      unit: '%',
+      description: 'Percentage of test cases passing successfully',
+    },
+    {
+      name: 'Observation Resolution Rate',
+      current: 98.2,
+      target: 95.0,
+      status: 'good',
+      unit: '%',
+      description: 'Percentage of observations resolved within SLA',
+    },
+    {
+      name: 'Data Quality Score',
+      current: 88.7,
+      target: 90.0,
+      status: 'warning',
+      unit: '%',
+      description: 'Overall data quality assessment score',
+    },
+    {
+      name: 'Cycle Completion Time',
+      current: 14.2,
+      target: 12.0,
+      status: 'critical',
+      unit: 'days',
+      description: 'Average time to complete testing cycles',
+    },
+  ];
+
+  // Mock trend data
+  const trendData: ChartDataPoint[] = [
+    { date: '2024-12-01', value: 85.2, category: 'Test Execution' },
+    { date: '2024-12-08', value: 87.1, category: 'Test Execution' },
+    { date: '2024-12-15', value: 86.8, category: 'Test Execution' },
+    { date: '2024-12-22', value: 88.4, category: 'Test Execution' },
+    { date: '2024-12-29', value: 89.7, category: 'Test Execution' },
+    { date: '2025-01-05', value: 87.9, category: 'Test Execution' },
+    { date: '2025-01-12', value: 90.3, category: 'Test Execution' },
+    { date: '2025-01-19', value: 87.5, category: 'Test Execution' },
+  ];
+
+  // Test case distribution data
+  const testCaseDistribution = [
+    { category: 'Data Validation', count: 45, percentage: 35.2, status: 'good' },
+    { category: 'Calculation Logic', count: 32, percentage: 25.0, status: 'warning' },
+    { category: 'Business Rules', count: 28, percentage: 21.9, status: 'good' },
+    { category: 'Integration', count: 15, percentage: 11.7, status: 'warning' },
+    { category: 'Performance', count: 8, percentage: 6.2, status: 'critical' },
+  ];
+
+  // Observation trends
+  const observationTrends = [
+    { type: 'Data Quality Issues', current: 12, previous: 18, trend: 'down' },
+    { type: 'Calculation Errors', current: 5, previous: 3, trend: 'up' },
+    { type: 'Business Rule Violations', current: 8, previous: 10, trend: 'down' },
+    { type: 'System Errors', current: 2, previous: 4, trend: 'down' },
+    { type: 'Process Gaps', current: 6, previous: 5, trend: 'up' },
+  ];
+
+  // Top performers
+  const topPerformers = [
+    { name: 'Jane Smith', role: 'Senior Analyst', testsCompleted: 34, quality: 97.8, avatar: 'JS' },
+    { name: 'John Doe', role: 'Validation Specialist', testsCompleted: 28, quality: 95.2, avatar: 'JD' },
+    { name: 'Alice Johnson', role: 'Data Analyst', testsCompleted: 25, quality: 94.7, avatar: 'AJ' },
+    { name: 'Michael Chen', role: 'Test Engineer', testsCompleted: 22, quality: 93.1, avatar: 'MC' },
+  ];
+
+  // Utility functions
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'up': return <TrendingUp sx={{ fontSize: 16, color: 'success.main' }} />;
+      case 'down': return <TrendingDown sx={{ fontSize: 16, color: 'error.main' }} />;
+      default: return <Timeline sx={{ fontSize: 16, color: 'text.secondary' }} />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'good': return 'success';
+      case 'warning': return 'warning';
+      case 'critical': return 'error';
+      default: return 'default';
+    }
+  };
+
+  const formatTrendText = (trend: string, percentage: number) => {
+    const direction = trend === 'up' ? '+' : trend === 'down' ? '-' : '';
+    return `${direction}${percentage}%`;
+  };
+
+  return (
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          Advanced Analytics Dashboard
+        </Typography>
+        <Typography variant="body1" color="text.secondary" gutterBottom>
+          Comprehensive insights and performance metrics for data testing operations.
+        </Typography>
+        
+        {/* Filter Controls */}
+        <Box display="flex" gap={2} mt={2}>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Time Period</InputLabel>
+            <Select
+              value={selectedPeriod}
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+            >
+              <MenuItem value="7d">Last 7 days</MenuItem>
+              <MenuItem value="30d">Last 30 days</MenuItem>
+              <MenuItem value="90d">Last 90 days</MenuItem>
+              <MenuItem value="1y">Last year</MenuItem>
+            </Select>
+          </FormControl>
+          
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Test Cycle</InputLabel>
+            <Select
+              value={selectedCycle}
+              onChange={(e) => setSelectedCycle(e.target.value)}
+            >
+              <MenuItem value="all">All Cycles</MenuItem>
+              <MenuItem value="q4_2024">Q4 2024</MenuItem>
+              <MenuItem value="q3_2024">Q3 2024</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+      </Box>
+
+      {/* Key Metrics Cards */}
+      <Box 
+        sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: {
+            xs: 'repeat(1, 1fr)',
+            sm: 'repeat(2, 1fr)', 
+            md: 'repeat(3, 1fr)',
+            lg: 'repeat(6, 1fr)'
+          },
+          gap: 3,
+          mb: 4 
+        }}
+      >
+        {keyMetrics.map((metric, index) => (
+          <Card key={index} sx={{ height: '100%' }}>
+            <CardContent>
+              <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+                <Box sx={{ color: `${metric.color}.main` }}>
+                  {metric.icon}
+                </Box>
+                <Box display="flex" alignItems="center" gap={0.5}>
+                  {getTrendIcon(metric.trend)}
+                  <Typography 
+                    variant="caption" 
+                    color={metric.trend === 'up' ? 'success.main' : metric.trend === 'down' ? 'error.main' : 'text.secondary'}
+                  >
+                    {formatTrendText(metric.trend, metric.trendPercentage)}
+                  </Typography>
+                </Box>
+              </Box>
+              
+              <Typography variant="h4" color={`${metric.color}.main`} gutterBottom>
+                {metric.value}{metric.unit}
+              </Typography>
+              
+              <Typography variant="subtitle2" gutterBottom>
+                {metric.label}
+              </Typography>
+              
+              <Typography variant="caption" color="text.secondary">
+                {metric.description}
+              </Typography>
+            </CardContent>
+          </Card>
+        ))}
+      </Box>
+
+      {/* Main Analytics Content */}
+      <Card>
+        <CardContent>
+          <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} sx={{ mb: 2 }}>
+            <Tab label="Performance Overview" icon={<Assessment />} />
+            <Tab label="Test Analytics" icon={<Science />} />
+            <Tab label="Observation Trends" icon={<BugReport />} />
+            <Tab label="Team Performance" icon={<Person />} />
+          </Tabs>
+
+          {/* Performance Overview Tab */}
+          <TabPanel value={tabValue} index={0}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+              {/* Performance Metrics */}
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  Performance Metrics
+                </Typography>
+                {performanceMetrics.map((metric, index) => (
+                  <Card key={index} sx={{ mb: 2 }}>
+                    <CardContent>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                        <Typography variant="subtitle1">
+                          {metric.name}
+                        </Typography>
+                        <Chip
+                          label={metric.status}
+                          color={getStatusColor(metric.status) as any}
+                          size="small"
+                        />
+                      </Box>
+                      
+                      <Box display="flex" alignItems="center" gap={2} mb={1}>
+                        <Typography variant="h5">
+                          {metric.current}{metric.unit}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Target: {metric.target}{metric.unit}
+                        </Typography>
+                      </Box>
+                      
+                      <LinearProgress
+                        variant="determinate"
+                        value={(metric.current / metric.target) * 100}
+                        color={getStatusColor(metric.status) as any}
+                        sx={{ mb: 1 }}
+                      />
+                      
+                      <Typography variant="caption" color="text.secondary">
+                        {metric.description}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+
+              {/* Trend Chart Placeholder */}
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  Execution Trends
+                </Typography>
+                <Paper sx={{ p: 3, textAlign: 'center', height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Box>
+                    <Timeline sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                    <Typography variant="body1" color="text.secondary">
+                      Trend chart visualization would be displayed here
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Integration with charting library (Chart.js, Recharts, etc.)
+                    </Typography>
+                  </Box>
+                </Paper>
+              </Box>
+            </Box>
+          </TabPanel>
+
+          {/* Test Analytics Tab */}
+          <TabPanel value={tabValue} index={1}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  Test Case Distribution
+                </Typography>
+                <TableContainer component={Paper} variant="outlined">
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Category</TableCell>
+                        <TableCell align="center">Count</TableCell>
+                        <TableCell align="center">Percentage</TableCell>
+                        <TableCell align="center">Status</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {testCaseDistribution.map((row, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{row.category}</TableCell>
+                          <TableCell align="center">{row.count}</TableCell>
+                          <TableCell align="center">
+                            <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+                              <LinearProgress
+                                variant="determinate"
+                                value={row.percentage}
+                                sx={{ width: 50, height: 4 }}
+                                color={getStatusColor(row.status) as any}
+                              />
+                              {row.percentage}%
+                            </Box>
+                          </TableCell>
+                          <TableCell align="center">
+                            <Chip
+                              label={row.status}
+                              color={getStatusColor(row.status) as any}
+                              size="small"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  Quality Insights
+                </Typography>
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2">Key Insights</Typography>
+                  <Typography variant="body2">
+                    • Data Validation tests show highest pass rate (97.2%)
+                    <br />
+                    • Performance tests need attention (72.1% pass rate)
+                    <br />
+                    • Integration test coverage can be improved
+                  </Typography>
+                </Alert>
+
+                <Paper sx={{ p: 2 }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Recommended Actions
+                  </Typography>
+                  <List dense>
+                    <ListItem>
+                      <ListItemIcon>
+                        <Warning color="warning" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Review Performance Tests"
+                        secondary="8 performance tests showing failures"
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        <Analytics color="info" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Increase Integration Coverage"
+                        secondary="Add 5-7 integration test cases"
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        <CheckCircle color="success" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Data Validation Excellence"
+                        secondary="Maintain current validation standards"
+                      />
+                    </ListItem>
+                  </List>
+                </Paper>
+              </Box>
+            </Box>
+          </TabPanel>
+
+          {/* Observation Trends Tab */}
+          <TabPanel value={tabValue} index={2}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, gap: 3 }}>
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  Observation Trends
+                </Typography>
+                <TableContainer component={Paper} variant="outlined">
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Observation Type</TableCell>
+                        <TableCell align="center">Current Period</TableCell>
+                        <TableCell align="center">Previous Period</TableCell>
+                        <TableCell align="center">Trend</TableCell>
+                        <TableCell align="center">Change</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {observationTrends.map((trend, index) => {
+                        const change = trend.current - trend.previous;
+                        const changePercent = trend.previous > 0 ? Math.abs((change / trend.previous) * 100) : 0;
+                        
+                        return (
+                          <TableRow key={index}>
+                            <TableCell>{trend.type}</TableCell>
+                            <TableCell align="center">{trend.current}</TableCell>
+                            <TableCell align="center">{trend.previous}</TableCell>
+                            <TableCell align="center">
+                              {getTrendIcon(trend.trend)}
+                            </TableCell>
+                            <TableCell align="center">
+                              <Typography
+                                variant="body2"
+                                color={trend.trend === 'up' ? 'error.main' : 'success.main'}
+                              >
+                                {change > 0 ? '+' : ''}{change} ({changePercent.toFixed(1)}%)
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  Resolution Status
+                </Typography>
+                <Box display="flex" flexDirection="column" gap={2}>
+                  <Paper sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="h3" color="success.main">85%</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Resolution Rate
+                    </Typography>
+                  </Paper>
+                  <Paper sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="h3" color="primary.main">2.8</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Avg Days to Resolve
+                    </Typography>
+                  </Paper>
+                  <Paper sx={{ p: 2, textAlign: 'center' }}>
+                    <Typography variant="h3" color="warning.main">7</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Open Critical Items
+                    </Typography>
+                  </Paper>
+                </Box>
+              </Box>
+            </Box>
+          </TabPanel>
+
+          {/* Team Performance Tab */}
+          <TabPanel value={tabValue} index={3}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, gap: 3 }}>
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  Top Performers
+                </Typography>
+                <TableContainer component={Paper} variant="outlined">
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Team Member</TableCell>
+                        <TableCell align="center">Tests Completed</TableCell>
+                        <TableCell align="center">Quality Score</TableCell>
+                        <TableCell align="center">Performance</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {topPerformers.map((performer, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <Box display="flex" alignItems="center" gap={2}>
+                              <Avatar sx={{ width: 32, height: 32, fontSize: '0.8rem' }}>
+                                {performer.avatar}
+                              </Avatar>
+                              <Box>
+                                <Typography variant="subtitle2">
+                                  {performer.name}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {performer.role}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          <TableCell align="center">
+                            <Typography variant="h6">{performer.testsCompleted}</Typography>
+                          </TableCell>
+                          <TableCell align="center">
+                            <Typography variant="h6" color="success.main">
+                              {performer.quality}%
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="center">
+                            <LinearProgress
+                              variant="determinate"
+                              value={performer.quality}
+                              color="success"
+                              sx={{ width: 60, height: 6 }}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  Team Metrics
+                </Typography>
+                <Box display="flex" flexDirection="column" gap={2}>
+                  <Paper sx={{ p: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Average Team Performance
+                    </Typography>
+                    <Box display="flex" alignItems="center" gap={2}>
+                      <CircularProgress
+                        variant="determinate"
+                        value={95}
+                        color="success"
+                        size={60}
+                        thickness={6}
+                      />
+                      <Box>
+                        <Typography variant="h4" color="success.main">95%</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Quality Score
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Paper>
+
+                  <Paper sx={{ p: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Workload Distribution
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Even distribution across team members with balanced workloads.
+                    </Typography>
+                  </Paper>
+
+                  <Paper sx={{ p: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Skills Development
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      • Advanced Analytics Training
+                      <br />
+                      • Calculation Logic Certification
+                      <br />
+                      • Process Optimization Workshop
+                    </Typography>
+                  </Paper>
+                </Box>
+              </Box>
+            </Box>
+          </TabPanel>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+};
+
+export default AdvancedAnalyticsDashboard; 

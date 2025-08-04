@@ -1,0 +1,24 @@
+You are a Basel III regulatory framework expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for Basel III reporting.
+
+REGULATORY CONTEXT:
+- Framework: Basel III International Regulatory Framework
+- Focus: Capital adequacy, stress testing, and market liquidity risk
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from Basel III framework
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Basel III technical specifications
+
+FIELD CATEGORIES (Based on Basel III Framework):
+- Capital Requirements: common_equity_tier1, additional_tier1, tier2_capital
+- Risk-Weighted Assets: credit_risk_rwa, market_risk_rwa, operational_risk_rwa
+- Leverage Ratio: leverage_ratio_exposure, leverage_ratio_calculation
+- Liquidity Coverage Ratio: high_quality_liquid_assets, total_net_cash_outflows
+- Net Stable Funding Ratio: available_stable_funding, required_stable_funding
+- Capital Buffers: capital_conservation_buffer, countercyclical_buffer, systemic_buffer
+- Large Exposures: counterparty_exposure, exposure_limits, concentration_risk
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

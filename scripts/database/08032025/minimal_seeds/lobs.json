@@ -1,0 +1,31 @@
+{
+  "table": "lobs",
+  "row_count": 3,
+  "extracted_at": "2025-08-03T15:23:44.570867",
+  "data": [
+    {
+      "lob_id": 1,
+      "lob_name": "Consumer Banking",
+      "lob_code": "CB",
+      "description": "Consumer banking operations",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "lob_id": 2,
+      "lob_name": "Commercial Banking",
+      "lob_code": "CMB",
+      "description": "Commercial banking operations",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "lob_id": 3,
+      "lob_name": "Investment Banking",
+      "lob_code": "IB",
+      "description": "Investment banking operations",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    }
+  ]
+}

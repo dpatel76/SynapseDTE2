@@ -1,0 +1,190 @@
+import React from 'react';
+import { Box, Chip, Typography, Tooltip } from '@mui/material';
+import {
+  Schedule,
+  CheckCircle,
+  Warning,
+  Error,
+  HourglassEmpty,
+  Loop
+} from '@mui/icons-material';
+import { useQuery } from '@tanstack/react-query';
+import { activityApi } from '../../api/metrics';
+
+interface PhaseStatusIndicatorProps {
+  cycleId: string;
+  reportId: string;
+  phaseName: string;
+  showDetails?: boolean;
+}
+
+interface Activity {
+  name: string;
+  state: 'Not Started' | 'In Progress' | 'Completed' | 'Revision Requested';
+  last_updated?: string;
+  updated_by?: string;
+  can_start?: boolean;
+  can_complete?: boolean;
+}
+
+interface PhaseData {
+  activities: Record<string, Activity>;
+  phase_progress: number;
+  can_start_phase: boolean;
+  can_complete_phase: boolean;
+  next_activity?: string;
+}
+
+const getStateIcon = (state: string) => {
+  switch (state) {
+    case 'Complete':
+    case 'Completed':
+      return <CheckCircle />;
+    case 'In Progress':
+      return <Loop />;
+    case 'Not Started':
+      return <HourglassEmpty />;
+    default:
+      return <Schedule />;
+  }
+};
+
+const getStateColor = (state: string): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
+  switch (state) {
+    case 'Complete':
+    case 'Completed':
+      return 'success';
+    case 'In Progress':
+      return 'info';
+    case 'Not Started':
+      return 'default';
+    default:
+      return 'default';
+  }
+};
+
+const getScheduleStatusColor = (status: string): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
+  switch (status) {
+    case 'On Track':
+      return 'success';
+    case 'At Risk':
+      return 'warning';
+    case 'Past Due':
+      return 'error';
+    default:
+      return 'default';
+  }
+};
+
+const getScheduleStatusIcon = (status: string) => {
+  switch (status) {
+    case 'On Track':
+      return <CheckCircle />;
+    case 'At Risk':
+      return <Warning />;
+    case 'Past Due':
+      return <Error />;
+    default:
+      return <Schedule />;
+  }
+};
+
+export const PhaseStatusIndicator: React.FC<PhaseStatusIndicatorProps> = ({
+  cycleId,
+  reportId,
+  phaseName,
+  showDetails = false
+}) => {
+  // Fetch phase status from activities
+  const { data: phaseData } = useQuery<PhaseData>({
+    queryKey: ['activity-states', cycleId, reportId, phaseName],
+    queryFn: async () => {
+      const response = await activityApi.getActivityStates(cycleId, reportId, phaseName);
+      // Transform ActivityState[] to PhaseData format
+      const activityStates = response.data;
+      const activities: Record<string, Activity> = {};
+      
+      activityStates.forEach(state => {
+        activities[state.activity_name] = {
+          name: state.activity_name,
+          state: state.state,
+          last_updated: state.last_updated,
+          updated_by: state.updated_by,
+          can_start: state.can_start,
+          can_complete: state.can_complete
+        };
+      });
+      
+      // Calculate phase progress based on completed activities
+      const totalActivities = activityStates.length;
+      const completedActivities = activityStates.filter(a => a.state === 'Completed').length;
+      const phase_progress = totalActivities > 0 ? (completedActivities / totalActivities) * 100 : 0;
+      
+      // Determine if phase can be started/completed
+      const startActivity = activities[`Start ${phaseName} Phase`];
+      const completeActivity = activities[`Complete ${phaseName} Phase`];
+      const can_start_phase = startActivity?.can_start || false;
+      const can_complete_phase = completeActivity?.can_complete || false;
+      
+      // Find next activity
+      const next_activity = activityStates.find(a => a.state === 'Not Started')?.activity_name;
+      
+      return {
+        activities,
+        phase_progress,
+        can_start_phase,
+        can_complete_phase,
+        next_activity
+      };
+    },
+    refetchInterval: 60000 // Refresh every minute
+  });
+
+  // Determine overall phase state based on activities
+  const activities = phaseData?.activities || {};
+  const startActivity = activities[`Start ${phaseName} Phase`];
+  const completeActivity = activities[`Complete ${phaseName} Phase`];
+  
+  let phaseState = 'Not Started';
+  if (completeActivity?.state === 'Completed') {
+    phaseState = 'Complete';
+  } else if (startActivity?.state === 'Completed' || startActivity?.state === 'In Progress') {
+    phaseState = 'In Progress';
+  }
+
+  // For now, default schedule status to "On Track"
+  const scheduleStatus = 'On Track';
+
+  return (
+    <Box display="flex" alignItems="center" gap={1}>
+      <Tooltip title={`Phase State: ${phaseState}`}>
+        <Chip
+          icon={getStateIcon(phaseState)}
+          label={phaseState}
+          color={getStateColor(phaseState)}
+          size="small"
+        />
+      </Tooltip>
+
+      {showDetails && (
+        <Tooltip title={`Schedule Status: ${scheduleStatus}`}>
+          <Chip
+            icon={getScheduleStatusIcon(scheduleStatus)}
+            label={scheduleStatus}
+            color={getScheduleStatusColor(scheduleStatus)}
+            size="small"
+            variant="outlined"
+          />
+        </Tooltip>
+      )}
+
+      {showDetails && phaseData?.phase_progress !== undefined && (
+        <Typography variant="body2" color="text.secondary">
+          ({phaseData.phase_progress}% complete)
+        </Typography>
+      )}
+    </Box>
+  );
+};
+
+export default PhaseStatusIndicator;

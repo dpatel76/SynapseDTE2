@@ -1,0 +1,370 @@
+{
+  "timestamp": "2025-07-06T19:33:50.154252",
+  "dry_run": true,
+  "categories": {
+    "backend_services": {
+      "files": [
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/batch_processor.py",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/batch_processor.py.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154288"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/benchmarking_service_refactored.py",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/benchmarking_service_refactored.py.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154310"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/data_owner_dashboard_service.py",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/data_owner_dashboard_service.py.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154325"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/llm_service_v2.py",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/llm_service_v2.py.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154339"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/multi_database_service.py",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/multi_database_service.py.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154352"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/sla_escalation_email_service.py",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/sla_escalation_email_service.py.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154366"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/temporal_service.py",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/temporal_service.py.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154377"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/test_report_service_simple_backup.py",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/test_report_service_simple_backup.py.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154388"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/metrics/data_executive_metrics_calculator.py",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/metrics/data_executive_metrics_calculator.py.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154402"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/metrics/data_provider_metrics_calculator.py",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/metrics/data_provider_metrics_calculator.py.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154414"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/metrics/report_owner_metrics_calculator.py",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/metrics/report_owner_metrics_calculator.py.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154425"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/metrics/test_executive_metrics_calculator.py",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/metrics/test_executive_metrics_calculator.py.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154436"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/metrics/tester_metrics_calculator.py",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/app/services/metrics/tester_metrics_calculator.py.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154446"
+        }
+      ],
+      "total": 13,
+      "successful": 13
+    },
+    "backend_api": {
+      "files": [
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/activity_states_reset.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154458"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/admin.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154466"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/auth.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154473"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/cycle_reports.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154480"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/cycles.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154487"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/dashboards.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154494"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/data_owner.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154500"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/data_provider.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154507"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/data_sources.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154514"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/llm.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154520"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/lobs_clean.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154528"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/metrics.py",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/metrics.py.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154540"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/metrics_simple.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154547"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/metrics_v2.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154553"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/observation_management.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154560"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/planning.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154566"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/reports.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154572"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/request_info.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154579"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/sample_selection_clean.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154585"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/sample_selection_old.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154592"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/scoping.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154600"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/test_execution.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154606"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/test_execution_refactored.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154613"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/testing_execution.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154620"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/testing_execution_clean.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154627"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/testing_execution_refactored.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154634"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/app/api/v1/users.py",
+          "status": "not_found",
+          "timestamp": "2025-07-06T19:33:50.154641"
+        }
+      ],
+      "total": 27,
+      "successful": 1
+    },
+    "frontend_pages": {
+      "files": [
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/pages/CycleDetailPageFixed.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/pages/CycleDetailPageFixed.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154666"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/pages/phases/TestingReportPage.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/pages/phases/TestingReportPage.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154680"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/pages/MyAssignmentsPage.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/pages/MyAssignmentsPage.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154691"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/pages/phases/ObservationManagementPage.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/pages/phases/ObservationManagementPage.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154703"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/pages/ReportTestingPage.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/pages/ReportTestingPage.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154715"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/pages/dashboards/TestExecutiveDashboard.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/pages/dashboards/TestExecutiveDashboard.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154732"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/pages/dashboards/TestExecutiveDashboardEnhanced.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/pages/dashboards/TestExecutiveDashboardEnhanced.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154745"
+        }
+      ],
+      "total": 7,
+      "successful": 7
+    },
+    "frontend_components": {
+      "files": [
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/analytics/AdvancedAnalyticsDashboard.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/analytics/AdvancedAnalyticsDashboard.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154761"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/notifications/UnifiedNotificationCenter.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/notifications/UnifiedNotificationCenter.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154780"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/LLMProgressModal.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/LLMProgressModal.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154795"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/common/LoadingStates.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/common/LoadingStates.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154808"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/common/ErrorDisplays.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/common/ErrorDisplays.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154820"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/WorkflowProgressEnhanced.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/WorkflowProgressEnhanced.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154833"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/PhaseStepperCard.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/PhaseStepperCard.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154844"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/scoping/ScopingDecisionSummary.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/scoping/ScopingDecisionSummary.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154857"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/common/VersionComparisonDialog.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/common/VersionComparisonDialog.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154869"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/common/PhaseVersioningSection.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/common/PhaseVersioningSection.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154880"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/common/PhaseStatusIndicator.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/common/PhaseStatusIndicator.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154892"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/navigation/RoleBasedNavigation.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/navigation/RoleBasedNavigation.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154919"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/reports/ReportTestingSummary.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/reports/ReportTestingSummary.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154936"
+        },
+        {
+          "file": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/phase/DynamicActivityCards.tsx",
+          "backup": "/Users/dineshpatel/code/projects/SynapseDTE/frontend/src/components/phase/DynamicActivityCards.tsx.backup",
+          "status": "dry_run",
+          "timestamp": "2025-07-06T19:33:50.154950"
+        }
+      ],
+      "total": 14,
+      "successful": 14
+    }
+  }
+}

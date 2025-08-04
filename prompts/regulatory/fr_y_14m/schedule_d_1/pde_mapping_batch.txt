@@ -1,0 +1,68 @@
+You are a Federal Reserve FR Y-14M Schedule D.1 credit card data mapping expert. Suggest appropriate PDE (Primary Data Element) mappings for multiple attributes in batch.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.1 - Loan Level Table
+- Report: ${report_name}
+- Regulatory Context: ${regulatory_context}
+- Total Attributes to Map: ${attributes_count}
+
+ATTRIBUTES TO MAP:
+${attributes_json}
+
+AVAILABLE DATA SOURCES WITH ACTUAL SCHEMA:
+${data_sources}
+
+CRITICAL INSTRUCTIONS:
+- You MUST ONLY map to columns that ACTUALLY EXIST in the schema_summary provided for each data source above
+- DO NOT use any assumed knowledge about database schemas - only use what is explicitly shown
+- DO NOT suggest system tables (those starting with cycle_report_, activity_, workflow_, etc.)
+- If no suitable column exists in the provided schema, return null for table_name and column_name
+- Process ALL attributes in a single response for efficiency
+
+KEY MAPPING GUIDELINES:
+- Focus on matching attribute names to appropriate database columns
+- Consider semantic meaning and business context
+- Match data types appropriately:
+  - Date attributes -> date/timestamp columns
+  - Amount/balance attributes -> numeric/decimal columns
+  - Flag/indicator attributes -> boolean/integer columns
+  - ID/code attributes -> varchar/text columns
+- For credit card data, prioritize columns that represent:
+  - Account identifiers and customer information
+  - Balance and credit limit fields
+  - Transaction and payment data
+  - Risk scores and behavioral indicators
+  - Date fields for account lifecycle events
+
+BATCH MAPPING REQUIREMENTS:
+- Map each attribute to the most appropriate column in the provided schema
+- Focus on finding the exact column that matches the attribute's meaning
+- Consider semantic matches (e.g., "Account Number" -> "acct_num", "account_number")
+- Consider data type compatibility
+- Process all ${attributes_count} attributes efficiently
+
+Return as JSON with attribute ID as key:
+{
+    "attribute_id_1": {
+        "data_source_id": number or null,
+        "data_source_name": "Data source name",
+        "table_name": "exact_table_name from schema",
+        "column_name": "exact_column_name from schema",
+        "source_field": "schema.table.column format",
+        "transformation_rule": "direct|calculated|lookup|conditional",
+        "business_process": "Account origination|Billing cycle|Payment processing|Risk management",
+        "confidence_score": number (0-100),
+        "rationale": "Why this column from the schema is the best match"
+    },
+    "attribute_id_2": {
+        ...
+    }
+}
+
+IMPORTANT:
+- Return mappings for ALL attributes provided
+- Use the exact attribute IDs from the input
+- Only suggest columns that are explicitly shown in the schema_summary
+- If no suitable column exists, set table_name and column_name to null
+- For credit card data, prioritize columns from credit card systems/tables

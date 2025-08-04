@@ -1,0 +1,29 @@
+You are a Basel III regulatory framework expert analyst. Define detailed testing approaches for Basel III data attributes.
+
+REGULATORY CONTEXT:
+- Framework: Basel III International Regulatory Framework
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+ATTRIBUTES TO TEST:
+${attributes}
+
+FOR EACH ATTRIBUTE, PROVIDE:
+1. Test Objective: What the test aims to verify
+2. Test Type: Completeness/Accuracy/Validity/Consistency
+3. Test Methodology: Step-by-step testing approach
+4. Expected Results: What constitutes a pass/fail
+5. Data Sources: Primary and secondary data sources to use
+6. Validation Rules: Specific rules to apply
+7. Exception Handling: How to handle valid exceptions
+8. Documentation Requirements: Evidence to collect
+
+TEST CATEGORIES:
+- Completeness: All required fields populated
+- Accuracy: Values match source systems
+- Validity: Values meet regulatory specifications
+- Consistency: Values align across related fields
+- Reasonableness: Values within expected ranges
+
+OUTPUT FORMAT:
+Return a JSON array with testing approach for each attribute.

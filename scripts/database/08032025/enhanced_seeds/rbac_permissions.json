@@ -1,0 +1,1037 @@
+[
+  {
+    "id": 1,
+    "resource": "users",
+    "action": "create",
+    "description": "Create users",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 2,
+    "resource": "users",
+    "action": "read",
+    "description": "Read users",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 3,
+    "resource": "users",
+    "action": "update",
+    "description": "Update users",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 4,
+    "resource": "users",
+    "action": "delete",
+    "description": "Delete users",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 5,
+    "resource": "users",
+    "action": "approve",
+    "description": "Approve users",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 6,
+    "resource": "users",
+    "action": "execute",
+    "description": "Execute users",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 7,
+    "resource": "users",
+    "action": "export",
+    "description": "Export users",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 8,
+    "resource": "roles",
+    "action": "create",
+    "description": "Create roles",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 9,
+    "resource": "roles",
+    "action": "read",
+    "description": "Read roles",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 10,
+    "resource": "roles",
+    "action": "update",
+    "description": "Update roles",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 11,
+    "resource": "roles",
+    "action": "delete",
+    "description": "Delete roles",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 12,
+    "resource": "roles",
+    "action": "approve",
+    "description": "Approve roles",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 13,
+    "resource": "roles",
+    "action": "execute",
+    "description": "Execute roles",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 14,
+    "resource": "roles",
+    "action": "export",
+    "description": "Export roles",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 15,
+    "resource": "permissions",
+    "action": "create",
+    "description": "Create permissions",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 16,
+    "resource": "permissions",
+    "action": "read",
+    "description": "Read permissions",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 17,
+    "resource": "permissions",
+    "action": "update",
+    "description": "Update permissions",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 18,
+    "resource": "permissions",
+    "action": "delete",
+    "description": "Delete permissions",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 19,
+    "resource": "permissions",
+    "action": "approve",
+    "description": "Approve permissions",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 20,
+    "resource": "permissions",
+    "action": "execute",
+    "description": "Execute permissions",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 21,
+    "resource": "permissions",
+    "action": "export",
+    "description": "Export permissions",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 22,
+    "resource": "reports",
+    "action": "create",
+    "description": "Create reports",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 23,
+    "resource": "reports",
+    "action": "read",
+    "description": "Read reports",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 24,
+    "resource": "reports",
+    "action": "update",
+    "description": "Update reports",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 25,
+    "resource": "reports",
+    "action": "delete",
+    "description": "Delete reports",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 26,
+    "resource": "reports",
+    "action": "approve",
+    "description": "Approve reports",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 27,
+    "resource": "reports",
+    "action": "execute",
+    "description": "Execute reports",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 28,
+    "resource": "reports",
+    "action": "export",
+    "description": "Export reports",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 29,
+    "resource": "test_cycles",
+    "action": "create",
+    "description": "Create test_cycles",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 30,
+    "resource": "test_cycles",
+    "action": "read",
+    "description": "Read test_cycles",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 31,
+    "resource": "test_cycles",
+    "action": "update",
+    "description": "Update test_cycles",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 32,
+    "resource": "test_cycles",
+    "action": "delete",
+    "description": "Delete test_cycles",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 33,
+    "resource": "test_cycles",
+    "action": "approve",
+    "description": "Approve test_cycles",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 34,
+    "resource": "test_cycles",
+    "action": "execute",
+    "description": "Execute test_cycles",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 35,
+    "resource": "test_cycles",
+    "action": "export",
+    "description": "Export test_cycles",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 36,
+    "resource": "test_execution",
+    "action": "create",
+    "description": "Create test_execution",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 37,
+    "resource": "test_execution",
+    "action": "read",
+    "description": "Read test_execution",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 38,
+    "resource": "test_execution",
+    "action": "update",
+    "description": "Update test_execution",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 39,
+    "resource": "test_execution",
+    "action": "delete",
+    "description": "Delete test_execution",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 40,
+    "resource": "test_execution",
+    "action": "approve",
+    "description": "Approve test_execution",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 41,
+    "resource": "test_execution",
+    "action": "execute",
+    "description": "Execute test_execution",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 42,
+    "resource": "test_execution",
+    "action": "export",
+    "description": "Export test_execution",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 43,
+    "resource": "observations",
+    "action": "create",
+    "description": "Create observations",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 44,
+    "resource": "observations",
+    "action": "read",
+    "description": "Read observations",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 45,
+    "resource": "observations",
+    "action": "update",
+    "description": "Update observations",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 46,
+    "resource": "observations",
+    "action": "delete",
+    "description": "Delete observations",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 47,
+    "resource": "observations",
+    "action": "approve",
+    "description": "Approve observations",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 48,
+    "resource": "observations",
+    "action": "execute",
+    "description": "Execute observations",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 49,
+    "resource": "observations",
+    "action": "export",
+    "description": "Export observations",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 50,
+    "resource": "data_sources",
+    "action": "create",
+    "description": "Create data_sources",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 51,
+    "resource": "data_sources",
+    "action": "read",
+    "description": "Read data_sources",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 52,
+    "resource": "data_sources",
+    "action": "update",
+    "description": "Update data_sources",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 53,
+    "resource": "data_sources",
+    "action": "delete",
+    "description": "Delete data_sources",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 54,
+    "resource": "data_sources",
+    "action": "approve",
+    "description": "Approve data_sources",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 55,
+    "resource": "data_sources",
+    "action": "execute",
+    "description": "Execute data_sources",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 56,
+    "resource": "data_sources",
+    "action": "export",
+    "description": "Export data_sources",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 57,
+    "resource": "planning",
+    "action": "create",
+    "description": "Create planning",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 58,
+    "resource": "planning",
+    "action": "read",
+    "description": "Read planning",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 59,
+    "resource": "planning",
+    "action": "update",
+    "description": "Update planning",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 60,
+    "resource": "planning",
+    "action": "delete",
+    "description": "Delete planning",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 61,
+    "resource": "planning",
+    "action": "approve",
+    "description": "Approve planning",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 62,
+    "resource": "planning",
+    "action": "execute",
+    "description": "Execute planning",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 63,
+    "resource": "planning",
+    "action": "export",
+    "description": "Export planning",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 64,
+    "resource": "data_profiling",
+    "action": "create",
+    "description": "Create data_profiling",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 65,
+    "resource": "data_profiling",
+    "action": "read",
+    "description": "Read data_profiling",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 66,
+    "resource": "data_profiling",
+    "action": "update",
+    "description": "Update data_profiling",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 67,
+    "resource": "data_profiling",
+    "action": "delete",
+    "description": "Delete data_profiling",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 68,
+    "resource": "data_profiling",
+    "action": "approve",
+    "description": "Approve data_profiling",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 69,
+    "resource": "data_profiling",
+    "action": "execute",
+    "description": "Execute data_profiling",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 70,
+    "resource": "data_profiling",
+    "action": "export",
+    "description": "Export data_profiling",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 71,
+    "resource": "scoping",
+    "action": "create",
+    "description": "Create scoping",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 72,
+    "resource": "scoping",
+    "action": "read",
+    "description": "Read scoping",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 73,
+    "resource": "scoping",
+    "action": "update",
+    "description": "Update scoping",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 74,
+    "resource": "scoping",
+    "action": "delete",
+    "description": "Delete scoping",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 75,
+    "resource": "scoping",
+    "action": "approve",
+    "description": "Approve scoping",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 76,
+    "resource": "scoping",
+    "action": "execute",
+    "description": "Execute scoping",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 77,
+    "resource": "scoping",
+    "action": "export",
+    "description": "Export scoping",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 78,
+    "resource": "sample_selection",
+    "action": "create",
+    "description": "Create sample_selection",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 79,
+    "resource": "sample_selection",
+    "action": "read",
+    "description": "Read sample_selection",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 80,
+    "resource": "sample_selection",
+    "action": "update",
+    "description": "Update sample_selection",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 81,
+    "resource": "sample_selection",
+    "action": "delete",
+    "description": "Delete sample_selection",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 82,
+    "resource": "sample_selection",
+    "action": "approve",
+    "description": "Approve sample_selection",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 83,
+    "resource": "sample_selection",
+    "action": "execute",
+    "description": "Execute sample_selection",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 84,
+    "resource": "sample_selection",
+    "action": "export",
+    "description": "Export sample_selection",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 85,
+    "resource": "request_info",
+    "action": "create",
+    "description": "Create request_info",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 86,
+    "resource": "request_info",
+    "action": "read",
+    "description": "Read request_info",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 87,
+    "resource": "request_info",
+    "action": "update",
+    "description": "Update request_info",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 88,
+    "resource": "request_info",
+    "action": "delete",
+    "description": "Delete request_info",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 89,
+    "resource": "request_info",
+    "action": "approve",
+    "description": "Approve request_info",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 90,
+    "resource": "request_info",
+    "action": "execute",
+    "description": "Execute request_info",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 91,
+    "resource": "request_info",
+    "action": "export",
+    "description": "Export request_info",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 92,
+    "resource": "workflow",
+    "action": "create",
+    "description": "Create workflow",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 93,
+    "resource": "workflow",
+    "action": "read",
+    "description": "Read workflow",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 94,
+    "resource": "workflow",
+    "action": "update",
+    "description": "Update workflow",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 95,
+    "resource": "workflow",
+    "action": "approve",
+    "description": "Approve workflow",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 96,
+    "resource": "workflow",
+    "action": "execute",
+    "description": "Execute workflow",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 97,
+    "resource": "workflow",
+    "action": "export",
+    "description": "Export workflow",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 98,
+    "resource": "audit_logs",
+    "action": "create",
+    "description": "Create audit_logs",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 99,
+    "resource": "audit_logs",
+    "action": "read",
+    "description": "Read audit_logs",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 100,
+    "resource": "audit_logs",
+    "action": "approve",
+    "description": "Approve audit_logs",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 101,
+    "resource": "audit_logs",
+    "action": "execute",
+    "description": "Execute audit_logs",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 102,
+    "resource": "audit_logs",
+    "action": "export",
+    "description": "Export audit_logs",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 103,
+    "resource": "documents",
+    "action": "create",
+    "description": "Create documents",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 104,
+    "resource": "documents",
+    "action": "read",
+    "description": "Read documents",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 105,
+    "resource": "documents",
+    "action": "update",
+    "description": "Update documents",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 106,
+    "resource": "documents",
+    "action": "delete",
+    "description": "Delete documents",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 107,
+    "resource": "documents",
+    "action": "approve",
+    "description": "Approve documents",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 108,
+    "resource": "documents",
+    "action": "execute",
+    "description": "Execute documents",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 109,
+    "resource": "documents",
+    "action": "export",
+    "description": "Export documents",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 110,
+    "resource": "evidence",
+    "action": "create",
+    "description": "Create evidence",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 111,
+    "resource": "evidence",
+    "action": "read",
+    "description": "Read evidence",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 112,
+    "resource": "evidence",
+    "action": "update",
+    "description": "Update evidence",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 113,
+    "resource": "evidence",
+    "action": "approve",
+    "description": "Approve evidence",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 114,
+    "resource": "evidence",
+    "action": "execute",
+    "description": "Execute evidence",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "id": 115,
+    "resource": "evidence",
+    "action": "export",
+    "description": "Export evidence",
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  }
+]

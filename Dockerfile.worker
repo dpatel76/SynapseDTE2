@@ -1,0 +1,125 @@
+# Dockerfile for SynapseDTE Temporal Worker
+# Based on backend image with worker-specific configuration
+
+# Use the same builder stage as backend for consistency
+FROM python:3.11-slim-bookworm AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /build
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install Python dependencies to user directory
+RUN pip install --user --no-cache-dir -r requirements.txt
+
+# Stage 2: Runtime
+FROM python:3.11-slim-bookworm AS runtime
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # PostgreSQL client for database access
+    postgresql-client \
+    # Required for python-magic
+    libmagic1 \
+    # Process monitoring
+    procps \
+    # Health check
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Create necessary directories
+RUN mkdir -p /app /app/uploads /app/logs /app/temp && \
+    chown -R appuser:appuser /app
+
+# Copy Python packages from builder
+COPY --from=builder /root/.local /home/appuser/.local
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code
+COPY --chown=appuser:appuser ./app ./app
+COPY --chown=appuser:appuser ./alembic ./alembic
+COPY --chown=appuser:appuser ./alembic.ini ./alembic.ini
+
+# Create worker startup script
+RUN echo '#!/bin/bash\n\
+set -e\n\
+\n\
+echo "Starting SynapseDTE Temporal Worker..."\n\
+\n\
+# Wait for database\n\
+echo "Waiting for database..."\n\
+while ! pg_isready -h ${DATABASE_HOST:-localhost} -p ${DATABASE_PORT:-5432} -U ${DATABASE_USER:-postgres}; do\n\
+  sleep 1\n\
+done\n\
+echo "Database is ready!"\n\
+\n\
+# Wait for Temporal server\n\
+echo "Waiting for Temporal server..."\n\
+while ! nc -z ${TEMPORAL_HOST:-temporal} 7233; do\n\
+  sleep 1\n\
+done\n\
+echo "Temporal server is ready!"\n\
+\n\
+# Configure worker\n\
+export TEMPORAL_WORKER_ENABLED=true\n\
+export PYTHONPATH=/app\n\
+\n\
+# Start worker with signal handling\n\
+echo "Starting Temporal worker..."\n\
+exec python -m app.temporal.worker\n\
+' > /app/start-worker.sh && chmod +x /app/start-worker.sh
+
+# Create health check script
+RUN echo '#!/bin/bash\n\
+# Check if worker process is running\n\
+if pgrep -f "python -m app.temporal.worker" > /dev/null; then\n\
+    echo "Worker is running"\n\
+    exit 0\n\
+else\n\
+    echo "Worker is not running"\n\
+    exit 1\n\
+fi\n\
+' > /app/health-check.sh && chmod +x /app/health-check.sh
+
+# Install netcat for connectivity checks
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    netcat-traditional \
+    && rm -rf /var/lib/apt/lists/*
+
+# Switch to non-root user
+USER appuser
+
+# Set Python path
+ENV PYTHONPATH=/app
+ENV PATH=/home/appuser/.local/bin:$PATH
+
+# Environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    TEMPORAL_WORKER_ENABLED=true
+
+# Worker-specific environment
+ENV TEMPORAL_MAX_CONCURRENT_ACTIVITIES=10 \
+    TEMPORAL_MAX_CONCURRENT_WORKFLOWS=10 \
+    TEMPORAL_WORKER_LOG_LEVEL=INFO
+
+# Health check - verify worker process is running
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD /app/health-check.sh
+
+# Start worker
+CMD ["/app/start-worker.sh"]

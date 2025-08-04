@@ -1,0 +1,362 @@
+import React from 'react';
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  IconButton,
+  Collapse,
+  Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText
+} from '@mui/material';
+import {
+  Error as ErrorIcon,
+  Warning,
+  Info,
+  Close,
+  Refresh,
+  ExpandMore,
+  ExpandLess,
+  ReportProblem,
+  BugReport,
+  ContactSupport,
+  FileCopy
+} from '@mui/icons-material';
+import { colors } from '../../styles/design-system';
+
+interface ErrorDetails {
+  message: string;
+  code?: string;
+  statusCode?: number;
+  details?: string[];
+  timestamp?: Date;
+  requestId?: string;
+  stackTrace?: string;
+}
+
+// Page-level error display
+export const PageError: React.FC<{
+  error: ErrorDetails;
+  onRetry?: () => void;
+  showDetails?: boolean;
+}> = ({ error, onRetry, showDetails = true }) => {
+  const [detailsOpen, setDetailsOpen] = React.useState(false);
+
+  const copyErrorDetails = () => {
+    const errorText = JSON.stringify(error, null, 2);
+    navigator.clipboard.writeText(errorText);
+  };
+
+  return (
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="center"
+      minHeight="60vh"
+      p={3}
+    >
+      <ErrorIcon sx={{ fontSize: 80, color: colors.error.main, mb: 2 }} />
+      
+      <Typography variant="h4" gutterBottom>
+        Oops! Something went wrong
+      </Typography>
+      
+      <Typography variant="body1" color="textSecondary" textAlign="center" mb={3}>
+        {error.message || "An unexpected error occurred"}
+      </Typography>
+
+      <Box display="flex" gap={2} mb={3}>
+        {onRetry && (
+          <Button
+            variant="contained"
+            startIcon={<Refresh />}
+            onClick={onRetry}
+          >
+            Try Again
+          </Button>
+        )}
+        <Button
+          variant="outlined"
+          startIcon={<ContactSupport />}
+          href="/help"
+        >
+          Get Help
+        </Button>
+      </Box>
+
+      {showDetails && (error.code || error.details || error.requestId) && (
+        <Card sx={{ maxWidth: 600, width: '100%' }}>
+          <CardContent>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography variant="subtitle2">Error Details</Typography>
+              <Box>
+                <IconButton size="small" onClick={copyErrorDetails}>
+                  <FileCopy fontSize="small" />
+                </IconButton>
+                <IconButton size="small" onClick={() => setDetailsOpen(!detailsOpen)}>
+                  {detailsOpen ? <ExpandLess /> : <ExpandMore />}
+                </IconButton>
+              </Box>
+            </Box>
+            
+            <Collapse in={detailsOpen}>
+              <Box mt={2}>
+                {error.code && (
+                  <Typography variant="body2">
+                    <strong>Error Code:</strong> {error.code}
+                  </Typography>
+                )}
+                {error.statusCode && (
+                  <Typography variant="body2">
+                    <strong>Status:</strong> {error.statusCode}
+                  </Typography>
+                )}
+                {error.requestId && (
+                  <Typography variant="body2">
+                    <strong>Request ID:</strong> {error.requestId}
+                  </Typography>
+                )}
+                {error.timestamp && (
+                  <Typography variant="body2">
+                    <strong>Time:</strong> {new Date(error.timestamp).toLocaleString()}
+                  </Typography>
+                )}
+                {error.details && error.details.length > 0 && (
+                  <Box mt={1}>
+                    <Typography variant="body2"><strong>Details:</strong></Typography>
+                    <List dense>
+                      {error.details.map((detail, index) => (
+                        <ListItem key={index}>
+                          <ListItemIcon>
+                            <Warning fontSize="small" />
+                          </ListItemIcon>
+                          <ListItemText primary={detail} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Box>
+                )}
+              </Box>
+            </Collapse>
+          </CardContent>
+        </Card>
+      )}
+    </Box>
+  );
+};
+
+// Inline error display
+export const InlineError: React.FC<{
+  message: string;
+  onClose?: () => void;
+  severity?: 'error' | 'warning' | 'info';
+}> = ({ message, onClose, severity = 'error' }) => (
+  <Alert 
+    severity={severity}
+    onClose={onClose}
+    sx={{ mb: 2 }}
+  >
+    {message}
+  </Alert>
+);
+
+// Toast error notification
+export const ToastError: React.FC<{
+  open: boolean;
+  message: string;
+  onClose: () => void;
+  severity?: 'error' | 'warning' | 'info' | 'success';
+  autoHideDuration?: number;
+}> = ({ open, message, onClose, severity = 'error', autoHideDuration = 6000 }) => (
+  <Snackbar
+    open={open}
+    autoHideDuration={autoHideDuration}
+    onClose={onClose}
+    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+  >
+    <Alert 
+      onClose={onClose} 
+      severity={severity} 
+      variant="filled"
+      sx={{ width: '100%' }}
+    >
+      {message}
+    </Alert>
+  </Snackbar>
+);
+
+// Modal error dialog
+export const ModalError: React.FC<{
+  open: boolean;
+  error: ErrorDetails;
+  onClose: () => void;
+  onRetry?: () => void;
+}> = ({ open, error, onClose, onRetry }) => (
+  <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <DialogTitle>
+      <Box display="flex" alignItems="center" gap={1}>
+        <ErrorIcon sx={{ color: colors.error.main }} />
+        <Typography variant="h6">Error</Typography>
+      </Box>
+    </DialogTitle>
+    <DialogContent>
+      <Typography variant="body1" gutterBottom>
+        {error.message}
+      </Typography>
+      {error.details && error.details.length > 0 && (
+        <Alert severity="warning" sx={{ mt: 2 }}>
+          <AlertTitle>Additional Information</AlertTitle>
+          <List dense>
+            {error.details.map((detail, index) => (
+              <ListItem key={index}>
+                <Typography variant="body2">• {detail}</Typography>
+              </ListItem>
+            ))}
+          </List>
+        </Alert>
+      )}
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={onClose}>Close</Button>
+      {onRetry && (
+        <Button onClick={onRetry} variant="contained" startIcon={<Refresh />}>
+          Try Again
+        </Button>
+      )}
+    </DialogActions>
+  </Dialog>
+);
+
+// Empty state display
+export const EmptyState: React.FC<{
+  title: string;
+  message: string;
+  icon?: React.ReactNode;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+}> = ({ title, message, icon, action }) => (
+  <Box
+    display="flex"
+    flexDirection="column"
+    alignItems="center"
+    justifyContent="center"
+    p={6}
+    textAlign="center"
+  >
+    {icon || <Info sx={{ fontSize: 60, color: colors.grey[400], mb: 2 }} />}
+    <Typography variant="h5" gutterBottom>
+      {title}
+    </Typography>
+    <Typography variant="body1" color="textSecondary" mb={3}>
+      {message}
+    </Typography>
+    {action && (
+      <Button variant="contained" onClick={action.onClick}>
+        {action.label}
+      </Button>
+    )}
+  </Box>
+);
+
+// Offline state display
+export const OfflineState: React.FC<{
+  onRetry?: () => void;
+}> = ({ onRetry }) => (
+  <Box
+    display="flex"
+    flexDirection="column"
+    alignItems="center"
+    justifyContent="center"
+    p={6}
+    textAlign="center"
+  >
+    <ReportProblem sx={{ fontSize: 60, color: colors.warning.main, mb: 2 }} />
+    <Typography variant="h5" gutterBottom>
+      You're offline
+    </Typography>
+    <Typography variant="body1" color="textSecondary" mb={3}>
+      Check your internet connection and try again
+    </Typography>
+    {onRetry && (
+      <Button variant="contained" startIcon={<Refresh />} onClick={onRetry}>
+        Retry
+      </Button>
+    )}
+  </Box>
+);
+
+// Error boundary fallback
+export const ErrorBoundaryFallback: React.FC<{
+  error: Error;
+  resetErrorBoundary: () => void;
+}> = ({ error, resetErrorBoundary }) => (
+  <Box
+    display="flex"
+    flexDirection="column"
+    alignItems="center"
+    justifyContent="center"
+    minHeight="100vh"
+    p={3}
+    bgcolor={colors.background.default}
+  >
+    <Card sx={{ maxWidth: 600, width: '100%', p: 3 }}>
+      <CardContent>
+        <Box display="flex" alignItems="center" gap={2} mb={3}>
+          <BugReport sx={{ fontSize: 40, color: colors.error.main }} />
+          <Typography variant="h5">Application Error</Typography>
+        </Box>
+        
+        <Typography variant="body1" gutterBottom>
+          Something went wrong with the application. This error has been logged.
+        </Typography>
+        
+        <Alert severity="error" sx={{ mt: 2, mb: 3 }}>
+          <AlertTitle>Error Details</AlertTitle>
+          <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+            {error.message}
+          </Typography>
+        </Alert>
+        
+        <Box display="flex" gap={2}>
+          <Button
+            variant="contained"
+            onClick={resetErrorBoundary}
+            startIcon={<Refresh />}
+          >
+            Reload Application
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => window.location.href = '/'}
+          >
+            Go to Home
+          </Button>
+        </Box>
+      </CardContent>
+    </Card>
+  </Box>
+);
+
+// Export all error displays
+export const ErrorDisplays = {
+  page: PageError,
+  inline: InlineError,
+  toast: ToastError,
+  modal: ModalError,
+  empty: EmptyState,
+  offline: OfflineState,
+  boundary: ErrorBoundaryFallback
+};

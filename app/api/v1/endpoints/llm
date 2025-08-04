@@ -1,0 +1,389 @@
+"""
+LLM Integration API Endpoints
+Provides regulatory document analysis, attribute generation, and test recommendations
+"""
+
+import logging
+from typing import Dict, List, Any, Optional
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from sqlalchemy.orm import Session
+from datetime import datetime
+from fastapi import status
+
+from app.core.database import get_db
+from app.core.dependencies import get_current_user
+from app.models.user import User
+from app.services.llm_service import HybridLLMService, get_llm_service
+from pydantic import BaseModel, Field
+
+router = APIRouter()
+logger = logging.getLogger(__name__)
+
+
+# Pydantic models for LLM endpoints
+class DocumentAnalysisRequest(BaseModel):
+    document_text: str = Field(..., description="Text content of the regulatory document")
+    document_type: str = Field(default="regulatory", description="Type of document")
+
+class AttributeGenerationRequest(BaseModel):
+    """Request schema for attribute generation"""
+    regulatory_context: str = Field(..., description="Regulatory context and requirements")
+    report_type: str = Field(default="Compliance Report", description="Type of regulatory report")
+    preferred_provider: Optional[str] = Field(None, description="Preferred LLM provider (claude, gemini, auto)")
+    discovery_provider: Optional[str] = Field(None, description="Preferred provider for discovery phase")
+    details_provider: Optional[str] = Field(None, description="Preferred provider for details phase")
+    regulatory_report: Optional[str] = Field(None, description="Regulatory report (e.g., FR Y-14M)")
+    schedule: Optional[str] = Field(None, description="Report schedule (e.g., Schedule A)")
+
+class TestRecommendationRequest(BaseModel):
+    attribute_name: str = Field(..., description="Name of the attribute to test")
+    data_type: str = Field(..., description="Data type (string, numeric, date, boolean)")
+    regulatory_context: str = Field(..., description="Regulatory context")
+    historical_issues: Optional[List[str]] = Field(default=[], description="Historical issues for this attribute")
+
+class PatternAnalysisRequest(BaseModel):
+    historical_issues: List[str] = Field(..., description="List of historical issues to analyze")
+    report_context: str = Field(..., description="Context of the report")
+
+
+@router.get("/health")
+async def llm_health_check(
+    llm_service: HybridLLMService = Depends(get_llm_service)
+) -> Dict[str, Any]:
+    """Check health status of LLM services"""
+    try:
+        health_status = await llm_service.health_check()
+        return health_status
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to check LLM health: {str(e)}")
+
+
+@router.post("/analyze-document")
+async def analyze_document(
+    request: DocumentAnalysisRequest,
+    current_user: User = Depends(get_current_user),
+    llm_service: HybridLLMService = Depends(get_llm_service)
+) -> Dict[str, Any]:
+    """Analyze regulatory document for key insights"""
+    # Check if user has required role
+    if current_user.role not in ["Tester", "Test Executive", "Report Owner", "Admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required roles: Tester, Test Manager, Report Owner, or Admin. Current role: {current_user.role}"
+        )
+    
+    try:
+        result = await llm_service.analyze_regulatory_document(
+            request.document_text,
+            request.document_type
+        )
+        
+        # Add user tracking
+        result["analyzed_by"] = current_user.user_id
+        result["analyzed_at"] = datetime.utcnow().isoformat()
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to analyze document: {str(e)}")
+
+
+@router.post("/generate-attributes")
+async def generate_attributes(
+    request: AttributeGenerationRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Generate test attributes using unified 2-phase strategy
+    """
+    try:
+        llm_service = get_llm_service()
+        
+        # Determine which approach to use based on request
+        if request.discovery_provider and request.details_provider:
+            # Explicit 2-phase with specific providers
+            result = await llm_service._generate_attributes_two_phase(
+                regulatory_context=request.regulatory_context,
+                report_type=request.report_type,
+                preferred_discovery=request.discovery_provider,
+                preferred_details=request.details_provider,
+                regulatory_report=request.regulatory_report,
+                schedule=request.schedule
+            )
+        elif request.preferred_provider == 'hybrid':
+            # Legacy hybrid approach (Gemini discovery + Claude details)
+            result = await llm_service.generate_test_attributes_hybrid(
+                regulatory_context=request.regulatory_context,
+                report_type=request.report_type,
+                regulatory_report=request.regulatory_report,
+                schedule=request.schedule
+            )
+        else:
+            # Standard 2-phase approach with preferred provider
+            result = await llm_service.generate_test_attributes(
+                regulatory_context=request.regulatory_context,
+                report_type=request.report_type,
+                preferred_provider=request.preferred_provider,
+                regulatory_report=request.regulatory_report,
+                schedule=request.schedule
+            )
+        
+        if result.get("success"):
+            logger.info(f"Successfully generated {len(result.get('attributes', []))} attributes using {result.get('method', 'unknown')} method")
+            return result
+        else:
+            logger.error(f"Attribute generation failed: {result.get('error', 'Unknown error')}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Attribute generation failed: {result.get('error', 'Unknown error')}"
+            )
+            
+    except Exception as e:
+        logger.error(f"Attribute generation endpoint error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Attribute generation failed: {str(e)}"
+        )
+
+
+@router.post("/recommend-tests")
+async def recommend_tests(
+    request: TestRecommendationRequest,
+    current_user: User = Depends(get_current_user),
+    llm_service: HybridLLMService = Depends(get_llm_service)
+) -> Dict[str, Any]:
+    """Generate test recommendations for a specific attribute"""
+    # Check if user has required role
+    if current_user.role not in ["Tester", "Test Executive", "Admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required roles: Tester, Test Manager, or Admin. Current role: {current_user.role}"
+        )
+    
+    try:
+        result = await llm_service.recommend_tests(
+            request.attribute_name,
+            request.data_type,
+            request.regulatory_context,
+            request.historical_issues
+        )
+        
+        # Add user tracking
+        result["recommended_by"] = current_user.user_id
+        result["recommended_at"] = datetime.utcnow().isoformat()
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate test recommendations: {str(e)}")
+
+
+@router.post("/analyze-patterns")
+async def analyze_patterns(
+    request: PatternAnalysisRequest,
+    current_user: User = Depends(get_current_user),
+    llm_service: HybridLLMService = Depends(get_llm_service)
+) -> Dict[str, Any]:
+    """Analyze historical issues to identify patterns"""
+    # Check if user has required role
+    if current_user.role not in ["Test Executive", "Report Owner", "Report Owner Executive", "Admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required roles: Test Manager, Report Owner, Report Owner Executive, or Admin. Current role: {current_user.role}"
+        )
+    
+    try:
+        result = await llm_service.analyze_historical_patterns(
+            request.historical_issues,
+            request.report_context
+        )
+        
+        # Add user tracking
+        result["analyzed_by"] = current_user.user_id
+        result["analyzed_at"] = datetime.utcnow().isoformat()
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to analyze patterns: {str(e)}")
+
+
+@router.post("/upload-document")
+async def upload_and_analyze_document(
+    file: UploadFile = File(...),
+    document_type: str = "regulatory",
+    current_user: User = Depends(get_current_user),
+    llm_service: HybridLLMService = Depends(get_llm_service)
+) -> Dict[str, Any]:
+    """Upload and analyze a regulatory document file"""
+    # Check if user has required role
+    if current_user.role not in ["Tester", "Test Executive", "Report Owner", "Admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required roles: Tester, Test Manager, Report Owner, or Admin. Current role: {current_user.role}"
+        )
+    
+    try:
+        # Check file type
+        allowed_types = ["text/plain", "application/pdf", "application/msword", 
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
+        
+        if file.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"File type {file.content_type} not supported. Allowed types: {allowed_types}"
+            )
+        
+        # Check file size (limit to 10MB)
+        max_size = 10 * 1024 * 1024  # 10MB
+        if file.size > max_size:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File size {file.size} exceeds maximum allowed size of {max_size} bytes"
+            )
+        
+        # Read file content
+        content = await file.read()
+        
+        # For now, only handle text files directly
+        # In a full implementation, you'd use libraries like PyPDF2, python-docx for other formats
+        if file.content_type == "text/plain":
+            document_text = content.decode("utf-8")
+        else:
+            # Simulate document text extraction for other formats
+            document_text = f"[Extracted text from {file.filename}]\nSimulated document content for testing purposes."
+        
+        # Analyze the document
+        result = await llm_service.analyze_regulatory_document(document_text, document_type)
+        
+        # Add file metadata
+        result["file_info"] = {
+            "filename": file.filename,
+            "content_type": file.content_type,
+            "size": file.size,
+            "uploaded_by": current_user.user_id,
+            "uploaded_at": datetime.utcnow().isoformat()
+        }
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload and analyze document: {str(e)}")
+
+
+@router.get("/providers")
+async def get_llm_providers(
+    current_user: User = Depends(get_current_user),
+    llm_service: HybridLLMService = Depends(get_llm_service)
+) -> Dict[str, Any]:
+    """Get information about available LLM providers"""
+    # Check if user has required role
+    if current_user.role not in ["Admin", "Test Executive"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required roles: Admin or Test Manager. Current role: {current_user.role}"
+        )
+    
+    try:
+        health_status = await llm_service.health_check()
+        
+        provider_info = {
+            "available_providers": list(llm_service.providers.keys()),
+            "primary_provider": "claude" if "claude" in llm_service.providers else (
+                "gemini" if "gemini" in llm_service.providers else "mock"
+            ),
+            "provider_status": health_status["provider_details"],
+            "overall_health": health_status["overall_status"]
+        }
+        
+        return provider_info
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get provider information: {str(e)}")
+
+
+@router.post("/test-connection")
+async def test_llm_connection(
+    provider: str = "primary",
+    current_user: User = Depends(get_current_user),
+    llm_service: HybridLLMService = Depends(get_llm_service)
+) -> Dict[str, Any]:
+    """Test connection to a specific LLM provider"""
+    # Check if user has required role
+    if current_user.role not in ["Admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required role: Admin. Current role: {current_user.role}"
+        )
+    
+    try:
+        if provider == "primary":
+            llm_provider = await llm_service.get_primary_provider()
+        elif provider in llm_service.providers:
+            llm_provider = llm_service.providers[provider]
+        else:
+            raise HTTPException(status_code=400, detail=f"Provider '{provider}' not available")
+        
+        # Test the connection
+        test_result = await llm_provider.health_check()
+        
+        return {
+            "provider": provider,
+            "test_result": test_result,
+            "tested_by": current_user.user_id,
+            "tested_at": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to test LLM connection: {str(e)}")
+
+
+@router.get("/usage-stats")
+async def get_usage_statistics(
+    current_user: User = Depends(get_current_user),
+    days: int = 30
+) -> Dict[str, Any]:
+    """Get LLM usage statistics"""
+    # Check if user has required role
+    if current_user.role not in ["Test Executive", "Admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Required roles: Test Manager or Admin. Current role: {current_user.role}"
+        )
+    
+    try:
+        # In a real implementation, this would query usage logs from database
+        # For now, return simulated statistics
+        
+        usage_stats = {
+            "period": f"Last {days} days",
+            "total_requests": 245,
+            "successful_requests": 238,
+            "failed_requests": 7,
+            "success_rate": 97.1,
+            "by_operation": {
+                "document_analysis": 89,
+                "attribute_generation": 67,
+                "test_recommendations": 54,
+                "pattern_analysis": 35
+            },
+            "by_provider": {
+                "claude": 156,
+                "gemini": 82,
+                "mock": 7
+            },
+            "by_user_role": {
+                "Tester": 123,
+                "Test Executive": 89,
+                "Report Owner": 33
+            },
+            "average_response_time": "2.3 seconds",
+            "peak_usage_hour": "14:00-15:00",
+            "generated_at": datetime.utcnow().isoformat()
+        }
+        
+        return usage_stats
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get usage statistics: {str(e)}") 

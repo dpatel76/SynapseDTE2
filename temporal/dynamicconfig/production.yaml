@@ -1,0 +1,68 @@
+# Temporal dynamic configuration for production
+# These settings can be changed without restarting the server
+
+# System limits
+system.forceSearchAttributesCacheRefreshOnRead:
+  - value: true
+
+# Workflow execution settings
+limit.maxIDLength:
+  - value: 1000
+
+# History settings
+history.maxPageSize:
+  - value: 1000
+
+# Matching settings
+matching.numTaskqueueReadPartitions:
+  - value: 4
+matching.numTaskqueueWritePartitions:
+  - value: 4
+
+# Frontend settings
+frontend.enableClientVersionCheck:
+  - value: true
+frontend.maxBadBinaries:
+  - value: 10
+
+# Worker settings
+worker.enableSessionWorker:
+  - value: true
+
+# Archival settings
+history.archival.status:
+  - value: "disabled"
+visibility.archival.status:
+  - value: "disabled"
+
+# Retention settings
+history.retention:
+  - value: 7d
+
+# Rate limiting
+frontend.globalNamespaceRPS:
+  - value: 2400
+frontend.namespaceRPS:
+  - value: 1200
+frontend.namespaceBurst:
+  - value: 2400
+frontend.globalNamespaceBurst:
+  - value: 4800
+
+# Task queue settings
+matching.syncMatchWaitDuration:
+  - value: 1s
+
+# Visibility settings
+system.visibility.persistenceMaxQPS:
+  - value: 9000
+system.visibility.persistenceMaxReadQPS:
+  - value: 3000
+system.visibility.persistenceMaxWriteQPS:
+  - value: 6000
+
+# Namespace settings
+limit.maxUserMetadataPayloadSize:
+  - value: 32768
+limit.maxContextPayloadSize:
+  - value: 262144

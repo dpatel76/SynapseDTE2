@@ -1,0 +1,996 @@
+{
+  "timestamp": "2025-06-24T23:23:55.023348",
+  "foundational_tables": {
+    "users": {
+      "columns": {
+        "user_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "default": "nextval('users_user_id_seq'::regclass)",
+          "primary_key": false
+        },
+        "first_name": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "last_name": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "email": {
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "phone": {
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "role": {
+          "type": "VARCHAR(22)",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "lob_id": {
+          "type": "INTEGER",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "is_active": {
+          "type": "BOOLEAN",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "hashed_password": {
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        }
+      },
+      "primary_keys": [],
+      "foreign_keys": [
+        {
+          "name": "users_lob_id_fkey",
+          "constrained_columns": [
+            "lob_id"
+          ],
+          "referred_table": "lobs",
+          "referred_columns": [
+            "lob_id"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_users_email",
+          "columns": [
+            "email"
+          ],
+          "unique": true
+        },
+        {
+          "name": "ix_users_role",
+          "columns": [
+            "role"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_users_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ],
+      "constraints": [],
+      "row_count": 20,
+      "sample_data": [
+        {
+          "user_id": 256,
+          "first_name": "Report",
+          "last_name": "Owner",
+          "email": "owner@synapse.com",
+          "phone": null,
+          "role": "Report Owner",
+          "lob_id": 337,
+          "is_active": true,
+          "hashed_password": "$2b$12$EtiFUzkRVaKSySIBbVa1Qu1XzQfI/WCIHjxALZNpbIk8nL2I4w.am",
+          "created_at": "2025-06-15T12:48:18.999056-04:00",
+          "updated_at": "2025-06-15T12:48:18.999056-04:00"
+        },
+        {
+          "user_id": 257,
+          "first_name": "Executive",
+          "last_name": "Owner",
+          "email": "exec@synapse.com",
+          "phone": null,
+          "role": "Report Owner Executive",
+          "lob_id": 337,
+          "is_active": true,
+          "hashed_password": "$2b$12$EtiFUzkRVaKSySIBbVa1Qu1XzQfI/WCIHjxALZNpbIk8nL2I4w.am",
+          "created_at": "2025-06-15T12:48:18.999056-04:00",
+          "updated_at": "2025-06-15T12:48:18.999056-04:00"
+        },
+        {
+          "user_id": 1,
+          "first_name": "Admin",
+          "last_name": "User",
+          "email": "admin@synapsedt.com",
+          "phone": null,
+          "role": "Admin",
+          "lob_id": 337,
+          "is_active": true,
+          "hashed_password": "$2b$12$Y9VaWwGF6MEV1UXQhzgbEetD3.i7q93Ndq78JiqFcQjk3fgNkRvo6",
+          "created_at": "2025-06-01T17:50:40.262461-04:00",
+          "updated_at": "2025-06-17T15:55:54.150378-04:00"
+        }
+      ],
+      "data_types_summary": {}
+    },
+    "roles": {
+      "columns": {
+        "role_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "default": "nextval('roles_role_id_seq'::regclass)",
+          "primary_key": false
+        },
+        "role_name": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "description": {
+          "type": "TEXT",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "is_system": {
+          "type": "BOOLEAN",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "is_active": {
+          "type": "BOOLEAN",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        }
+      },
+      "primary_keys": [],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "name": "ix_roles_role_id",
+          "columns": [
+            "role_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_roles_role_name",
+          "columns": [
+            "role_name"
+          ],
+          "unique": true
+        }
+      ],
+      "constraints": [],
+      "row_count": 7,
+      "sample_data": [
+        {
+          "role_id": 1,
+          "role_name": "Admin",
+          "description": "System Administrator - Full Access",
+          "is_system": true,
+          "is_active": true,
+          "created_at": "2025-06-07T13:03:29.121592-04:00",
+          "updated_at": "2025-06-07T13:03:29.121592-04:00"
+        },
+        {
+          "role_id": 3,
+          "role_name": "Tester",
+          "description": "Tester - Execute testing workflows",
+          "is_system": true,
+          "is_active": true,
+          "created_at": "2025-06-07T13:03:29.121592-04:00",
+          "updated_at": "2025-06-07T13:03:29.121592-04:00"
+        },
+        {
+          "role_id": 4,
+          "role_name": "Report Owner",
+          "description": "Report Owner - Review and approve reports",
+          "is_system": true,
+          "is_active": true,
+          "created_at": "2025-06-07T13:03:29.121592-04:00",
+          "updated_at": "2025-06-07T13:03:29.121592-04:00"
+        }
+      ],
+      "data_types_summary": {}
+    },
+    "permissions": {
+      "columns": {
+        "permission_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "default": "nextval('permissions_permission_id_seq'::regclass)",
+          "primary_key": false
+        },
+        "resource": {
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "action": {
+          "type": "VARCHAR(50)",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "description": {
+          "type": "TEXT",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        }
+      },
+      "primary_keys": [],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "name": "ix_permissions_action",
+          "columns": [
+            "action"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_permissions_permission_id",
+          "columns": [
+            "permission_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_permissions_resource",
+          "columns": [
+            "resource"
+          ],
+          "unique": false
+        },
+        {
+          "name": "uq_resource_action",
+          "columns": [
+            "resource",
+            "action"
+          ],
+          "unique": true
+        }
+      ],
+      "constraints": [],
+      "row_count": 83,
+      "sample_data": [
+        {
+          "permission_id": 1,
+          "resource": "system",
+          "action": "admin",
+          "description": "admin access to System Administration",
+          "created_at": "2025-06-07T13:03:28.993444-04:00",
+          "updated_at": "2025-06-07T13:03:28.993444-04:00"
+        },
+        {
+          "permission_id": 2,
+          "resource": "permissions",
+          "action": "manage",
+          "description": "manage access to Permissions Management",
+          "created_at": "2025-06-07T13:03:28.993444-04:00",
+          "updated_at": "2025-06-07T13:03:28.993444-04:00"
+        },
+        {
+          "permission_id": 3,
+          "resource": "cycles",
+          "action": "create",
+          "description": "create access to Test Cycles",
+          "created_at": "2025-06-07T13:03:28.993444-04:00",
+          "updated_at": "2025-06-07T13:03:28.993444-04:00"
+        }
+      ],
+      "data_types_summary": {}
+    },
+    "role_permissions": {
+      "columns": {
+        "role_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "permission_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "granted_by": {
+          "type": "INTEGER",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "granted_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        }
+      },
+      "primary_keys": [],
+      "foreign_keys": [
+        {
+          "name": "role_permissions_granted_by_fkey",
+          "constrained_columns": [
+            "granted_by"
+          ],
+          "referred_table": "users",
+          "referred_columns": [
+            "user_id"
+          ]
+        },
+        {
+          "name": "role_permissions_permission_id_fkey",
+          "constrained_columns": [
+            "permission_id"
+          ],
+          "referred_table": "permissions",
+          "referred_columns": [
+            "permission_id"
+          ]
+        },
+        {
+          "name": "role_permissions_role_id_fkey",
+          "constrained_columns": [
+            "role_id"
+          ],
+          "referred_table": "roles",
+          "referred_columns": [
+            "role_id"
+          ]
+        }
+      ],
+      "indexes": [],
+      "constraints": [],
+      "row_count": 208,
+      "sample_data": [
+        {
+          "role_id": 1,
+          "permission_id": 1,
+          "granted_by": null,
+          "granted_at": "2025-06-07T17:03:29.144075",
+          "created_at": "2025-06-07T13:03:29.139682-04:00",
+          "updated_at": "2025-06-07T13:03:29.139682-04:00"
+        },
+        {
+          "role_id": 1,
+          "permission_id": 2,
+          "granted_by": null,
+          "granted_at": "2025-06-07T17:03:29.144543",
+          "created_at": "2025-06-07T13:03:29.139682-04:00",
+          "updated_at": "2025-06-07T13:03:29.139682-04:00"
+        },
+        {
+          "role_id": 1,
+          "permission_id": 3,
+          "granted_by": null,
+          "granted_at": "2025-06-07T17:03:29.144832",
+          "created_at": "2025-06-07T13:03:29.139682-04:00",
+          "updated_at": "2025-06-07T13:03:29.139682-04:00"
+        }
+      ],
+      "data_types_summary": {}
+    },
+    "user_roles": {
+      "columns": {
+        "user_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "role_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "assigned_by": {
+          "type": "INTEGER",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "assigned_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        },
+        "expires_at": {
+          "type": "TIMESTAMP",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        }
+      },
+      "primary_keys": [],
+      "foreign_keys": [
+        {
+          "name": "user_roles_assigned_by_fkey",
+          "constrained_columns": [
+            "assigned_by"
+          ],
+          "referred_table": "users",
+          "referred_columns": [
+            "user_id"
+          ]
+        },
+        {
+          "name": "user_roles_role_id_fkey",
+          "constrained_columns": [
+            "role_id"
+          ],
+          "referred_table": "roles",
+          "referred_columns": [
+            "role_id"
+          ]
+        },
+        {
+          "name": "user_roles_user_id_fkey",
+          "constrained_columns": [
+            "user_id"
+          ],
+          "referred_table": "users",
+          "referred_columns": [
+            "user_id"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_user_roles_expires_at",
+          "columns": [
+            "expires_at"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_user_roles_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "unique": false
+        }
+      ],
+      "constraints": [],
+      "row_count": 20,
+      "sample_data": [
+        {
+          "user_id": 2,
+          "role_id": 2,
+          "assigned_by": null,
+          "assigned_at": "2025-06-07T17:03:29.217480",
+          "expires_at": null,
+          "created_at": "2025-06-07T13:03:29.205529-04:00",
+          "updated_at": "2025-06-07T13:03:29.205529-04:00"
+        },
+        {
+          "user_id": 3,
+          "role_id": 3,
+          "assigned_by": null,
+          "assigned_at": "2025-06-07T17:03:29.217999",
+          "expires_at": null,
+          "created_at": "2025-06-07T13:03:29.205529-04:00",
+          "updated_at": "2025-06-07T13:03:29.205529-04:00"
+        },
+        {
+          "user_id": 4,
+          "role_id": 4,
+          "assigned_by": null,
+          "assigned_at": "2025-06-07T17:03:29.218504",
+          "expires_at": null,
+          "created_at": "2025-06-07T13:03:29.205529-04:00",
+          "updated_at": "2025-06-07T13:03:29.205529-04:00"
+        }
+      ],
+      "data_types_summary": {}
+    },
+    "lobs": {
+      "columns": {
+        "lob_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "default": "nextval('lobs_lob_id_seq'::regclass)",
+          "primary_key": false
+        },
+        "lob_name": {
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        }
+      },
+      "primary_keys": [],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "name": "ix_lobs_lob_id",
+          "columns": [
+            "lob_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_lobs_lob_name",
+          "columns": [
+            "lob_name"
+          ],
+          "unique": true
+        }
+      ],
+      "constraints": [],
+      "row_count": 8,
+      "sample_data": [
+        {
+          "lob_id": 337,
+          "lob_name": "Retail Banking",
+          "created_at": "2025-06-01T17:50:26.886688-04:00",
+          "updated_at": "2025-06-01T17:50:26.886688-04:00"
+        },
+        {
+          "lob_id": 338,
+          "lob_name": "GBM",
+          "created_at": "2025-06-07T13:50:45.684687-04:00",
+          "updated_at": "2025-06-07T13:50:45.684687-04:00"
+        },
+        {
+          "lob_id": 344,
+          "lob_name": "Commercial Banking",
+          "created_at": "2025-06-15T15:44:46.956169-04:00",
+          "updated_at": "2025-06-15T15:44:46.956169-04:00"
+        }
+      ],
+      "data_types_summary": {}
+    },
+    "sla_configurations": {
+      "columns": {
+        "sla_config_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "default": "nextval('sla_configurations_sla_config_id_seq'::regclass)",
+          "primary_key": false
+        },
+        "sla_type": {
+          "type": "VARCHAR(28)",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "sla_hours": {
+          "type": "INTEGER",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "warning_hours": {
+          "type": "INTEGER",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "escalation_enabled": {
+          "type": "BOOLEAN",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "is_active": {
+          "type": "BOOLEAN",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "business_hours_only": {
+          "type": "BOOLEAN",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "weekend_excluded": {
+          "type": "BOOLEAN",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "auto_escalate_on_breach": {
+          "type": "BOOLEAN",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "escalation_interval_hours": {
+          "type": "INTEGER",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        }
+      },
+      "primary_keys": [],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "name": "ix_sla_configurations_sla_config_id",
+          "columns": [
+            "sla_config_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_sla_configurations_sla_type",
+          "columns": [
+            "sla_type"
+          ],
+          "unique": false
+        }
+      ],
+      "constraints": [],
+      "row_count": 0,
+      "sample_data": [],
+      "data_types_summary": {}
+    },
+    "regulatory_data_dictionary": {
+      "columns": {
+        "dict_id": {
+          "type": "INTEGER",
+          "nullable": false,
+          "default": "nextval('regulatory_data_dictionary_dict_id_seq'::regclass)",
+          "primary_key": false
+        },
+        "report_name": {
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "schedule_name": {
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "line_item_number": {
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "line_item_name": {
+          "type": "VARCHAR(500)",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "technical_line_item_name": {
+          "type": "VARCHAR(500)",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "mdrm": {
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "description": {
+          "type": "TEXT",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "static_or_dynamic": {
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "mandatory_or_optional": {
+          "type": "VARCHAR(20)",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "format_specification": {
+          "type": "VARCHAR(200)",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "num_reports_schedules_used": {
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "other_schedule_reference": {
+          "type": "TEXT",
+          "nullable": true,
+          "default": null,
+          "primary_key": false
+        },
+        "is_active": {
+          "type": "BOOLEAN",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        },
+        "created_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        },
+        "updated_at": {
+          "type": "TIMESTAMP",
+          "nullable": false,
+          "default": "now()",
+          "primary_key": false
+        }
+      },
+      "primary_keys": [],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "name": "ix_rdd_item_name_search",
+          "columns": [
+            "line_item_name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_rdd_mandatory_search",
+          "columns": [
+            "mandatory_or_optional"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_rdd_report_schedule",
+          "columns": [
+            "report_name",
+            "schedule_name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_regulatory_data_dictionary_line_item_name",
+          "columns": [
+            "line_item_name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_regulatory_data_dictionary_mandatory_or_optional",
+          "columns": [
+            "mandatory_or_optional"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_regulatory_data_dictionary_report_name",
+          "columns": [
+            "report_name"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_regulatory_data_dictionary_schedule_name",
+          "columns": [
+            "schedule_name"
+          ],
+          "unique": false
+        }
+      ],
+      "constraints": [],
+      "row_count": 407,
+      "sample_data": [
+        {
+          "dict_id": 691,
+          "report_name": "FR Y-14M",
+          "schedule_name": "Schedule A.1 - Domestic First Lien Closed-end 1-4 Family Residential Loan (Loan Level)",
+          "line_item_number": "1",
+          "line_item_name": "Loan Number",
+          "technical_line_item_name": "Loan Number",
+          "mdrm": "M142",
+          "description": "Loan Number",
+          "static_or_dynamic": "Static",
+          "mandatory_or_optional": "Mandatory",
+          "format_specification": "Character(32)",
+          "num_reports_schedules_used": "1",
+          "other_schedule_reference": null,
+          "is_active": true,
+          "created_at": "2025-06-07T15:31:41.161449",
+          "updated_at": "2025-06-07T15:31:41.161449"
+        },
+        {
+          "dict_id": 692,
+          "report_name": "FR Y-14M",
+          "schedule_name": "Schedule A.1 - Domestic First Lien Closed-end 1-4 Family Residential Loan (Loan Level)",
+          "line_item_number": "2",
+          "line_item_name": "Loan Closing Date",
+          "technical_line_item_name": "Loan Closing Date",
+          "mdrm": "M143",
+          "description": "Loan Closing Date",
+          "static_or_dynamic": "Dynamic",
+          "mandatory_or_optional": "Mandatory",
+          "format_specification": "YYYYMMDD",
+          "num_reports_schedules_used": "1",
+          "other_schedule_reference": null,
+          "is_active": true,
+          "created_at": "2025-06-07T15:31:41.161449",
+          "updated_at": "2025-06-07T15:31:41.161449"
+        },
+        {
+          "dict_id": 693,
+          "report_name": "FR Y-14M",
+          "schedule_name": "Schedule A.1 - Domestic First Lien Closed-end 1-4 Family Residential Loan (Loan Level)",
+          "line_item_number": "3",
+          "line_item_name": "First Payment Date",
+          "technical_line_item_name": "First Payment Date",
+          "mdrm": "M144",
+          "description": "First Payment Date",
+          "static_or_dynamic": "Dynamic",
+          "mandatory_or_optional": "Mandatory",
+          "format_specification": "YYYYMMDD",
+          "num_reports_schedules_used": "1",
+          "other_schedule_reference": null,
+          "is_active": true,
+          "created_at": "2025-06-07T15:31:41.161449",
+          "updated_at": "2025-06-07T15:31:41.161449"
+        }
+      ],
+      "data_types_summary": {}
+    },
+    "alembic_version": {
+      "columns": {
+        "version_num": {
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "default": null,
+          "primary_key": false
+        }
+      },
+      "primary_keys": [],
+      "foreign_keys": [],
+      "indexes": [],
+      "constraints": [],
+      "row_count": 1,
+      "sample_data": [
+        {
+          "version_num": "008_rename_data_provider"
+        }
+      ],
+      "data_types_summary": {}
+    }
+  },
+  "recommendations": [
+    "\u2705 Table 'users' has 20 rows - include in seed migration",
+    "\u2705 Table 'roles' has 7 rows - include in seed migration",
+    "\u2705 Table 'permissions' has 83 rows - include in seed migration",
+    "\u2705 Table 'role_permissions' has 208 rows - include in seed migration",
+    "\u2705 Table 'user_roles' has 20 rows - include in seed migration",
+    "\u2705 Table 'lobs' has 8 rows - include in seed migration",
+    "\u26a0\ufe0f Table 'sla_configurations' is empty - may need seed data",
+    "\u2705 Table 'regulatory_data_dictionary' has 407 rows - include in seed migration",
+    "\u2705 Table 'alembic_version' has 1 rows - include in seed migration"
+  ],
+  "data_summary": {}
+}

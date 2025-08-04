@@ -1,0 +1,432 @@
+[
+  {
+    "rule_id": 1,
+    "attribute_id": 1,
+    "rule_name": "Range Validation - Reference Number - FRY14M-D1",
+    "rule_type": "range",
+    "rule_category": "Validity",
+    "rule_definition": "{\"type\": \"range\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 2,
+    "attribute_id": 2,
+    "rule_name": "Completeness Check - Account ID - FRY14M-D1",
+    "rule_type": "not_null",
+    "rule_category": "Completeness",
+    "rule_definition": "{\"type\": \"not_null\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 3,
+    "attribute_id": 2,
+    "rule_name": "Uniqueness Check - Account ID - FRY14M-D1",
+    "rule_type": "unique",
+    "rule_category": "Uniqueness",
+    "rule_definition": "{\"type\": \"unique\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 4,
+    "attribute_id": 3,
+    "rule_name": "Completeness Check - Customer ID - FRY14M-D1",
+    "rule_type": "not_null",
+    "rule_category": "Completeness",
+    "rule_definition": "{\"type\": \"not_null\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 5,
+    "attribute_id": 3,
+    "rule_name": "Pattern Check - Customer ID - FRY14M-D1",
+    "rule_type": "pattern",
+    "rule_category": "Accuracy",
+    "rule_definition": "{\"type\": \"pattern\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 6,
+    "attribute_id": 4,
+    "rule_name": "Completeness Check - Product Type - FRY14M-D1",
+    "rule_type": "not_null",
+    "rule_category": "Completeness",
+    "rule_definition": "{\"type\": \"not_null\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 7,
+    "attribute_id": 4,
+    "rule_name": "Range Validation - Product Type - FRY14M-D1",
+    "rule_type": "range",
+    "rule_category": "Validity",
+    "rule_definition": "{\"type\": \"range\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 8,
+    "attribute_id": 5,
+    "rule_name": "Range Validation - Balance Amount - FRY14M-D1",
+    "rule_type": "range",
+    "rule_category": "Validity",
+    "rule_definition": "{\"type\": \"range\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 9,
+    "attribute_id": 5,
+    "rule_name": "Pattern Check - Balance Amount - FRY14M-D1",
+    "rule_type": "pattern",
+    "rule_category": "Accuracy",
+    "rule_definition": "{\"type\": \"pattern\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 10,
+    "attribute_id": 6,
+    "rule_name": "Range Validation - Interest Rate - FRY14M-D1",
+    "rule_type": "range",
+    "rule_category": "Validity",
+    "rule_definition": "{\"type\": \"range\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 11,
+    "attribute_id": 7,
+    "rule_name": "Range Validation - Origination Date - FRY14M-D1",
+    "rule_type": "range",
+    "rule_category": "Validity",
+    "rule_definition": "{\"type\": \"range\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 12,
+    "attribute_id": 7,
+    "rule_name": "Pattern Check - Origination Date - FRY14M-D1",
+    "rule_type": "pattern",
+    "rule_category": "Accuracy",
+    "rule_definition": "{\"type\": \"pattern\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 13,
+    "attribute_id": 7,
+    "rule_name": "Uniqueness Check - Origination Date - FRY14M-D1",
+    "rule_type": "unique",
+    "rule_category": "Uniqueness",
+    "rule_definition": "{\"type\": \"unique\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 14,
+    "attribute_id": 8,
+    "rule_name": "Range Validation - Maturity Date - FRY14M-D1",
+    "rule_type": "range",
+    "rule_category": "Validity",
+    "rule_definition": "{\"type\": \"range\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 15,
+    "attribute_id": 8,
+    "rule_name": "Uniqueness Check - Maturity Date - FRY14M-D1",
+    "rule_type": "unique",
+    "rule_category": "Uniqueness",
+    "rule_definition": "{\"type\": \"unique\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 16,
+    "attribute_id": 9,
+    "rule_name": "Range Validation - Risk Rating - FRY14M-D1",
+    "rule_type": "range",
+    "rule_category": "Validity",
+    "rule_definition": "{\"type\": \"range\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 17,
+    "attribute_id": 9,
+    "rule_name": "Pattern Check - Risk Rating - FRY14M-D1",
+    "rule_type": "pattern",
+    "rule_category": "Accuracy",
+    "rule_definition": "{\"type\": \"pattern\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 18,
+    "attribute_id": 9,
+    "rule_name": "Uniqueness Check - Risk Rating - FRY14M-D1",
+    "rule_type": "unique",
+    "rule_category": "Uniqueness",
+    "rule_definition": "{\"type\": \"unique\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 19,
+    "attribute_id": 10,
+    "rule_name": "Range Validation - Status - FRY14M-D1",
+    "rule_type": "range",
+    "rule_category": "Validity",
+    "rule_definition": "{\"type\": \"range\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 20,
+    "attribute_id": 10,
+    "rule_name": "Pattern Check - Status - FRY14M-D1",
+    "rule_type": "pattern",
+    "rule_category": "Accuracy",
+    "rule_definition": "{\"type\": \"pattern\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 21,
+    "attribute_id": 10,
+    "rule_name": "Uniqueness Check - Status - FRY14M-D1",
+    "rule_type": "unique",
+    "rule_category": "Uniqueness",
+    "rule_definition": "{\"type\": \"unique\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 22,
+    "attribute_id": 11,
+    "rule_name": "Completeness Check - Custom Field 1 - FRY14M-D1",
+    "rule_type": "not_null",
+    "rule_category": "Completeness",
+    "rule_definition": "{\"type\": \"not_null\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 23,
+    "attribute_id": 11,
+    "rule_name": "Range Validation - Custom Field 1 - FRY14M-D1",
+    "rule_type": "range",
+    "rule_category": "Validity",
+    "rule_definition": "{\"type\": \"range\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 24,
+    "attribute_id": 11,
+    "rule_name": "Pattern Check - Custom Field 1 - FRY14M-D1",
+    "rule_type": "pattern",
+    "rule_category": "Accuracy",
+    "rule_definition": "{\"type\": \"pattern\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 25,
+    "attribute_id": 12,
+    "rule_name": "Completeness Check - Custom Field 2 - FRY14M-D1",
+    "rule_type": "not_null",
+    "rule_category": "Completeness",
+    "rule_definition": "{\"type\": \"not_null\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 26,
+    "attribute_id": 12,
+    "rule_name": "Pattern Check - Custom Field 2 - FRY14M-D1",
+    "rule_type": "pattern",
+    "rule_category": "Accuracy",
+    "rule_definition": "{\"type\": \"pattern\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 27,
+    "attribute_id": 13,
+    "rule_name": "Completeness Check - Custom Field 3 - FRY14M-D1",
+    "rule_type": "not_null",
+    "rule_category": "Completeness",
+    "rule_definition": "{\"type\": \"not_null\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 28,
+    "attribute_id": 14,
+    "rule_name": "Range Validation - Custom Field 4 - FRY14M-D1",
+    "rule_type": "range",
+    "rule_category": "Validity",
+    "rule_definition": "{\"type\": \"range\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 29,
+    "attribute_id": 14,
+    "rule_name": "Uniqueness Check - Custom Field 4 - FRY14M-D1",
+    "rule_type": "unique",
+    "rule_category": "Uniqueness",
+    "rule_definition": "{\"type\": \"unique\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 30,
+    "attribute_id": 15,
+    "rule_name": "Completeness Check - Custom Field 5 - FRY14M-D1",
+    "rule_type": "not_null",
+    "rule_category": "Completeness",
+    "rule_definition": "{\"type\": \"not_null\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 31,
+    "attribute_id": 15,
+    "rule_name": "Uniqueness Check - Custom Field 5 - FRY14M-D1",
+    "rule_type": "unique",
+    "rule_category": "Uniqueness",
+    "rule_definition": "{\"type\": \"unique\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 32,
+    "attribute_id": 16,
+    "rule_name": "Completeness Check - Reference Number - FRY14Q-A",
+    "rule_type": "not_null",
+    "rule_category": "Completeness",
+    "rule_definition": "{\"type\": \"not_null\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 33,
+    "attribute_id": 16,
+    "rule_name": "Range Validation - Reference Number - FRY14Q-A",
+    "rule_type": "range",
+    "rule_category": "Validity",
+    "rule_definition": "{\"type\": \"range\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 34,
+    "attribute_id": 16,
+    "rule_name": "Pattern Check - Reference Number - FRY14Q-A",
+    "rule_type": "pattern",
+    "rule_category": "Accuracy",
+    "rule_definition": "{\"type\": \"pattern\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 35,
+    "attribute_id": 17,
+    "rule_name": "Completeness Check - Account ID - FRY14Q-A",
+    "rule_type": "not_null",
+    "rule_category": "Completeness",
+    "rule_definition": "{\"type\": \"not_null\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 36,
+    "attribute_id": 17,
+    "rule_name": "Range Validation - Account ID - FRY14Q-A",
+    "rule_type": "range",
+    "rule_category": "Validity",
+    "rule_definition": "{\"type\": \"range\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 37,
+    "attribute_id": 17,
+    "rule_name": "Pattern Check - Account ID - FRY14Q-A",
+    "rule_type": "pattern",
+    "rule_category": "Accuracy",
+    "rule_definition": "{\"type\": \"pattern\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 38,
+    "attribute_id": 18,
+    "rule_name": "Completeness Check - Customer ID - FRY14Q-A",
+    "rule_type": "not_null",
+    "rule_category": "Completeness",
+    "rule_definition": "{\"type\": \"not_null\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 39,
+    "attribute_id": 18,
+    "rule_name": "Uniqueness Check - Customer ID - FRY14Q-A",
+    "rule_type": "unique",
+    "rule_category": "Uniqueness",
+    "rule_definition": "{\"type\": \"unique\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 40,
+    "attribute_id": 19,
+    "rule_name": "Uniqueness Check - Product Type - FRY14Q-A",
+    "rule_type": "unique",
+    "rule_category": "Uniqueness",
+    "rule_definition": "{\"type\": \"unique\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 41,
+    "attribute_id": 20,
+    "rule_name": "Completeness Check - Balance Amount - FRY14Q-A",
+    "rule_type": "not_null",
+    "rule_category": "Completeness",
+    "rule_definition": "{\"type\": \"not_null\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 42,
+    "attribute_id": 20,
+    "rule_name": "Range Validation - Balance Amount - FRY14Q-A",
+    "rule_type": "range",
+    "rule_category": "Validity",
+    "rule_definition": "{\"type\": \"range\"}",
+    "is_approved": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "rule_id": 43,
+    "attribute_id": 20,
+    "rule_name": "Pattern Check - Balance Amount - FRY14Q-A",
+    "rule_type": "pattern",
+    "rule_category": "Accuracy",
+    "rule_definition": "{\"type\": \"pattern\"}",
+    "is_approved": false,
+    "created_at": "2025-08-03T13:55:58.374470"
+  }
+]

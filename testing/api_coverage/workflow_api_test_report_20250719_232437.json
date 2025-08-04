@@ -1,0 +1,76 @@
+{
+  "executive_summary": {
+    "total_tests": 5,
+    "successful_tests": 5,
+    "success_rate": 100.0,
+    "workflow_completeness": 0,
+    "entities_created": {},
+    "avg_response_time_ms": 253.41
+  },
+  "step_analysis": {
+    "step_1": {
+      "success_rate": 0.0,
+      "successful": 0,
+      "total": 2,
+      "entities_created": 0
+    }
+  },
+  "workflow_entities": {},
+  "detailed_results": [
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 476.101,
+      "created_entity_id": null
+    },
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 196.30100000000002,
+      "created_entity_id": null
+    },
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 199.69500000000002,
+      "created_entity_id": null
+    },
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 197.418,
+      "created_entity_id": null
+    },
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 197.55700000000002,
+      "created_entity_id": null
+    }
+  ],
+  "test_coverage": {
+    "authentication": 100.0,
+    "foundation_entities": 0.0,
+    "reports_management": 0,
+    "cycle_management": 0,
+    "workflow_phases": 0,
+    "execution_phases": 0,
+    "management_apis": 0
+  },
+  "timestamp": "2025-07-19T23:24:37.708870"
+}

@@ -1,0 +1,675 @@
+"""
+Test cycle management endpoints
+"""
+
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_, or_, func
+from sqlalchemy.orm import selectinload
+
+from app.core.database import get_db
+from app.core.dependencies import get_current_user, require_management
+from app.core.auth import UserRoles, RoleChecker
+from app.core.permissions import require_permission
+from app.models.user import User
+from app.models.test_cycle import TestCycle
+from app.models.cycle_report import CycleReport
+from app.models.report import Report
+from app.models.workflow import WorkflowPhase
+from app.schemas.cycle import (
+    TestCycleCreate, TestCycleUpdate, TestCycleResponse, TestCycleListResponse,
+    CycleReportAssignment, CycleReportResponse, CycleStatsResponse,
+    CycleCreate, CycleResponse, CycleUpdate, CycleSearchFilter,
+    ReportAssignmentData, CycleDetailResponse, CycleMetrics, TesterAssignmentData
+)
+from app.core.exceptions import ValidationException
+from app.core.logging import get_logger
+from app.services.workflow_orchestrator import WorkflowOrchestrator
+
+logger = get_logger(__name__)
+router = APIRouter()
+
+# Role-based access control
+management_roles = [UserRoles.TEST_EXECUTIVE, UserRoles.REPORT_OWNER_EXECUTIVE]
+admin_roles = [UserRoles.TEST_EXECUTIVE]
+
+
+@router.post("/", response_model=TestCycleResponse, status_code=status.HTTP_201_CREATED)
+@require_permission("cycles", "create")
+async def create_test_cycle(
+    cycle_data: TestCycleCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Create a new test cycle
+    """
+    
+    # Validate dates only if end_date is provided
+    if cycle_data.end_date is not None and cycle_data.end_date <= cycle_data.start_date:
+        raise ValidationException("End date must be after start date")
+    
+    # Check if cycle name already exists
+    existing_cycle = await db.execute(
+        select(TestCycle).where(TestCycle.cycle_name == cycle_data.cycle_name)
+    )
+    if existing_cycle.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Test cycle name already exists"
+        )
+    
+    # Create test cycle
+    db_cycle = TestCycle(
+        cycle_name=cycle_data.cycle_name,
+        description=cycle_data.description,
+        start_date=cycle_data.start_date,
+        end_date=cycle_data.end_date,
+        test_manager_id=current_user.user_id,
+        status=cycle_data.status or "Active"
+    )
+    
+    db.add(db_cycle)
+    await db.commit()
+    await db.refresh(db_cycle)
+    
+    logger.info(f"Test cycle created: {db_cycle.cycle_name} by {current_user.email}")
+    
+    return TestCycleResponse.model_validate(db_cycle)
+
+
+@router.get("/", response_model=TestCycleListResponse)
+@require_permission("cycles", "read")
+async def list_test_cycles(
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=1000, description="Number of records to return"),
+    status: Optional[str] = Query(None, description="Filter by status"),
+    test_manager_id: Optional[int] = Query(None, description="Filter by test manager"),
+    search: Optional[str] = Query(None, description="Search in cycle name or description"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    List test cycles with filtering and pagination
+    """
+    
+    # Build query with relationships
+    query = select(TestCycle).options(
+        selectinload(TestCycle.test_manager)
+    )
+    
+    # Apply filters
+    conditions = []
+    
+    if status:
+        conditions.append(TestCycle.status == status)
+    
+    if test_manager_id is not None:
+        conditions.append(TestCycle.test_manager_id == test_manager_id)
+    
+    if search:
+        search_term = f"%{search}%"
+        conditions.append(
+            or_(
+                TestCycle.cycle_name.ilike(search_term),
+                TestCycle.description.ilike(search_term)
+            )
+        )
+    
+    if conditions:
+        query = query.where(and_(*conditions))
+    
+    # Get total count
+    count_query = select(func.count(TestCycle.cycle_id))
+    if conditions:
+        count_query = count_query.where(and_(*conditions))
+    
+    total_result = await db.execute(count_query)
+    total = total_result.scalar()
+    
+    # Apply pagination and execute
+    query = query.offset(skip).limit(limit).order_by(TestCycle.created_at.desc())
+    result = await db.execute(query)
+    cycles = result.scalars().all()
+    
+    return TestCycleListResponse(
+        cycles=[TestCycleResponse.model_validate(cycle) for cycle in cycles],
+        total=total,
+        skip=skip,
+        limit=limit
+    )
+
+
+@router.get("/{cycle_id}", response_model=TestCycleResponse)
+@require_permission("cycles", "read")
+async def get_test_cycle(
+    cycle_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get test cycle by ID
+    """
+    
+    result = await db.execute(
+        select(TestCycle).options(
+            selectinload(TestCycle.test_manager)
+        ).where(TestCycle.cycle_id == cycle_id)
+    )
+    cycle = result.scalar_one_or_none()
+    
+    if not cycle:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Test cycle not found"
+        )
+    
+    # Create response with enhanced data
+    cycle_response = TestCycleResponse.model_validate(cycle)
+    
+    # Add test manager name
+    if cycle.test_manager:
+        cycle_response.test_manager_name = f"{cycle.test_manager.first_name} {cycle.test_manager.last_name}"
+    
+    # Get total reports count
+    total_reports_result = await db.execute(
+        select(func.count(CycleReport.report_id)).where(CycleReport.cycle_id == cycle_id)
+    )
+    cycle_response.total_reports = total_reports_result.scalar() or 0
+    
+    return cycle_response
+
+
+@router.put("/{cycle_id}", response_model=TestCycleResponse)
+@require_permission("cycles", "update")
+async def update_test_cycle(
+    cycle_id: int,
+    cycle_data: TestCycleUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update test cycle information
+    """
+    
+    # Get cycle
+    result = await db.execute(
+        select(TestCycle).where(TestCycle.cycle_id == cycle_id)
+    )
+    cycle = result.scalar_one_or_none()
+    
+    if not cycle:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Test cycle not found"
+        )
+    
+    # Validate dates if being changed
+    start_date = cycle_data.start_date or cycle.start_date
+    end_date = cycle_data.end_date or cycle.end_date
+    
+    if end_date and end_date <= start_date:
+        raise ValidationException("End date must be after start date")
+    
+    # Check name uniqueness if being changed
+    if cycle_data.cycle_name and cycle_data.cycle_name != cycle.cycle_name:
+        existing_cycle = await db.execute(
+            select(TestCycle).where(
+                and_(
+                    TestCycle.cycle_name == cycle_data.cycle_name,
+                    TestCycle.cycle_id != cycle_id
+                )
+            )
+        )
+        if existing_cycle.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Test cycle name already exists"
+            )
+    
+    # Update fields
+    update_data = cycle_data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(cycle, field, value)
+    
+    await db.commit()
+    await db.refresh(cycle)
+    
+    logger.info(f"Test cycle updated: {cycle.cycle_name}")
+    
+    return TestCycleResponse.model_validate(cycle)
+
+
+@router.delete("/{cycle_id}")
+@require_permission("cycles", "delete")
+async def delete_test_cycle(
+    cycle_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Delete a test cycle
+    """
+    
+    # Get cycle
+    result = await db.execute(
+        select(TestCycle).where(TestCycle.cycle_id == cycle_id)
+    )
+    cycle = result.scalar_one_or_none()
+    
+    if not cycle:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Test cycle not found"
+        )
+    
+    # Check if cycle has any reports assigned
+    reports_result = await db.execute(
+        select(func.count(CycleReport.report_id)).where(CycleReport.cycle_id == cycle_id)
+    )
+    reports_count = reports_result.scalar()
+    
+    if reports_count > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot delete cycle with {reports_count} assigned reports. Please remove all reports first."
+        )
+    
+    # Simply delete the cycle - let the database handle cascades
+    cycle_name = cycle.cycle_name
+    await db.delete(cycle)
+    await db.commit()
+    
+    logger.info(f"Test cycle deleted: {cycle_name} by {current_user.email}")
+    
+    return {"message": f"Test cycle '{cycle_name}' deleted successfully"}
+
+
+@router.post("/{cycle_id}/reports", response_model=CycleReportResponse)
+@require_permission("cycles", "assign")
+async def assign_report_to_cycle(
+    cycle_id: int,
+    assignment: CycleReportAssignment,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Assign a report to a test cycle
+    """
+    
+    # Validate cycle exists
+    cycle_result = await db.execute(
+        select(TestCycle).where(TestCycle.cycle_id == cycle_id)
+    )
+    if not cycle_result.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Test cycle not found"
+        )
+    
+    # Validate report exists
+    report_result = await db.execute(
+        select(Report).where(Report.report_id == assignment.report_id)
+    )
+    if not report_result.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Report not found"
+        )
+    
+    # Validate tester exists and has correct role
+    if assignment.tester_id:
+        tester_result = await db.execute(
+            select(User).where(
+                and_(
+                    User.user_id == assignment.tester_id,
+                    User.role == UserRoles.TESTER,
+                    User.is_active == True
+                )
+            )
+        )
+        if not tester_result.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid tester ID or user is not an active Tester"
+            )
+    
+    # Check if report is already assigned to this cycle
+    existing_assignment = await db.execute(
+        select(CycleReport).where(
+            and_(
+                CycleReport.cycle_id == cycle_id,
+                CycleReport.report_id == assignment.report_id
+            )
+        )
+    )
+    existing_cycle_report = existing_assignment.scalar_one_or_none()
+    if existing_cycle_report:
+        # Report is already assigned to this cycle - return the existing assignment
+        logger.info(f"Report {assignment.report_id} already assigned to cycle {cycle_id}")
+        return CycleReportResponse.model_validate(existing_cycle_report)
+    
+    # Create assignment
+    db_assignment = CycleReport(
+        cycle_id=cycle_id,
+        report_id=assignment.report_id,
+        tester_id=assignment.tester_id,
+        status="Not Started"
+    )
+    
+    db.add(db_assignment)
+    await db.commit()
+    await db.refresh(db_assignment)
+    
+    # Initialize workflow phases if tester is assigned
+    if assignment.tester_id:
+        orchestrator = WorkflowOrchestrator(db)
+        try:
+            workflow_result = await orchestrator.initialize_workflow_phases(
+                cycle_id=cycle_id,
+                report_id=assignment.report_id
+            )
+            logger.info(f"Initialized {workflow_result.get('phases_created', 0)} workflow phases for report {assignment.report_id}")
+        except ValueError as e:
+            # Workflow phases might already exist, which is fine
+            if "already initialized" not in str(e):
+                logger.warning(f"Failed to initialize workflow phases: {str(e)}")
+    
+    logger.info(f"Report {assignment.report_id} assigned to cycle {cycle_id}")
+    
+    return CycleReportResponse.model_validate(db_assignment)
+
+
+@router.get("/{cycle_id}/reports", response_model=List[CycleReportResponse])
+@require_permission("cycles", "read")
+async def get_cycle_reports(
+    cycle_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get all reports assigned to a test cycle
+    """
+    
+    # Validate cycle exists
+    cycle_result = await db.execute(
+        select(TestCycle).where(TestCycle.cycle_id == cycle_id)
+    )
+    if not cycle_result.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Test cycle not found"
+        )
+    
+    # Get cycle reports with basic relationships
+    try:
+        result = await db.execute(
+            select(CycleReport).options(
+                selectinload(CycleReport.report),
+                selectinload(CycleReport.tester)
+            ).where(CycleReport.cycle_id == cycle_id)
+        )
+        cycle_reports = result.scalars().all()
+        
+        # Transform data to include additional fields
+        enhanced_reports = []
+        for cr in cycle_reports:
+            report_data = CycleReportResponse.model_validate(cr)
+            
+            # Add report name and LOB info
+            if cr.report:
+                report_data.report_name = cr.report.report_name
+                # Try to get LOB name safely
+                try:
+                    if hasattr(cr.report, 'lob') and cr.report.lob:
+                        report_data.lob_name = cr.report.lob.lob_name
+                    else:
+                        report_data.lob_name = "Default LOB"
+                except Exception:
+                    report_data.lob_name = "Default LOB"
+            
+            # Add tester name
+            if cr.tester:
+                report_data.tester_name = f"{cr.tester.first_name} {cr.tester.last_name}"
+            
+            enhanced_reports.append(report_data)
+        
+        return enhanced_reports
+        
+    except Exception as e:
+        logger.error(f"Error fetching cycle reports: {str(e)}")
+        # Return empty list if there's an error but cycle exists
+        return []
+
+
+@router.put("/{cycle_id}/reports/{report_id}/assign-tester", response_model=dict)
+async def assign_tester(
+    cycle_id: int,
+    report_id: int,
+    assignment_data: TesterAssignmentData,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Assign a tester to a report in a cycle
+    """
+    # Check permissions
+    if not current_user.is_test_manager:
+        raise HTTPException(
+            status_code=403,
+            detail="Only test managers can assign testers"
+        )
+    
+    # Get the cycle report
+    result = await db.execute(
+        select(CycleReport)
+        .where(
+            and_(
+                CycleReport.cycle_id == cycle_id,
+                CycleReport.report_id == report_id
+            )
+        )
+    )
+    cycle_report = result.scalar_one_or_none()
+    
+    if not cycle_report:
+        raise HTTPException(
+            status_code=404,
+            detail="Report not found in this cycle"
+        )
+    
+    # Verify the tester exists and has the right role
+    tester_result = await db.execute(
+        select(User).where(User.user_id == assignment_data.tester_id)
+    )
+    tester = tester_result.scalar_one_or_none()
+    
+    if not tester:
+        raise HTTPException(
+            status_code=404,
+            detail="Tester not found"
+        )
+    
+    if not tester.is_tester:
+        raise HTTPException(
+            status_code=400,
+            detail="Selected user is not a tester"
+        )
+    
+    # Assign the tester
+    cycle_report.tester_id = assignment_data.tester_id
+    
+    # Initialize workflow phases using WorkflowOrchestrator
+    orchestrator = WorkflowOrchestrator(db)
+    try:
+        workflow_result = await orchestrator.initialize_workflow_phases(
+            cycle_id=cycle_id,
+            report_id=report_id
+        )
+        workflow_phases_created = workflow_result.get("phases_created", 0)
+        phase_names = workflow_result.get("phase_names", [])
+    except ValueError as e:
+        # Workflow phases might already exist
+        if "already initialized" in str(e):
+            logger.info(f"Workflow phases already exist for cycle {cycle_id}, report {report_id}")
+            workflow_phases_created = 0
+            phase_names = []
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Error initializing workflow: {str(e)}"
+            )
+    
+    await db.commit()
+    
+    logger.info(f"Assigned tester {assignment_data.tester_id} to report {report_id} in cycle {cycle_id}")
+    logger.info(f"Initialized {workflow_phases_created} workflow phases")
+    
+    return {
+        "message": "Tester assigned successfully",
+        "tester_id": assignment_data.tester_id,
+        "workflow_phases_created": workflow_phases_created,
+        "phase_names": phase_names
+    }
+
+
+@router.delete("/{cycle_id}/reports/{report_id}")
+@require_permission("cycles", "assign")
+async def remove_report_from_cycle(
+    cycle_id: int,
+    report_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Remove a report from a test cycle
+    """
+    
+    # Get cycle report assignment
+    result = await db.execute(
+        select(CycleReport).where(
+            and_(
+                CycleReport.cycle_id == cycle_id,
+                CycleReport.report_id == report_id
+            )
+        )
+    )
+    cycle_report = result.scalar_one_or_none()
+    
+    if not cycle_report:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Report assignment not found in this cycle"
+        )
+    
+    # Check if testing has started
+    if cycle_report.status not in ["Not Started"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot remove report after testing has started"
+        )
+    
+    # Remove assignment
+    await db.delete(cycle_report)
+    await db.commit()
+    
+    logger.info(f"Report {report_id} removed from cycle {cycle_id}")
+    
+    return {"message": "Report removed from cycle successfully"}
+
+
+@router.get("/{cycle_id}/stats", response_model=CycleStatsResponse)
+@require_permission("cycles", "read")
+async def get_cycle_stats(
+    cycle_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get statistics for a test cycle
+    """
+    
+    # Validate cycle exists
+    cycle_result = await db.execute(
+        select(TestCycle).where(TestCycle.cycle_id == cycle_id)
+    )
+    if not cycle_result.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Test cycle not found"
+        )
+    
+    # Get report counts by status
+    status_counts = await db.execute(
+        select(CycleReport.status, func.count(CycleReport.report_id))
+        .where(CycleReport.cycle_id == cycle_id)
+        .group_by(CycleReport.status)
+    )
+    
+    reports_by_status = {status: count for status, count in status_counts.all()}
+    
+    # Get total report count
+    total_reports = await db.execute(
+        select(func.count(CycleReport.report_id))
+        .where(CycleReport.cycle_id == cycle_id)
+    )
+    
+    # Get tester assignments
+    tester_counts = await db.execute(
+        select(
+            func.concat(User.first_name, ' ', User.last_name).label('tester_name'),
+            func.count(CycleReport.report_id)
+        )
+        .select_from(CycleReport)
+        .join(User, CycleReport.tester_id == User.user_id, isouter=True)
+        .where(CycleReport.cycle_id == cycle_id)
+        .group_by(User.first_name, User.last_name)
+    )
+    
+    reports_by_tester = {tester_name or "Unassigned": count for tester_name, count in tester_counts.all()}
+    
+    return CycleStatsResponse(
+        cycle_id=cycle_id,
+        total_reports=total_reports.scalar(),
+        reports_by_status=reports_by_status,
+        reports_by_tester=reports_by_tester
+    )
+
+
+@router.patch("/{cycle_id}/status")
+@require_permission("cycles", "update")
+async def update_cycle_status(
+    cycle_id: int,
+    new_status: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update test cycle status (Test Manager only)
+    """
+    
+    # Validate status
+    valid_statuses = ["Active", "Completed", "Cancelled", "On Hold"]
+    if new_status not in valid_statuses:
+        raise ValidationException(f"Invalid status. Must be one of: {valid_statuses}")
+    
+    # Get cycle
+    result = await db.execute(
+        select(TestCycle).where(TestCycle.cycle_id == cycle_id)
+    )
+    cycle = result.scalar_one_or_none()
+    
+    if not cycle:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Test cycle not found"
+        )
+    
+    # Update status
+    cycle.status = new_status
+    await db.commit()
+    
+    logger.info(f"Test cycle {cycle.cycle_name} status updated to {new_status}")
+    
+    return {"message": f"Cycle status updated to {new_status}"} 

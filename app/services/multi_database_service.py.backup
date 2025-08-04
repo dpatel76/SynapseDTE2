@@ -1,0 +1,611 @@
+"""
+Multi-Database Service
+Provides secure connectivity to multiple database types for data extraction
+"""
+
+import asyncio
+import logging
+from typing import Dict, Any, List, Optional, Union
+from datetime import datetime
+import json
+from contextlib import asynccontextmanager
+
+# Database drivers
+import asyncpg
+import aiomysql
+import cx_Oracle
+import pyodbc
+from sqlalchemy import create_engine, text
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import QueuePool
+
+from app.core.config import settings
+from app.core.security import SecurityManager
+from app.models.report import DataSource
+from app.models.audit import AuditLog
+from app.core.exceptions import ValidationException, BusinessLogicException
+
+logger = logging.getLogger(__name__)
+
+
+class DatabaseConnectionError(Exception):
+    """Database connection specific error"""
+    pass
+
+
+class MultiDatabaseService:
+    """Service for connecting to and querying multiple database types"""
+    
+    def __init__(self):
+        self.security_manager = SecurityManager()
+        self.connection_pools = {}
+        self.connection_cache = {}
+        
+    async def test_connection(self, data_source: DataSource) -> Dict[str, Any]:
+        """Test connection to a data source"""
+        try:
+            start_time = datetime.utcnow()
+            
+            # Decrypt credentials
+            decrypted_password = self.security_manager.decrypt_data(data_source.database_password)
+            
+            # Test connection based on database type
+            if data_source.database_type.lower() == 'postgresql':
+                result = await self._test_postgresql_connection(
+                    data_source.database_url,
+                    data_source.database_user,
+                    decrypted_password
+                )
+            elif data_source.database_type.lower() == 'mysql':
+                result = await self._test_mysql_connection(
+                    data_source.database_url,
+                    data_source.database_user,
+                    decrypted_password
+                )
+            elif data_source.database_type.lower() == 'oracle':
+                result = await self._test_oracle_connection(
+                    data_source.database_url,
+                    data_source.database_user,
+                    decrypted_password
+                )
+            elif data_source.database_type.lower() == 'sqlserver':
+                result = await self._test_sqlserver_connection(
+                    data_source.database_url,
+                    data_source.database_user,
+                    decrypted_password
+                )
+            else:
+                raise DatabaseConnectionError(f"Unsupported database type: {data_source.database_type}")
+            
+            duration = (datetime.utcnow() - start_time).total_seconds()
+            
+            return {
+                "success": True,
+                "database_type": data_source.database_type,
+                "connection_time": duration,
+                "server_info": result.get("server_info", "Unknown"),
+                "database_name": result.get("database_name", "Unknown"),
+                "tested_at": start_time.isoformat()
+            }
+            
+        except Exception as e:
+            logger.error(f"Database connection test failed: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "database_type": data_source.database_type,
+                "tested_at": datetime.utcnow().isoformat()
+            }
+    
+    async def execute_query(
+        self, 
+        data_source: DataSource, 
+        query: str, 
+        parameters: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Execute a query against a data source"""
+        try:
+            # Validate query for security
+            self._validate_query_security(query)
+            
+            # Decrypt credentials
+            decrypted_password = self.security_manager.decrypt_data(data_source.database_password)
+            
+            # Execute query based on database type
+            if data_source.database_type.lower() == 'postgresql':
+                result = await self._execute_postgresql_query(
+                    data_source.database_url,
+                    data_source.database_user,
+                    decrypted_password,
+                    query,
+                    parameters
+                )
+            elif data_source.database_type.lower() == 'mysql':
+                result = await self._execute_mysql_query(
+                    data_source.database_url,
+                    data_source.database_user,
+                    decrypted_password,
+                    query,
+                    parameters
+                )
+            elif data_source.database_type.lower() == 'oracle':
+                result = await self._execute_oracle_query(
+                    data_source.database_url,
+                    data_source.database_user,
+                    decrypted_password,
+                    query,
+                    parameters
+                )
+            elif data_source.database_type.lower() == 'sqlserver':
+                result = await self._execute_sqlserver_query(
+                    data_source.database_url,
+                    data_source.database_user,
+                    decrypted_password,
+                    query,
+                    parameters
+                )
+            else:
+                raise DatabaseConnectionError(f"Unsupported database type: {data_source.database_type}")
+            
+            return {
+                "success": True,
+                "data": result["data"],
+                "row_count": result["row_count"],
+                "columns": result["columns"],
+                "execution_time": result["execution_time"],
+                "query": query
+            }
+            
+        except Exception as e:
+            logger.error(f"Query execution failed: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "query": query
+            }
+    
+    async def extract_attribute_value(
+        self,
+        data_source: DataSource,
+        table_name: str,
+        column_name: str,
+        primary_key_field: str,
+        primary_key_value: str
+    ) -> Dict[str, Any]:
+        """Extract a specific attribute value from a database"""
+        try:
+            # Build secure query
+            query = f"""
+            SELECT {column_name} 
+            FROM {table_name} 
+            WHERE {primary_key_field} = %(primary_key_value)s
+            LIMIT 1
+            """
+            
+            parameters = {"primary_key_value": primary_key_value}
+            
+            result = await self.execute_query(data_source, query, parameters)
+            
+            if result["success"] and result["row_count"] > 0:
+                value = result["data"][0][0] if result["data"] else None
+                return {
+                    "success": True,
+                    "value": value,
+                    "primary_key_found": True,
+                    "table_name": table_name,
+                    "column_name": column_name,
+                    "primary_key_field": primary_key_field,
+                    "primary_key_value": primary_key_value
+                }
+            else:
+                return {
+                    "success": True,
+                    "value": None,
+                    "primary_key_found": False,
+                    "table_name": table_name,
+                    "column_name": column_name,
+                    "primary_key_field": primary_key_field,
+                    "primary_key_value": primary_key_value
+                }
+                
+        except Exception as e:
+            logger.error(f"Attribute extraction failed: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "table_name": table_name,
+                "column_name": column_name
+            }
+    
+    # PostgreSQL specific methods
+    async def _test_postgresql_connection(self, url: str, user: str, password: str) -> Dict[str, Any]:
+        """Test PostgreSQL connection"""
+        try:
+            conn = await asyncpg.connect(
+                host=self._parse_host(url),
+                port=self._parse_port(url, 5432),
+                user=user,
+                password=password,
+                database=self._parse_database(url)
+            )
+            
+            version = await conn.fetchval("SELECT version()")
+            database_name = await conn.fetchval("SELECT current_database()")
+            
+            await conn.close()
+            
+            return {
+                "server_info": version,
+                "database_name": database_name
+            }
+            
+        except Exception as e:
+            raise DatabaseConnectionError(f"PostgreSQL connection failed: {str(e)}")
+    
+    async def _execute_postgresql_query(
+        self, 
+        url: str, 
+        user: str, 
+        password: str, 
+        query: str, 
+        parameters: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Execute PostgreSQL query"""
+        start_time = datetime.utcnow()
+        
+        try:
+            conn = await asyncpg.connect(
+                host=self._parse_host(url),
+                port=self._parse_port(url, 5432),
+                user=user,
+                password=password,
+                database=self._parse_database(url)
+            )
+            
+            if parameters:
+                # Convert named parameters to positional for asyncpg
+                query_parts = query.split('%(')
+                if len(query_parts) > 1:
+                    # Convert %(param)s to $1, $2, etc.
+                    converted_query = query_parts[0]
+                    param_values = []
+                    for i, part in enumerate(query_parts[1:], 1):
+                        param_name = part.split(')s')[0]
+                        param_values.append(parameters.get(param_name))
+                        converted_query += f"${i}" + part.split(')s', 1)[1]
+                    
+                    rows = await conn.fetch(converted_query, *param_values)
+                else:
+                    rows = await conn.fetch(query)
+            else:
+                rows = await conn.fetch(query)
+            
+            # Convert rows to list of lists
+            data = [list(row) for row in rows]
+            columns = list(rows[0].keys()) if rows else []
+            
+            await conn.close()
+            
+            execution_time = (datetime.utcnow() - start_time).total_seconds()
+            
+            return {
+                "data": data,
+                "row_count": len(data),
+                "columns": columns,
+                "execution_time": execution_time
+            }
+            
+        except Exception as e:
+            raise DatabaseConnectionError(f"PostgreSQL query execution failed: {str(e)}")
+    
+    # MySQL specific methods
+    async def _test_mysql_connection(self, url: str, user: str, password: str) -> Dict[str, Any]:
+        """Test MySQL connection"""
+        try:
+            conn = await aiomysql.connect(
+                host=self._parse_host(url),
+                port=self._parse_port(url, 3306),
+                user=user,
+                password=password,
+                db=self._parse_database(url)
+            )
+            
+            cursor = await conn.cursor()
+            await cursor.execute("SELECT VERSION()")
+            version = await cursor.fetchone()
+            
+            await cursor.execute("SELECT DATABASE()")
+            database_name = await cursor.fetchone()
+            
+            await cursor.close()
+            conn.close()
+            
+            return {
+                "server_info": version[0] if version else "Unknown",
+                "database_name": database_name[0] if database_name else "Unknown"
+            }
+            
+        except Exception as e:
+            raise DatabaseConnectionError(f"MySQL connection failed: {str(e)}")
+    
+    async def _execute_mysql_query(
+        self, 
+        url: str, 
+        user: str, 
+        password: str, 
+        query: str, 
+        parameters: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Execute MySQL query"""
+        start_time = datetime.utcnow()
+        
+        try:
+            conn = await aiomysql.connect(
+                host=self._parse_host(url),
+                port=self._parse_port(url, 3306),
+                user=user,
+                password=password,
+                db=self._parse_database(url)
+            )
+            
+            cursor = await conn.cursor()
+            
+            if parameters:
+                # Convert %(param)s to %(param)s format for MySQL
+                await cursor.execute(query, parameters)
+            else:
+                await cursor.execute(query)
+            
+            rows = await cursor.fetchall()
+            columns = [desc[0] for desc in cursor.description] if cursor.description else []
+            
+            await cursor.close()
+            conn.close()
+            
+            execution_time = (datetime.utcnow() - start_time).total_seconds()
+            
+            return {
+                "data": [list(row) for row in rows],
+                "row_count": len(rows),
+                "columns": columns,
+                "execution_time": execution_time
+            }
+            
+        except Exception as e:
+            raise DatabaseConnectionError(f"MySQL query execution failed: {str(e)}")
+    
+    # Oracle specific methods
+    async def _test_oracle_connection(self, url: str, user: str, password: str) -> Dict[str, Any]:
+        """Test Oracle connection"""
+        try:
+            # Oracle connection is synchronous, run in thread
+            def _sync_oracle_test():
+                dsn = cx_Oracle.makedsn(
+                    self._parse_host(url),
+                    self._parse_port(url, 1521),
+                    service_name=self._parse_database(url)
+                )
+                
+                conn = cx_Oracle.connect(user, password, dsn)
+                cursor = conn.cursor()
+                
+                cursor.execute("SELECT * FROM v$version WHERE banner LIKE 'Oracle%'")
+                version = cursor.fetchone()
+                
+                cursor.execute("SELECT sys_context('userenv', 'db_name') FROM dual")
+                database_name = cursor.fetchone()
+                
+                cursor.close()
+                conn.close()
+                
+                return {
+                    "server_info": version[0] if version else "Unknown",
+                    "database_name": database_name[0] if database_name else "Unknown"
+                }
+            
+            result = await asyncio.to_thread(_sync_oracle_test)
+            return result
+            
+        except Exception as e:
+            raise DatabaseConnectionError(f"Oracle connection failed: {str(e)}")
+    
+    async def _execute_oracle_query(
+        self, 
+        url: str, 
+        user: str, 
+        password: str, 
+        query: str, 
+        parameters: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Execute Oracle query"""
+        start_time = datetime.utcnow()
+        
+        try:
+            def _sync_oracle_query():
+                dsn = cx_Oracle.makedsn(
+                    self._parse_host(url),
+                    self._parse_port(url, 1521),
+                    service_name=self._parse_database(url)
+                )
+                
+                conn = cx_Oracle.connect(user, password, dsn)
+                cursor = conn.cursor()
+                
+                if parameters:
+                    # Convert %(param)s to :param format for Oracle
+                    oracle_query = query
+                    oracle_params = {}
+                    for key, value in parameters.items():
+                        oracle_query = oracle_query.replace(f"%({key})s", f":{key}")
+                        oracle_params[key] = value
+                    
+                    cursor.execute(oracle_query, oracle_params)
+                else:
+                    cursor.execute(query)
+                
+                rows = cursor.fetchall()
+                columns = [desc[0] for desc in cursor.description] if cursor.description else []
+                
+                cursor.close()
+                conn.close()
+                
+                return {
+                    "data": [list(row) for row in rows],
+                    "row_count": len(rows),
+                    "columns": columns
+                }
+            
+            result = await asyncio.to_thread(_sync_oracle_query)
+            execution_time = (datetime.utcnow() - start_time).total_seconds()
+            result["execution_time"] = execution_time
+            
+            return result
+            
+        except Exception as e:
+            raise DatabaseConnectionError(f"Oracle query execution failed: {str(e)}")
+    
+    # SQL Server specific methods
+    async def _test_sqlserver_connection(self, url: str, user: str, password: str) -> Dict[str, Any]:
+        """Test SQL Server connection"""
+        try:
+            def _sync_sqlserver_test():
+                connection_string = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self._parse_host(url)},{self._parse_port(url, 1433)};DATABASE={self._parse_database(url)};UID={user};PWD={password}"
+                
+                conn = pyodbc.connect(connection_string)
+                cursor = conn.cursor()
+                
+                cursor.execute("SELECT @@VERSION")
+                version = cursor.fetchone()
+                
+                cursor.execute("SELECT DB_NAME()")
+                database_name = cursor.fetchone()
+                
+                cursor.close()
+                conn.close()
+                
+                return {
+                    "server_info": version[0] if version else "Unknown",
+                    "database_name": database_name[0] if database_name else "Unknown"
+                }
+            
+            result = await asyncio.to_thread(_sync_sqlserver_test)
+            return result
+            
+        except Exception as e:
+            raise DatabaseConnectionError(f"SQL Server connection failed: {str(e)}")
+    
+    async def _execute_sqlserver_query(
+        self, 
+        url: str, 
+        user: str, 
+        password: str, 
+        query: str, 
+        parameters: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Execute SQL Server query"""
+        start_time = datetime.utcnow()
+        
+        try:
+            def _sync_sqlserver_query():
+                connection_string = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self._parse_host(url)},{self._parse_port(url, 1433)};DATABASE={self._parse_database(url)};UID={user};PWD={password}"
+                
+                conn = pyodbc.connect(connection_string)
+                cursor = conn.cursor()
+                
+                if parameters:
+                    # Convert %(param)s to ? format for SQL Server
+                    sqlserver_query = query
+                    param_values = []
+                    for key, value in parameters.items():
+                        sqlserver_query = sqlserver_query.replace(f"%({key})s", "?")
+                        param_values.append(value)
+                    
+                    cursor.execute(sqlserver_query, param_values)
+                else:
+                    cursor.execute(query)
+                
+                rows = cursor.fetchall()
+                columns = [desc[0] for desc in cursor.description] if cursor.description else []
+                
+                cursor.close()
+                conn.close()
+                
+                return {
+                    "data": [list(row) for row in rows],
+                    "row_count": len(rows),
+                    "columns": columns
+                }
+            
+            result = await asyncio.to_thread(_sync_sqlserver_query)
+            execution_time = (datetime.utcnow() - start_time).total_seconds()
+            result["execution_time"] = execution_time
+            
+            return result
+            
+        except Exception as e:
+            raise DatabaseConnectionError(f"SQL Server query execution failed: {str(e)}")
+    
+    # Utility methods
+    def _parse_host(self, url: str) -> str:
+        """Parse host from database URL"""
+        if "://" in url:
+            url = url.split("://")[1]
+        if "@" in url:
+            url = url.split("@")[1]
+        if ":" in url:
+            return url.split(":")[0]
+        if "/" in url:
+            return url.split("/")[0]
+        return url
+    
+    def _parse_port(self, url: str, default_port: int) -> int:
+        """Parse port from database URL"""
+        if "://" in url:
+            url = url.split("://")[1]
+        if "@" in url:
+            url = url.split("@")[1]
+        if ":" in url and "/" in url:
+            port_part = url.split(":")[1].split("/")[0]
+            try:
+                return int(port_part)
+            except ValueError:
+                return default_port
+        return default_port
+    
+    def _parse_database(self, url: str) -> str:
+        """Parse database name from URL"""
+        if "://" in url:
+            url = url.split("://")[1]
+        if "@" in url:
+            url = url.split("@")[1]
+        if "/" in url:
+            return url.split("/")[-1]
+        return url
+    
+    def _validate_query_security(self, query: str):
+        """Validate query for security concerns"""
+        query_upper = query.upper().strip()
+        
+        # Block dangerous operations
+        dangerous_keywords = [
+            "DROP", "DELETE", "UPDATE", "INSERT", "CREATE", "ALTER", 
+            "TRUNCATE", "EXEC", "EXECUTE", "GRANT", "REVOKE"
+        ]
+        
+        for keyword in dangerous_keywords:
+            if keyword in query_upper:
+                raise ValidationException(f"Query contains dangerous keyword: {keyword}")
+        
+        # Only allow SELECT statements
+        if not query_upper.startswith("SELECT"):
+            raise ValidationException("Only SELECT queries are allowed")
+
+
+# Global service instance
+multi_database_service = MultiDatabaseService()
+
+
+def get_multi_database_service() -> MultiDatabaseService:
+    """Get the global multi-database service instance"""
+    return multi_database_service 

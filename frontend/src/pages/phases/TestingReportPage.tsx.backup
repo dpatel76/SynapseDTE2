@@ -1,0 +1,772 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Stepper,
+  Step,
+  StepLabel,
+  StepContent,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Chip,
+  Alert,
+  LinearProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Tooltip,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
+} from '@mui/material';
+import { Grid } from '@mui/material';
+import {
+  Description,
+  CheckCircle,
+  Warning,
+  Error,
+  ExpandMore,
+  GetApp,
+  Preview,
+  Send,
+  Edit,
+  ThumbUp,
+  ThumbDown,
+  Comment,
+  AttachFile,
+  Timeline,
+  Assessment,
+  BugReport,
+  Lightbulb
+} from '@mui/icons-material';
+import { useParams, useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { colors } from '../../styles/design-system';
+import api from '../../api/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNotification } from '../../contexts/NotificationContext';
+import { UserRole } from '../../types/api';
+
+interface ReportSection {
+  id: string;
+  title: string;
+  status: 'pending' | 'draft' | 'review' | 'approved';
+  content?: string;
+  lastUpdated?: Date;
+  updatedBy?: string;
+}
+
+interface TestingReport {
+  reportId: number;
+  cycleId: number;
+  cycleName: string;
+  reportName: string;
+  status: 'draft' | 'review' | 'approved' | 'finalized';
+  generatedAt: Date;
+  generatedBy: string;
+  sections: ReportSection[];
+  format: 'pdf' | 'excel' | 'word';
+  reviews: ReviewComment[];
+  approvals: Approval[];
+  // New metrics fields
+  total_attributes?: number;
+  scoped_attributes?: number;
+  total_samples?: number;
+  completed_test_cases?: number;
+  finalized_observations?: number;
+  started_at?: Date;
+  completed_at?: Date;
+}
+
+interface ReviewComment {
+  id: number;
+  userId: number;
+  userName: string;
+  comment: string;
+  timestamp: Date;
+  section?: string;
+}
+
+interface Approval {
+  userId: number;
+  userName: string;
+  role: string;
+  status: 'pending' | 'approved' | 'rejected';
+  timestamp?: Date;
+  comments?: string;
+}
+
+const TestingReportPage: React.FC = () => {
+  const { cycleId, reportId } = useParams<{ cycleId: string; reportId: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { showSuccess, showError } = useNotification();
+
+  const [loading, setLoading] = useState(true);
+  const [report, setReport] = useState<TestingReport | null>(null);
+  const [activeStep, setActiveStep] = useState(0);
+  const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [sectionContent, setSectionContent] = useState<Record<string, string>>({});
+  const [reviewDialog, setReviewDialog] = useState(false);
+  const [reviewComment, setReviewComment] = useState('');
+  const [previewDialog, setPreviewDialog] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'pdf' | 'excel' | 'word'>('pdf');
+
+  // Report sections configuration
+  const reportSections = [
+    { id: 'executive_summary', title: 'Executive Summary', icon: <Description /> },
+    { id: 'testing_overview', title: 'Testing Overview', icon: <Timeline /> },
+    { id: 'test_results', title: 'Test Results', icon: <Assessment /> },
+    { id: 'observations', title: 'Observations & Findings', icon: <BugReport /> },
+    { id: 'recommendations', title: 'Recommendations', icon: <Lightbulb /> },
+    { id: 'appendices', title: 'Appendices', icon: <AttachFile /> }
+  ];
+
+  useEffect(() => {
+    fetchReportData();
+  }, [cycleId, reportId]);
+
+  const fetchReportData = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/api/v1/testing-reports/${cycleId}/${reportId}`);
+      setReport(response.data);
+      
+      // Initialize section content
+      const content: Record<string, string> = {};
+      response.data.sections.forEach((section: ReportSection) => {
+        content[section.id] = section.content || '';
+      });
+      setSectionContent(content);
+    } catch (error) {
+      showError('Failed to load testing report');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    try {
+      const response = await api.post(`/api/v1/testing-reports/${cycleId}/${reportId}/generate`);
+      setReport(response.data);
+      showSuccess('Report generated successfully');
+      setActiveStep(1);
+    } catch (error) {
+      showError('Failed to generate report');
+    }
+  };
+
+  const handleSaveSection = async (sectionId: string) => {
+    try {
+      await api.put(`/api/v1/testing-reports/${cycleId}/${reportId}/sections/${sectionId}`, {
+        content: sectionContent[sectionId]
+      });
+      showSuccess('Section saved successfully');
+      setEditingSection(null);
+      fetchReportData();
+    } catch (error) {
+      showError('Failed to save section');
+    }
+  };
+
+  const handleSubmitForReview = async () => {
+    try {
+      await api.post(`/api/v1/testing-reports/${cycleId}/${reportId}/submit-review`);
+      showSuccess('Report submitted for review');
+      fetchReportData();
+    } catch (error) {
+      showError('Failed to submit report for review');
+    }
+  };
+
+  const handleAddReview = async () => {
+    try {
+      await api.post(`/api/v1/testing-reports/${cycleId}/${reportId}/reviews`, {
+        comment: reviewComment
+      });
+      showSuccess('Review comment added');
+      setReviewComment('');
+      setReviewDialog(false);
+      fetchReportData();
+    } catch (error) {
+      showError('Failed to add review comment');
+    }
+  };
+
+  const handleApproval = async (approved: boolean) => {
+    try {
+      await api.post(`/api/v1/testing-reports/${cycleId}/${reportId}/approve`, {
+        approved,
+        comments: reviewComment
+      });
+      showSuccess(approved ? 'Report approved' : 'Report rejected');
+      fetchReportData();
+    } catch (error) {
+      showError('Failed to process approval');
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const response = await api.get(
+        `/api/v1/testing-reports/${cycleId}/${reportId}/export?format=${exportFormat}`,
+        { responseType: 'blob' }
+      );
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `testing_report_${cycleId}_${reportId}.${exportFormat}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      showSuccess('Report exported successfully');
+    } catch (error) {
+      showError('Failed to export report');
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved':
+      case 'finalized':
+        return colors.success.main;
+      case 'review':
+        return colors.warning.main;
+      case 'draft':
+        return colors.info.main;
+      case 'rejected':
+        return colors.error.main;
+      default:
+        return colors.grey[500];
+    }
+  };
+
+  const getSectionStatus = (sectionId: string) => {
+    const section = report?.sections.find(s => s.id === sectionId);
+    return section?.status || 'pending';
+  };
+
+  const canEdit = () => {
+    return user?.role && 
+      [UserRole.TEST_MANAGER, UserRole.TESTER].includes(user.role)
+     && report?.status === 'draft';
+  };
+
+  const canApprove = () => {
+    return user?.role && 
+      [UserRole.TEST_MANAGER, UserRole.REPORT_OWNER_EXECUTIVE].includes(user.role)
+     && report?.status === 'review';
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ width: '100%', mt: 2 }}>
+        <LinearProgress />
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" gutterBottom>
+          Testing Report
+        </Typography>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Chip
+            label={report?.cycleName}
+            color="primary"
+            size="small"
+          />
+          <Chip
+            label={report?.reportName}
+            color="secondary"
+            size="small"
+          />
+          <Chip
+            label={report?.status || 'Draft'}
+            sx={{ 
+              backgroundColor: getStatusColor(report?.status || 'draft'),
+              color: 'white'
+            }}
+            size="small"
+          />
+        </Box>
+      </Box>
+
+      {/* Finalize Report Metrics Row 1 - Six Key Metrics */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+          <Card sx={{ textAlign: 'center', height: '100%' }}>
+            <CardContent>
+              <Typography variant="h4" color="primary.main" fontWeight="bold">
+                {report?.total_attributes || 0}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Total Attributes
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+          <Card sx={{ textAlign: 'center', height: '100%' }}>
+            <CardContent>
+              <Typography variant="h4" color="success.main" fontWeight="bold">
+                {report?.scoped_attributes || 0}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Scoped Attributes
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+          <Card sx={{ textAlign: 'center', height: '100%' }}>
+            <CardContent>
+              <Typography variant="h4" color="info.main" fontWeight="bold">
+                {report?.total_samples || 0}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Samples
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+          <Card sx={{ textAlign: 'center', height: '100%' }}>
+            <CardContent>
+              <Typography variant="h4" color="warning.main" fontWeight="bold">
+                {report?.completed_test_cases || 0}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Test Cases (Complete)
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+          <Card sx={{ textAlign: 'center', height: '100%' }}>
+            <CardContent>
+              <Typography variant="h4" color="error.main" fontWeight="bold">
+                {report?.finalized_observations || 0}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Observations (Finalized)
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+          <Card sx={{ textAlign: 'center', height: '100%' }}>
+            <CardContent>
+              <Typography variant="h4" color="primary.main" fontWeight="bold">
+                {(() => {
+                  const startDate = report?.started_at;
+                  const completedDate = report?.completed_at;
+                  if (!startDate) return 0;
+                  const end = completedDate ? new Date(completedDate) : new Date();
+                  const start = new Date(startDate);
+                  return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+                })()}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {report?.completed_at ? 'Completion Time (days)' : 'Days Elapsed'}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Row 2: On-Time Status + Phase Controls */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+          <Card sx={{ height: 100 }}>
+            <CardContent sx={{ p: 2, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <Typography 
+                variant="h3" 
+                color={
+                  report?.status === 'finalized' ? 
+                    'success.main' :
+                  report?.status === 'approved' ?
+                    'primary.main' : 'warning.main'
+                } 
+                component="div"
+                sx={{ fontSize: '1.5rem' }}
+              >
+                {report?.status === 'finalized' ? 
+                  'Yes - Completed On-Time' :
+                report?.status === 'approved' ?
+                  'On Track' : 'In Progress'
+                }
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {report?.status === 'finalized' ? 'On-Time Completion Status' : 'Current Schedule Status'}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card sx={{ height: 100 }}>
+            <CardContent sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h6" sx={{ fontSize: '1rem' }}>
+                  Phase Controls
+                </Typography>
+                
+                {/* Status Update Controls */}
+                {report?.status !== 'finalized' && (
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Chip
+                      label="At Risk"
+                      size="small"
+                      color="warning"
+                      variant="outlined"
+                      clickable
+                      onClick={() => {/* Handle status update */}}
+                      sx={{ fontSize: '0.7rem' }}
+                    />
+                    <Chip
+                      label="Off Track"
+                      size="small"
+                      color="error"
+                      variant="outlined"
+                      clickable
+                      onClick={() => {/* Handle status update */}}
+                      sx={{ fontSize: '0.7rem' }}
+                    />
+                  </Box>
+                )}
+              </Box>
+              
+              {/* Completion Requirements */}
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                  {report?.status === 'finalized' ? (
+                    'Phase completed successfully - all requirements met'
+                  ) : (
+                    'To complete: Generate and approve final test report'
+                  )}
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3}>
+        {/* Main Content */}
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Card>
+            <CardContent>
+              <Stepper activeStep={activeStep} orientation="vertical">
+                {/* Step 1: Generate Report */}
+                <Step>
+                  <StepLabel>Generate Report</StepLabel>
+                  <StepContent>
+                    <Typography variant="body2" sx={{ mb: 2 }}>
+                      Generate the initial report by compiling data from all testing phases.
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      onClick={handleGenerateReport}
+                      startIcon={<Description />}
+                    >
+                      Generate Report
+                    </Button>
+                  </StepContent>
+                </Step>
+
+                {/* Step 2: Edit Sections */}
+                <Step>
+                  <StepLabel>Edit Report Sections</StepLabel>
+                  <StepContent>
+                    <List>
+                      {reportSections.map((section) => (
+                        <Accordion key={section.id}>
+                          <AccordionSummary expandIcon={<ExpandMore />}>
+                            <Box display="flex" alignItems="center" gap={2} width="100%">
+                              <ListItemIcon>{section.icon}</ListItemIcon>
+                              <Typography flex={1}>{section.title}</Typography>
+                              <Chip
+                                label={getSectionStatus(section.id)}
+                                size="small"
+                                color={getSectionStatus(section.id) === 'approved' ? 'success' : 'default'}
+                              />
+                            </Box>
+                          </AccordionSummary>
+                          <AccordionDetails>
+                            {editingSection === section.id ? (
+                              <Box>
+                                <TextField
+                                  fullWidth
+                                  multiline
+                                  rows={10}
+                                  value={sectionContent[section.id] || ''}
+                                  onChange={(e) => setSectionContent({
+                                    ...sectionContent,
+                                    [section.id]: e.target.value
+                                  })}
+                                  variant="outlined"
+                                  sx={{ mb: 2 }}
+                                />
+                                <Box display="flex" gap={1}>
+                                  <Button
+                                    variant="contained"
+                                    size="small"
+                                    onClick={() => handleSaveSection(section.id)}
+                                  >
+                                    Save
+                                  </Button>
+                                  <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => setEditingSection(null)}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </Box>
+                              </Box>
+                            ) : (
+                              <Box>
+                                <Typography variant="body2" sx={{ mb: 2, whiteSpace: 'pre-wrap' }}>
+                                  {sectionContent[section.id] || 'No content yet'}
+                                </Typography>
+                                {canEdit() && (
+                                  <Button
+                                    size="small"
+                                    startIcon={<Edit />}
+                                    onClick={() => setEditingSection(section.id)}
+                                  >
+                                    Edit
+                                  </Button>
+                                )}
+                              </Box>
+                            )}
+                          </AccordionDetails>
+                        </Accordion>
+                      ))}
+                    </List>
+                    <Box sx={{ mt: 2 }}>
+                      <Button
+                        variant="contained"
+                        onClick={() => setActiveStep(2)}
+                        disabled={!report?.sections.every(s => s.status !== 'pending')}
+                      >
+                        Continue to Review
+                      </Button>
+                    </Box>
+                  </StepContent>
+                </Step>
+
+                {/* Step 3: Review & Approval */}
+                <Step>
+                  <StepLabel>Review & Approval</StepLabel>
+                  <StepContent>
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                      Submit the report for review and approval by stakeholders.
+                    </Alert>
+                    <Box display="flex" gap={2}>
+                      <Button
+                        variant="contained"
+                        onClick={handleSubmitForReview}
+                        startIcon={<Send />}
+                        disabled={report?.status !== 'draft'}
+                      >
+                        Submit for Review
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        onClick={() => setPreviewDialog(true)}
+                        startIcon={<Preview />}
+                      >
+                        Preview Report
+                      </Button>
+                    </Box>
+                  </StepContent>
+                </Step>
+
+                {/* Step 4: Finalize */}
+                <Step>
+                  <StepLabel>Finalize & Export</StepLabel>
+                  <StepContent>
+                    <FormControl sx={{ mb: 2, minWidth: 200 }}>
+                      <InputLabel>Export Format</InputLabel>
+                      <Select
+                        value={exportFormat}
+                        onChange={(e) => setExportFormat(e.target.value as any)}
+                        label="Export Format"
+                      >
+                        <MenuItem value="pdf">PDF</MenuItem>
+                        <MenuItem value="excel">Excel</MenuItem>
+                        <MenuItem value="word">Word</MenuItem>
+                      </Select>
+                    </FormControl>
+                    <Box>
+                      <Button
+                        variant="contained"
+                        onClick={handleExport}
+                        startIcon={<GetApp />}
+                        disabled={report?.status !== 'approved'}
+                      >
+                        Export Report
+                      </Button>
+                    </Box>
+                  </StepContent>
+                </Step>
+              </Stepper>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Sidebar */}
+        <Grid size={{ xs: 12, md: 4 }}>
+          {/* Reviews & Comments */}
+          <Card sx={{ mb: 2 }}>
+            <CardContent>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography variant="h6">Reviews & Comments</Typography>
+                <IconButton onClick={() => setReviewDialog(true)} size="small">
+                  <Comment />
+                </IconButton>
+              </Box>
+              
+              <List>
+                {report?.reviews.map((review) => (
+                  <ListItem key={review.id} alignItems="flex-start">
+                    <ListItemText
+                      primary={review.userName}
+                      secondary={
+                        <>
+                          <Typography variant="body2">{review.comment}</Typography>
+                          <Typography variant="caption" color="textSecondary">
+                            {format(new Date(review.timestamp), 'MMM dd, yyyy HH:mm')}
+                          </Typography>
+                        </>
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </CardContent>
+          </Card>
+
+          {/* Approvals */}
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Approvals</Typography>
+              <List>
+                {report?.approvals.map((approval, index) => (
+                  <ListItem key={index}>
+                    <ListItemIcon>
+                      {approval.status === 'approved' ? (
+                        <CheckCircle sx={{ color: colors.success.main }} />
+                      ) : approval.status === 'rejected' ? (
+                        <Error sx={{ color: colors.error.main }} />
+                      ) : (
+                        <Warning sx={{ color: colors.warning.main }} />
+                      )}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={approval.userName}
+                      secondary={`${approval.role} - ${approval.status}`}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+              
+              {canApprove() && (
+                <Box sx={{ mt: 2 }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    color="success"
+                    startIcon={<ThumbUp />}
+                    onClick={() => handleApproval(true)}
+                    sx={{ mb: 1 }}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="error"
+                    startIcon={<ThumbDown />}
+                    onClick={() => handleApproval(false)}
+                  >
+                    Reject
+                  </Button>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Review Dialog */}
+      <Dialog open={reviewDialog} onClose={() => setReviewDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Add Review Comment</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            value={reviewComment}
+            onChange={(e) => setReviewComment(e.target.value)}
+            placeholder="Enter your review comment..."
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReviewDialog(false)}>Cancel</Button>
+          <Button onClick={handleAddReview} variant="contained">Submit</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Preview Dialog */}
+      <Dialog open={previewDialog} onClose={() => setPreviewDialog(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Report Preview</DialogTitle>
+        <DialogContent>
+          <Box sx={{ p: 2 }}>
+            {reportSections.map((section) => (
+              <Box key={section.id} sx={{ mb: 3 }}>
+                <Typography variant="h6" gutterBottom>{section.title}</Typography>
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {sectionContent[section.id] || 'No content'}
+                </Typography>
+                <Divider sx={{ mt: 2 }} />
+              </Box>
+            ))}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPreviewDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+};
+
+export default TestingReportPage;

@@ -1,0 +1,206 @@
+"""
+Data Source management API endpoints
+"""
+
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_, or_, func
+from sqlalchemy.orm import selectinload
+
+from app.core.database import get_db
+from app.core.dependencies import get_current_user, require_management
+from app.core.auth import UserRoles, RoleChecker
+from app.core.permissions import require_permission
+from app.core.exceptions import ValidationException, NotFoundException
+from app.core.logging import audit_logger
+from app.models.user import User
+from app.models.report import DataSource
+from app.schemas.data_source import (
+    DataSourceCreate, DataSourceUpdate, DataSourceResponse, 
+    DataSourceListResponse, DataSourceTestResponse
+)
+from app.services.data_source_service import DataSourceService
+
+router = APIRouter()
+
+# Role-based access control - only admin roles can manage data sources
+admin_roles = [UserRoles.TEST_EXECUTIVE]
+
+@router.post("/", response_model=DataSourceResponse, status_code=status.HTTP_201_CREATED)
+@require_permission("data_sources", "create")
+async def create_data_source(
+    data_source_data: DataSourceCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> DataSourceResponse:
+    """
+    Create a new data source (Admin only)
+    """
+    
+    # Check if data source name already exists
+    existing_result = await db.execute(
+        select(DataSource).where(DataSource.data_source_name == data_source_data.data_source_name)
+    )
+    if existing_result.scalar_one_or_none():
+        raise ValidationException("Data source name already exists")
+    
+    # Create data source using service
+    service = DataSourceService(db)
+    data_source = await service.create_data_source(data_source_data)
+    
+    # Log creation
+    audit_logger.log_user_action(
+        user_id=current_user.user_id,
+        action="data_source_created",
+        resource_type="data_source",
+        resource_id=data_source.data_source_id,
+        details={"data_source_name": data_source.data_source_name}
+    )
+    
+    return DataSourceResponse.model_validate(data_source)
+
+
+@router.get("/", response_model=DataSourceListResponse)
+@require_permission("data_sources", "read")
+async def list_data_sources(
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=1000, description="Number of records to return"),
+    search: Optional[str] = Query(None, description="Search in data source name"),
+    database_type: Optional[str] = Query(None, description="Filter by database type"),
+    is_active: Optional[bool] = Query(None, description="Filter by active status"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> DataSourceListResponse:
+    """
+    List data sources with filtering and pagination
+    """
+    
+    service = DataSourceService(db)
+    data_sources, total = await service.list_data_sources(
+        skip=skip,
+        limit=limit,
+        search=search,
+        database_type=database_type,
+        is_active=is_active
+    )
+    
+    return DataSourceListResponse(
+        data_sources=[DataSourceResponse.model_validate(ds) for ds in data_sources],
+        total=total,
+        skip=skip,
+        limit=limit
+    )
+
+
+@router.get("/{data_source_id}", response_model=DataSourceResponse)
+@require_permission("data_sources", "read")
+async def get_data_source(
+    data_source_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> DataSourceResponse:
+    """
+    Get data source by ID
+    """
+    
+    service = DataSourceService(db)
+    data_source = await service.get_data_source(data_source_id)
+    
+    if not data_source:
+        raise NotFoundException(f"Data source with ID {data_source_id} not found")
+    
+    return DataSourceResponse.model_validate(data_source)
+
+
+@router.put("/{data_source_id}", response_model=DataSourceResponse)
+@require_permission("data_sources", "update")
+async def update_data_source(
+    data_source_id: int,
+    data_source_data: DataSourceUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> DataSourceResponse:
+    """
+    Update data source information (Admin only)
+    """
+    
+    service = DataSourceService(db)
+    data_source = await service.update_data_source(data_source_id, data_source_data)
+    
+    # Log update
+    audit_logger.log_user_action(
+        user_id=current_user.user_id,
+        action="data_source_updated",
+        resource_type="data_source",
+        resource_id=data_source.data_source_id,
+        details={"data_source_name": data_source.data_source_name}
+    )
+    
+    return DataSourceResponse.model_validate(data_source)
+
+
+@router.delete("/{data_source_id}", status_code=status.HTTP_204_NO_CONTENT)
+@require_permission("data_sources", "delete")
+async def delete_data_source(
+    data_source_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Delete data source (Admin only)
+    """
+    
+    service = DataSourceService(db)
+    await service.delete_data_source(data_source_id)
+    
+    # Log deletion
+    audit_logger.log_user_action(
+        user_id=current_user.user_id,
+        action="data_source_deleted",
+        resource_type="data_source",
+        resource_id=data_source_id,
+        details={}
+    )
+
+
+@router.post("/{data_source_id}/test", response_model=DataSourceTestResponse)
+@require_permission("data_sources", "execute")
+async def test_data_source_connection(
+    data_source_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> DataSourceTestResponse:
+    """
+    Test data source connection (Admin only)
+    """
+    
+    service = DataSourceService(db)
+    result = await service.test_connection(data_source_id)
+    
+    # Log test
+    audit_logger.log_user_action(
+        user_id=current_user.user_id,
+        action="data_source_tested",
+        resource_type="data_source",
+        resource_id=data_source_id,
+        details={"success": result.success}
+    )
+    
+    return result
+
+
+@router.get("/stats/overview")
+@require_permission("data_sources", "read")
+async def get_data_source_stats(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get data source statistics overview (Admin only)
+    """
+    
+    service = DataSourceService(db)
+    stats = await service.get_stats()
+    
+    return stats 

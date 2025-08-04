@@ -1,0 +1,144 @@
+"""Testing Execution phase endpoints using clean architecture"""
+from typing import Any, List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.v1 import deps
+from app.infrastructure.container import get_container, get_db
+from app.core.performance import measure_performance
+
+router = APIRouter()
+
+
+@router.post("/{cycle_id}/reports/{report_id}/attributes/{attribute_id}/execute")
+@measure_performance("testing_execution.execute_test")
+async def execute_test(
+    *,
+    cycle_id: int,
+    report_id: int,
+    attribute_id: int,
+    test_type: str,
+    actual_value: Optional[Any] = None,
+    document_content: Optional[str] = None,
+    evidence_files: Optional[List[UploadFile]] = None,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(deps.get_current_user),
+    container=Depends(get_container)
+) -> Any:
+    """
+    Execute a test for an attribute
+    """
+    # Prepare request
+    request_data = {
+        "cycle_id": cycle_id,
+        "report_id": report_id,
+        "attribute_id": attribute_id,
+        "test_type": test_type,
+        "user_id": current_user.user_id
+    }
+    
+    # Add test-specific data
+    if test_type == "manual":
+        request_data["actual_value"] = actual_value
+    elif test_type == "document":
+        request_data["document_content"] = document_content
+    
+    # Handle evidence files
+    if evidence_files:
+        evidence_documents = []
+        for file in evidence_files:
+            content = await file.read()
+            evidence_documents.append({
+                "filename": file.filename,
+                "content": content,
+                "content_type": file.content_type
+            })
+        request_data["evidence_documents"] = evidence_documents
+    
+    # Get use case
+    use_case = container.get_execute_test_use_case(db)
+    
+    # Execute
+    result = await use_case.execute(request_data)
+    
+    if not result.success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result.error
+        )
+    
+    # Convert DTO to response
+    execution = result.data
+    return {
+        "execution_id": execution.execution_id,
+        "status": execution.status,
+        "result": execution.result,
+        "executed_at": execution.executed_at,
+        "evidence": execution.evidence
+    }
+
+
+@router.get("/{cycle_id}/reports/{report_id}/testing-progress")
+@measure_performance("testing_execution.get_progress")
+async def get_testing_progress(
+    *,
+    cycle_id: int,
+    report_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(deps.get_current_user),
+    container=Depends(get_container)
+) -> Any:
+    """
+    Get testing progress for a report
+    """
+    request = {
+        "cycle_id": cycle_id,
+        "report_id": report_id
+    }
+    
+    # Get use case from container
+    use_case = container.get_testing_progress_use_case(db)
+    
+    # Execute
+    result = await use_case.execute(request)
+    
+    if not result.success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result.error
+        )
+    
+    return result.data
+
+
+@router.post("/{cycle_id}/reports/{report_id}/complete-testing")
+async def complete_testing_phase(
+    *,
+    cycle_id: int,
+    report_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(deps.get_current_user),
+    container=Depends(get_container)
+) -> Any:
+    """
+    Complete testing phase and advance to Observation Management
+    """
+    request = {
+        "cycle_id": cycle_id,
+        "report_id": report_id,
+        "user_id": current_user.user_id
+    }
+    
+    use_case = container.get_complete_testing_phase_use_case(db)
+    result = await use_case.execute(request)
+    
+    if not result.success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result.error
+        )
+    
+    return {
+        "message": "Testing phase completed successfully",
+        "next_phase": "Observation Management"
+    }

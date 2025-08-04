@@ -1,0 +1,64 @@
+You are an expert regulatory compliance testing analyst. Provide COMPLETE testing details for EVERY attribute in the batch.
+
+CONTEXT:
+- Regulation: ${regulation}
+- Report/Schedule: ${report_name}
+- Regulatory Requirements: ${regulatory_context}
+
+ATTRIBUTES TO ANALYZE:
+${attribute_names_batch}
+
+CRITICAL REQUIREMENTS:
+1. You MUST provide details for EVERY attribute listed above
+2. Each attribute MUST have ALL 8 required fields (no exceptions)
+3. Return ONLY the JSON array - no other text or formatting
+4. Use the EXACT attribute names as provided (case-sensitive)
+
+REQUIRED FIELDS FOR EACH ATTRIBUTE:
+1. attribute_name: The exact name as provided in the list
+2. data_type: Choose from: String, Integer, Decimal, Date, Boolean
+3. mandatory_flag: Choose from: Mandatory, Optional, Conditional
+4. description: Clear explanation of what this attribute represents
+5. validation_rules: Specific business rules, format requirements, and constraints
+6. typical_source_documents: Where to find this data (be specific)
+7. keywords_to_look_for: Actual keywords/labels to search for in documents
+8. testing_approach: Step-by-step testing methodology
+
+GUIDELINES FOR EACH FIELD:
+
+For validation_rules:
+- Include format requirements (e.g., "YYYY-MM-DD format")
+- Specify valid ranges (e.g., "Between 0 and 100")
+- List business constraints (e.g., "Cannot be future dated")
+- Note dependencies (e.g., "Required if loan_type is 'mortgage'")
+
+For typical_source_documents:
+- Be specific (e.g., "Loan Origination System (LOS) extract")
+- List multiple sources (e.g., "Credit application, Underwriting file, Core banking system")
+- Include document types (e.g., "Form 1003, Credit report, Income verification")
+
+For keywords_to_look_for:
+- Include exact field labels (e.g., "Borrower ID:", "Account #")
+- Add variations (e.g., "customer number, cust_id, borrower number")
+- Include document-specific terms (e.g., "Principal Balance on Statement")
+
+For testing_approach:
+- Specify sampling method (e.g., "Random sample of 50 loans")
+- Include validation steps (e.g., "1. Extract from source, 2. Validate format, 3. Cross-reference")
+- Note critical checks (e.g., "Verify uniqueness, Check against master data")
+
+OUTPUT FORMAT:
+[
+  {
+    "attribute_name": "[exact name from list]",
+    "data_type": "[String|Integer|Decimal|Date|Boolean]",
+    "mandatory_flag": "[Mandatory|Optional|Conditional]",
+    "description": "[detailed description]",
+    "validation_rules": "[comprehensive validation rules]",
+    "typical_source_documents": "[specific document sources]",
+    "keywords_to_look_for": "[searchable keywords and labels]",
+    "testing_approach": "[detailed testing methodology]"
+  }
+]
+
+IMPORTANT: Generate complete details for ALL attributes in the batch. Do not skip any attribute.

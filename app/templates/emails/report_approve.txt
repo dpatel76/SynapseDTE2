@@ -1,0 +1,19 @@
+Subject: Testing Report Approved - Cycle {{ cycle_id }}
+
+Dear {{ executive_name }},
+
+The testing report for the following cycle has been approved:
+
+Cycle ID: {{ cycle_id }}
+Report ID: {{ report_id }}
+Reviewer: {{ reviewer_name }}
+
+{% if comments %}
+Reviewer Comments:
+{{ comments }}
+{% endif %}
+
+The report has been finalized and is now available for distribution. You can access the approved report through the SynapseDTE platform.
+
+Best regards,
+SynapseDTE Automated Notifications

@@ -1,0 +1,264 @@
+"""Report Testing Workflow - Handles testing for individual reports"""
+
+from temporalio import workflow
+from temporalio.common import RetryPolicy
+from datetime import timedelta
+from typing import Dict, Any, Optional
+import logging
+
+from app.temporal.shared import (
+    ReportTestingWorkflowInput, WorkflowContext, PhaseResult,
+    WorkflowStatus, PhaseStatus, WORKFLOW_PHASES,
+    DEFAULT_ACTIVITY_TIMEOUT, LLM_ACTIVITY_TIMEOUT
+)
+from app.temporal.activities.phase_activities import (
+    start_phase_activity, complete_phase_activity,
+    check_phase_dependencies_activity
+)
+from app.temporal.activities.test_activities import (
+    create_test_cases_activity, execute_test_activity,
+    TestExecutionData
+)
+from app.temporal.activities.notification_activities import (
+    create_in_app_notification_activity, NotificationData
+)
+
+logger = logging.getLogger(__name__)
+
+
+@workflow.defn
+class ReportTestingWorkflow:
+    """Workflow for testing individual reports within a cycle"""
+    
+    def __init__(self):
+        self.status = WorkflowStatus.PENDING
+        self.current_phase: Optional[str] = None
+        self.test_results: Dict[str, Any] = {}
+    
+    @workflow.run
+    async def run(self, input_data: ReportTestingWorkflowInput) -> Dict[str, Any]:
+        """Execute report testing workflow"""
+        
+        self.status = WorkflowStatus.RUNNING
+        workflow.logger.info(f"Starting report testing workflow for report {input_data.report_id}")
+        
+        # Create workflow context
+        context = WorkflowContext(
+            cycle_id=0,  # Will be fetched from cycle_report
+            report_id=input_data.report_id,
+            cycle_report_id=input_data.cycle_report_id,
+            user_id=input_data.tester_id,
+            metadata={}
+        )
+        
+        # Define retry policy
+        retry_policy = RetryPolicy(
+            maximum_attempts=3,
+            initial_interval=timedelta(seconds=1),
+            maximum_interval=timedelta(seconds=30),
+            backoff_coefficient=2
+        )
+        
+        try:
+            # Determine starting phase
+            start_phase_index = 0
+            if input_data.start_from_phase:
+                try:
+                    start_phase_index = WORKFLOW_PHASES.index(input_data.start_from_phase)
+                except ValueError:
+                    workflow.logger.warning(f"Invalid start phase: {input_data.start_from_phase}")
+            
+            # Execute relevant phases
+            testing_phases = WORKFLOW_PHASES[start_phase_index:]
+            
+            for phase_name in testing_phases:
+                self.current_phase = phase_name
+                
+                # Check if phase is applicable for tester role
+                if phase_name in ["Planning", "Scoping", "Data Provider Identification"]:
+                    # These phases are typically not executed by testers
+                    continue
+                
+                # Check dependencies
+                can_start = await workflow.execute_activity(
+                    check_phase_dependencies_activity,
+                    args=[context, phase_name],
+                    start_to_close_timeout=timedelta(seconds=DEFAULT_ACTIVITY_TIMEOUT),
+                    retry_policy=retry_policy
+                )
+                
+                if not can_start:
+                    workflow.logger.info(f"Skipping {phase_name} - dependencies not met")
+                    continue
+                
+                # Execute phase-specific logic
+                if phase_name == "Sample Selection":
+                    await self.execute_sample_selection(context, retry_policy)
+                elif phase_name == "Request for Information":
+                    await self.execute_request_for_information(context, retry_policy)
+                elif phase_name == "Test Execution":
+                    await self.execute_test_execution(context, retry_policy)
+                elif phase_name == "Observation Management":
+                    await self.execute_observation_management(context, retry_policy)
+            
+            self.status = WorkflowStatus.COMPLETED
+            
+            return {
+                "status": self.status,
+                "report_id": input_data.report_id,
+                "cycle_report_id": input_data.cycle_report_id,
+                "test_results": self.test_results
+            }
+            
+        except Exception as e:
+            workflow.logger.error(f"Report testing workflow failed: {str(e)}")
+            self.status = WorkflowStatus.FAILED
+            
+            # Notify tester of failure
+            await self.notify_failure(context, str(e), retry_policy)
+            raise
+    
+    async def execute_sample_selection(
+        self, context: WorkflowContext, retry_policy: RetryPolicy
+    ):
+        """Execute sample selection phase"""
+        # Start phase
+        await workflow.execute_activity(
+            start_phase_activity,
+            args=[context, "Sample Selection"],
+            start_to_close_timeout=timedelta(seconds=DEFAULT_ACTIVITY_TIMEOUT),
+            retry_policy=retry_policy
+        )
+        
+        # Sample selection logic would go here
+        # For now, we'll simulate completion
+        
+        # Complete phase
+        await workflow.execute_activity(
+            complete_phase_activity,
+            args=[context, "Sample Selection", {"samples_selected": 10}],
+            start_to_close_timeout=timedelta(seconds=DEFAULT_ACTIVITY_TIMEOUT),
+            retry_policy=retry_policy
+        )
+    
+    async def execute_request_for_information(
+        self, context: WorkflowContext, retry_policy: RetryPolicy
+    ):
+        """Execute request for information phase"""
+        # Start phase
+        await workflow.execute_activity(
+            start_phase_activity,
+            args=[context, "Request for Information"],
+            start_to_close_timeout=timedelta(seconds=DEFAULT_ACTIVITY_TIMEOUT),
+            retry_policy=retry_policy
+        )
+        
+        # RFI logic would go here
+        
+        # Complete phase
+        await workflow.execute_activity(
+            complete_phase_activity,
+            args=[context, "Request for Information", {"requests_sent": 5}],
+            start_to_close_timeout=timedelta(seconds=DEFAULT_ACTIVITY_TIMEOUT),
+            retry_policy=retry_policy
+        )
+    
+    async def execute_test_execution(
+        self, context: WorkflowContext, retry_policy: RetryPolicy
+    ):
+        """Execute test execution phase"""
+        # Start phase
+        await workflow.execute_activity(
+            start_phase_activity,
+            args=[context, "Test Execution"],
+            start_to_close_timeout=timedelta(seconds=DEFAULT_ACTIVITY_TIMEOUT),
+            retry_policy=retry_policy
+        )
+        
+        # Create test cases
+        test_case_result = await workflow.execute_activity(
+            create_test_cases_activity,
+            args=[context.cycle_report_id, [1, 2, 3], context.user_id],
+            start_to_close_timeout=timedelta(seconds=300),
+            retry_policy=retry_policy
+        )
+        
+        # Execute tests
+        test_results = []
+        for i in range(3):  # Simulate 3 tests
+            test_data = TestExecutionData(
+                test_case_id=i + 1,
+                sample_id=1,
+                attribute_id=i + 1,
+                test_type="database",
+                expected_value="Expected",
+                actual_value="Expected" if i < 2 else "Different"
+            )
+            
+            result = await workflow.execute_activity(
+                execute_test_activity,
+                args=[test_data],
+                start_to_close_timeout=timedelta(seconds=300),
+                retry_policy=retry_policy
+            )
+            test_results.append(result.data)
+        
+        self.test_results["test_execution"] = {
+            "total_tests": len(test_results),
+            "passed": sum(1 for r in test_results if r.get("test_passed", False)),
+            "failed": sum(1 for r in test_results if not r.get("test_passed", True))
+        }
+        
+        # Complete phase
+        await workflow.execute_activity(
+            complete_phase_activity,
+            args=[context, "Test Execution", self.test_results["test_execution"]],
+            start_to_close_timeout=timedelta(seconds=DEFAULT_ACTIVITY_TIMEOUT),
+            retry_policy=retry_policy
+        )
+    
+    async def execute_observation_management(
+        self, context: WorkflowContext, retry_policy: RetryPolicy
+    ):
+        """Execute observation management phase"""
+        # Start phase
+        await workflow.execute_activity(
+            start_phase_activity,
+            args=[context, "Observation Management"],
+            start_to_close_timeout=timedelta(seconds=DEFAULT_ACTIVITY_TIMEOUT),
+            retry_policy=retry_policy
+        )
+        
+        # Observation management logic
+        # Based on test results, create observations
+        
+        # Complete phase
+        await workflow.execute_activity(
+            complete_phase_activity,
+            args=[context, "Observation Management", {"observations_created": 2}],
+            start_to_close_timeout=timedelta(seconds=DEFAULT_ACTIVITY_TIMEOUT),
+            retry_policy=retry_policy
+        )
+    
+    async def notify_failure(
+        self, context: WorkflowContext, error_message: str, retry_policy: RetryPolicy
+    ):
+        """Send failure notification"""
+        notification = NotificationData(
+            recipient_user_ids=[context.user_id],
+            notification_type="workflow_failed",
+            subject="Report Testing Workflow Failed",
+            message=f"The testing workflow for report {context.report_id} has failed: {error_message}",
+            metadata={
+                "workflow_type": "report_testing",
+                "report_id": context.report_id,
+                "error": error_message
+            }
+        )
+        
+        await workflow.execute_activity(
+            create_in_app_notification_activity,
+            args=[notification],
+            start_to_close_timeout=timedelta(seconds=60),
+            retry_policy=retry_policy
+        )

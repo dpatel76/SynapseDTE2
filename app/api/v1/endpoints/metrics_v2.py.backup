@@ -1,0 +1,310 @@
+"""
+DEPRECATED: This file is deprecated in favor of metrics_clean.py
+Please use metrics_clean.py for all new development.
+
+Enhanced Metrics API endpoints V2
+Uses real data through role-specific metric calculators
+"""
+
+from typing import Dict, Any, Optional
+from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
+from app.core.dependencies import get_current_user
+from app.models.user import User
+from app.services.metrics_service_v2 import get_metrics_service, MetricsServiceV2
+
+router = APIRouter()
+
+
+@router.get("/dashboard")
+async def get_dashboard_metrics(
+    current_user: User = Depends(get_current_user),
+    cycle_id: Optional[str] = Query(None, description="Specific cycle ID to filter metrics"),
+    time_period: str = Query("current_cycle", description="Time period: current_cycle, last_30_days, last_90_days, year_to_date"),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Get comprehensive dashboard metrics for the current user based on their role.
+    
+    Returns role-specific metrics including:
+    - Summary statistics
+    - Phase breakdowns
+    - Performance metrics
+    - Quality indicators
+    - Trend analysis
+    """
+    
+    metrics_service = get_metrics_service()
+    
+    try:
+        metrics = await metrics_service.get_dashboard_metrics(
+            user_id=current_user.user_id,
+            db=db,
+            cycle_id=cycle_id,
+            time_period=time_period
+        )
+        
+        return metrics
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate metrics: {str(e)}"
+        )
+
+
+@router.get("/phase/{cycle_id}/{report_id}/{phase_name}")
+async def get_phase_metrics(
+    cycle_id: str,
+    report_id: str,
+    phase_name: str,
+    lob_name: Optional[str] = Query(None, description="LOB filter for metrics"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Get detailed metrics for a specific phase.
+    
+    Returns:
+    - Phase completion status
+    - Time metrics
+    - Quality metrics
+    - SLA compliance
+    - Phase-specific indicators
+    """
+    
+    metrics_service = get_metrics_service()
+    
+    try:
+        metrics = await metrics_service.get_phase_metrics(
+            cycle_id=cycle_id,
+            report_id=report_id,
+            phase_name=phase_name,
+            db=db,
+            lob_name=lob_name
+        )
+        
+        return metrics
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate phase metrics: {str(e)}"
+        )
+
+
+@router.get("/aggregate/{cycle_id}")
+async def get_aggregate_metrics(
+    cycle_id: str,
+    report_id: Optional[str] = Query(None, description="Specific report ID"),
+    lob_name: Optional[str] = Query(None, description="LOB filter"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Get aggregate metrics for a cycle or specific report.
+    
+    Returns:
+    - Overall completion rates
+    - Error rates by entity type
+    - SLA compliance summary
+    - Observation statistics
+    """
+    
+    metrics_service = get_metrics_service()
+    
+    try:
+        metrics = await metrics_service.get_aggregate_metrics(
+            cycle_id=cycle_id,
+            db=db,
+            report_id=report_id,
+            lob_name=lob_name
+        )
+        
+        return metrics
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate aggregate metrics: {str(e)}"
+        )
+
+
+@router.post("/refresh/{cycle_id}/{report_id}/{phase_name}")
+async def refresh_phase_metrics(
+    cycle_id: str,
+    report_id: str,
+    phase_name: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, bool]:
+    """
+    Refresh phase metrics in the database.
+    
+    This endpoint recalculates metrics for a specific phase and updates
+    the phase_metrics table for faster dashboard loading.
+    """
+    
+    # Only allow Test Executives to refresh metrics
+    if current_user.role not in ["Test Manager", "Admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Test Executives can refresh metrics"
+        )
+    
+    metrics_service = get_metrics_service()
+    
+    try:
+        success = await metrics_service.refresh_phase_metrics(
+            cycle_id=cycle_id,
+            report_id=report_id,
+            phase_name=phase_name,
+            db=db
+        )
+        
+        return {"success": success}
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to refresh metrics: {str(e)}"
+        )
+
+
+@router.get("/export")
+async def export_metrics(
+    cycle_id: Optional[str] = Query(None, description="Cycle ID filter"),
+    format: str = Query("json", description="Export format: json, csv, excel"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Export metrics data in various formats.
+    
+    Formats supported:
+    - JSON: Complete metrics data
+    - CSV: Flattened metrics for analysis
+    - Excel: Multi-sheet workbook with comprehensive metrics
+    """
+    
+    # This would be implemented to generate actual export files
+    # For now, returning a placeholder
+    
+    return {
+        "message": "Export functionality to be implemented",
+        "requested_format": format,
+        "cycle_id": cycle_id,
+        "user_role": current_user.role
+    }
+
+
+@router.get("/trends/{entity_type}")
+async def get_metric_trends(
+    entity_type: str,  # cycle, report, phase, lob
+    entity_id: str,
+    metric_type: str = Query("completion_rate", description="Metric to track: completion_rate, error_rate, sla_compliance"),
+    periods: int = Query(6, description="Number of periods to include"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Get trend data for specific metrics over time.
+    
+    Useful for:
+    - Tracking improvement or degradation
+    - Identifying patterns
+    - Forecasting future performance
+    """
+    
+    # This would query historical metrics data
+    # For now, returning a placeholder
+    
+    return {
+        "entity_type": entity_type,
+        "entity_id": entity_id,
+        "metric_type": metric_type,
+        "periods": periods,
+        "trend_data": []
+    }
+
+
+@router.get("/comparisons")
+async def get_metric_comparisons(
+    comparison_type: str = Query("cycles", description="Type: cycles, reports, testers, providers"),
+    entity_ids: str = Query(..., description="Comma-separated entity IDs to compare"),
+    metrics: str = Query("completion_rate,error_rate", description="Comma-separated metrics to compare"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Compare metrics across multiple entities.
+    
+    Useful for:
+    - Benchmarking performance
+    - Identifying best/worst performers
+    - Resource allocation decisions
+    """
+    
+    entity_list = entity_ids.split(",")
+    metric_list = metrics.split(",")
+    
+    # This would generate comparison data
+    # For now, returning a placeholder
+    
+    return {
+        "comparison_type": comparison_type,
+        "entities": entity_list,
+        "metrics": metric_list,
+        "comparison_data": {}
+    }
+
+
+@router.get("/health-check")
+async def metrics_health_check(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Check the health and availability of metrics systems.
+    
+    Returns:
+    - Database connectivity
+    - Calculator availability
+    - Cache status
+    - Recent calculation times
+    """
+    
+    from app.services.metrics import BaseMetricsCalculator
+    
+    try:
+        # Test database connection
+        calculator = BaseMetricsCalculator(db)
+        
+        # Try a simple calculation
+        test_result = await db.execute("SELECT 1")
+        db_healthy = test_result.scalar() == 1
+        
+        return {
+            "status": "healthy",
+            "database": "connected" if db_healthy else "error",
+            "calculators": {
+                "base": "available",
+                "tester": "available",
+                "test_executive": "available",
+                "report_owner": "available",
+                "data_provider": "available",
+                "data_executive": "available"
+            },
+            "cache": "enabled",
+            "last_check": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "last_check": datetime.utcnow().isoformat()
+        }

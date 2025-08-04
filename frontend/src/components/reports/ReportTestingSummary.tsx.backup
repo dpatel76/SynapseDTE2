@@ -1,0 +1,335 @@
+import React from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
+  LinearProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Grid
+} from '@mui/material';
+import {
+  ExpandMore as ExpandMoreIcon,
+  CheckCircle,
+  Cancel,
+  RateReview
+} from '@mui/icons-material';
+import { useQuery } from '@tanstack/react-query';
+import { metricsApi } from '../../api/metrics';
+
+interface ReportTestingSummaryProps {
+  cycleId: string;
+  reportId: string;
+  refreshInterval?: number;
+}
+
+interface LOBMetrics {
+  lob_name: string;
+  scoped_attributes: number;
+  passed: number;
+  failed: number;
+  under_review: number;
+  error_rate: number;
+}
+
+interface SampleMetrics extends LOBMetrics {
+  approved_samples: number;
+}
+
+interface TestCaseMetrics extends LOBMetrics {
+  approved_samples: number;
+  test_cases: number;
+}
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'passed': return 'success';
+    case 'failed': return 'error';
+    case 'under_review': return 'warning';
+    default: return 'default';
+  }
+};
+
+const getErrorRateColor = (rate: number) => {
+  if (rate < 5) return 'success';
+  if (rate < 10) return 'warning';
+  return 'error';
+};
+
+export const ReportTestingSummary: React.FC<ReportTestingSummaryProps> = ({
+  cycleId,
+  reportId,
+  refreshInterval = 60000 // 1 minute
+}) => {
+  // Fetch testing summary data
+  const { data: summary, isLoading, error } = useQuery({
+    queryKey: ['testing-summary', cycleId, reportId],
+    queryFn: async () => {
+      const response = await metricsApi.getTestingSummary(cycleId, reportId);
+      return response.data;
+    },
+    refetchInterval: refreshInterval,
+  });
+
+  if (isLoading) {
+    return (
+      <Box display="flex" justifyContent="center" p={3}>
+        <LinearProgress sx={{ width: '100%' }} />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box p={3}>
+        <Typography color="error">Error loading testing summary</Typography>
+      </Box>
+    );
+  }
+
+  const renderMetricsTable = (
+    title: string,
+    icon: React.ReactNode,
+    aggregateData: any,
+    lobData: any[],
+    showSamples: boolean = false,
+    showTestCases: boolean = false
+  ) => (
+    <Accordion defaultExpanded>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Box display="flex" alignItems="center" gap={2} width="100%">
+          {icon}
+          <Typography variant="h6">{title}</Typography>
+          <Box ml="auto" display="flex" gap={1}>
+            <Chip 
+              label={`${aggregateData.error_rate.toFixed(1)}% Error Rate`}
+              color={getErrorRateColor(aggregateData.error_rate)}
+              size="small"
+            />
+          </Box>
+        </Box>
+      </AccordionSummary>
+      <AccordionDetails>
+        <TableContainer component={Paper} variant="outlined">
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell colSpan={showSamples || showTestCases ? 2 : 1}>
+                  <Typography variant="subtitle2" fontWeight="bold">
+                    Aggregate Metrics
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">Passed</TableCell>
+                <TableCell align="right">Failed</TableCell>
+                <TableCell align="right">Under Review</TableCell>
+                <TableCell align="right">Error Rate</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow sx={{ backgroundColor: 'action.hover' }}>
+                <TableCell>
+                  <Typography fontWeight="medium">
+                    {aggregateData.scoped_attributes} Scoped Attributes
+                  </Typography>
+                </TableCell>
+                {(showSamples || showTestCases) && (
+                  <TableCell>
+                    <Typography variant="body2">
+                      {showSamples && `${aggregateData.approved_samples} Approved Samples`}
+                      {showTestCases && `${aggregateData.test_cases} Test Cases`}
+                    </Typography>
+                  </TableCell>
+                )}
+                <TableCell align="right">
+                  <Chip 
+                    label={aggregateData.passed}
+                    color="success"
+                    size="small"
+                    icon={<CheckCircle />}
+                  />
+                </TableCell>
+                <TableCell align="right">
+                  <Chip 
+                    label={aggregateData.failed}
+                    color="error"
+                    size="small"
+                    icon={<Cancel />}
+                  />
+                </TableCell>
+                <TableCell align="right">
+                  <Chip 
+                    label={aggregateData.under_review}
+                    color="warning"
+                    size="small"
+                    icon={<RateReview />}
+                  />
+                </TableCell>
+                <TableCell align="right">
+                  <Typography 
+                    variant="body2" 
+                    color={getErrorRateColor(aggregateData.error_rate)}
+                    fontWeight="bold"
+                  >
+                    {aggregateData.error_rate.toFixed(1)}%
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+
+          {/* LOB Level Metrics */}
+          <Table size="small" sx={{ mt: 2 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell colSpan={showSamples || showTestCases ? 2 : 1}>
+                  <Typography variant="subtitle2" fontWeight="bold">
+                    LOB Level Metrics
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">Passed</TableCell>
+                <TableCell align="right">Failed</TableCell>
+                <TableCell align="right">Under Review</TableCell>
+                <TableCell align="right">Error Rate</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {lobData.map((lob: any) => (
+                <TableRow key={lob.lob_name}>
+                  <TableCell>
+                    <Typography variant="body2" fontWeight="medium">
+                      {lob.lob_name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {lob.scoped_attributes} attributes
+                    </Typography>
+                  </TableCell>
+                  {(showSamples || showTestCases) && (
+                    <TableCell>
+                      <Typography variant="caption" color="text.secondary">
+                        {showSamples && `${lob.approved_samples} samples`}
+                        {showTestCases && `${lob.test_cases} test cases`}
+                      </Typography>
+                    </TableCell>
+                  )}
+                  <TableCell align="right">{lob.passed}</TableCell>
+                  <TableCell align="right">{lob.failed}</TableCell>
+                  <TableCell align="right">{lob.under_review}</TableCell>
+                  <TableCell align="right">
+                    <Typography 
+                      variant="body2" 
+                      color={getErrorRateColor(lob.error_rate)}
+                    >
+                      {lob.error_rate.toFixed(1)}%
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </AccordionDetails>
+    </Accordion>
+  );
+
+  return (
+    <Card>
+      <CardContent>
+        <Typography variant="h5" gutterBottom>
+          Report Testing Summary
+        </Typography>
+        <Typography variant="body2" color="text.secondary" paragraph>
+          Comprehensive testing metrics with LOB-level breakdown
+        </Typography>
+
+        <Box display="flex" flexDirection="column" gap={2}>
+          {/* Sample Metrics Table */}
+          {renderMetricsTable(
+            'Sample Metrics',
+            <CheckCircle color="primary" />,
+            summary?.sample_metrics?.aggregate || {},
+            summary?.sample_metrics?.by_lob || [],
+            true,
+            false
+          )}
+
+          {/* Attribute Metrics Table */}
+          {renderMetricsTable(
+            'Attribute Metrics',
+            <CheckCircle color="secondary" />,
+            summary?.attribute_metrics?.aggregate || {},
+            summary?.attribute_metrics?.by_lob || [],
+            false,
+            false
+          )}
+
+          {/* Test Case Metrics Table */}
+          {renderMetricsTable(
+            'Test Case Metrics',
+            <CheckCircle color="success" />,
+            summary?.test_case_metrics?.aggregate || {},
+            summary?.test_case_metrics?.by_lob || [],
+            true,
+            true
+          )}
+        </Box>
+
+        {/* Summary Statistics */}
+        <Box mt={3} p={2} bgcolor="background.default" borderRadius={1}>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Typography variant="caption" color="text.secondary">
+                Overall Error Rate
+              </Typography>
+              <Typography variant="h6" color={getErrorRateColor(summary?.overall_error_rate || 0)}>
+                {summary?.overall_error_rate?.toFixed(1) || 0}%
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Typography variant="caption" color="text.secondary">
+                Total Tests Executed
+              </Typography>
+              <Typography variant="h6">
+                {summary?.total_tests_executed || 0}
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Typography variant="caption" color="text.secondary">
+                LOBs Covered
+              </Typography>
+              <Typography variant="h6">
+                {summary?.lobs_covered || 0}
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Typography variant="caption" color="text.secondary">
+                Testing Completion
+              </Typography>
+              <Box display="flex" alignItems="center" gap={1}>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={summary?.completion_percentage || 0}
+                  sx={{ flexGrow: 1, height: 8, borderRadius: 4 }}
+                />
+                <Typography variant="body2">
+                  {summary?.completion_percentage?.toFixed(0) || 0}%
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default ReportTestingSummary;

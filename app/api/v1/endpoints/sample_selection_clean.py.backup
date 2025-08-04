@@ -1,0 +1,458 @@
+"""
+Clean Architecture Sample Selection API endpoints
+"""
+
+from typing import List, Optional, Dict, Any
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
+from app.core.dependencies import get_current_user
+from app.core.permissions import require_permission
+from app.models.user import User
+from app.application.mappers.sample_selection_mapper import SampleSelectionMapper
+from app.application.dtos.sample_selection import (
+    SampleSelectionPhaseStartDTO,
+    SampleSetCreateDTO,
+    SampleRecordCreateDTO,
+    SampleSetResponseDTO,
+    SampleRecordResponseDTO,
+    SampleSetWithRecordsDTO,
+    SampleSelectionPhaseStatusDTO,
+    SampleApprovalRequestDTO,
+    SampleStatisticsDTO,
+    AutoSampleSelectionRequestDTO,
+    BulkSampleApprovalRequestDTO,
+    SampleSelectionSummaryDTO,
+    PhaseCompletionRequestDTO,
+    SampleTypeEnum,
+    SampleStatusEnum,
+    SelectionMethodEnum
+)
+from app.application.use_cases.sample_selection import (
+    StartSampleSelectionPhaseUseCase,
+    CreateSampleSetUseCase,
+    AddSampleRecordsUseCase,
+    AutoSelectSamplesUseCase,
+    ReviewSampleSetUseCase,
+    BulkReviewSampleSetsUseCase,
+    GetSampleSelectionPhaseStatusUseCase,
+    CompleteSampleSelectionPhaseUseCase,
+    GetSampleStatisticsUseCase,
+    GetSampleSelectionSummaryUseCase
+)
+
+router = APIRouter()
+
+
+# Phase Management Endpoints
+@router.post("/cycles/{cycle_id}/reports/{report_id}/start", response_model=SampleSelectionPhaseStatusDTO)
+@require_permission("sample_selection", "create")
+async def start_sample_selection_phase(
+    cycle_id: int,
+    report_id: int,
+    start_data: SampleSelectionPhaseStartDTO,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Start sample selection phase"""
+    try:
+        use_case = StartSampleSelectionPhaseUseCase()
+        status = await use_case.execute(
+            cycle_id, report_id, start_data, current_user.user_id, db
+        )
+        return status
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to start sample selection phase: {str(e)}"
+        )
+
+
+@router.get("/cycles/{cycle_id}/reports/{report_id}/status", response_model=SampleSelectionPhaseStatusDTO)
+@require_permission("sample_selection", "read")
+async def get_sample_selection_phase_status(
+    cycle_id: int,
+    report_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get sample selection phase status"""
+    try:
+        use_case = GetSampleSelectionPhaseStatusUseCase()
+        return await use_case.execute(cycle_id, report_id, db)
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get phase status: {str(e)}"
+        )
+
+
+@router.post("/cycles/{cycle_id}/reports/{report_id}/complete")
+@require_permission("sample_selection", "execute")
+async def complete_sample_selection_phase(
+    cycle_id: int,
+    report_id: int,
+    completion_data: PhaseCompletionRequestDTO,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Complete sample selection phase"""
+    try:
+        use_case = CompleteSampleSelectionPhaseUseCase()
+        result = await use_case.execute(
+            cycle_id, report_id, completion_data, current_user.user_id, db
+        )
+        return result
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to complete phase: {str(e)}"
+        )
+
+
+# Sample Set Management Endpoints
+@router.post("/cycles/{cycle_id}/reports/{report_id}/sample-sets", response_model=SampleSetResponseDTO)
+@require_permission("sample_selection", "create")
+async def create_sample_set(
+    cycle_id: int,
+    report_id: int,
+    sample_set_data: SampleSetCreateDTO,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Create a sample set for an attribute"""
+    try:
+        use_case = CreateSampleSetUseCase()
+        sample_set = await use_case.execute(
+            cycle_id, report_id, sample_set_data, current_user.user_id, db
+        )
+        return sample_set
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create sample set: {str(e)}"
+        )
+
+
+@router.post("/sample-sets/{sample_set_id}/records", response_model=SampleSetWithRecordsDTO)
+@require_permission("sample_selection", "update")
+async def add_sample_records(
+    sample_set_id: str,
+    sample_records: List[SampleRecordCreateDTO],
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Add sample records to a sample set"""
+    try:
+        use_case = AddSampleRecordsUseCase()
+        sample_set = await use_case.execute(
+            sample_set_id, sample_records, current_user.user_id, db
+        )
+        return sample_set
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to add sample records: {str(e)}"
+        )
+
+
+@router.post("/cycles/{cycle_id}/reports/{report_id}/auto-select", response_model=List[SampleSetResponseDTO])
+@require_permission("sample_selection", "create")
+async def auto_select_samples(
+    cycle_id: int,
+    report_id: int,
+    request_data: AutoSampleSelectionRequestDTO,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Automatically select samples for attributes"""
+    try:
+        use_case = AutoSelectSamplesUseCase()
+        sample_sets = await use_case.execute(
+            cycle_id, report_id, request_data, current_user.user_id, db
+        )
+        return sample_sets
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to auto-select samples: {str(e)}"
+        )
+
+
+# Review and Approval Endpoints
+@router.post("/sample-sets/{sample_set_id}/review", response_model=SampleSetResponseDTO)
+@require_permission("sample_selection", "approve")
+async def review_sample_set(
+    sample_set_id: str,
+    review_data: SampleApprovalRequestDTO,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Review and approve/reject sample set"""
+    try:
+        use_case = ReviewSampleSetUseCase()
+        sample_set = await use_case.execute(
+            sample_set_id, review_data, current_user.user_id, db
+        )
+        return sample_set
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to review sample set: {str(e)}"
+        )
+
+
+@router.post("/cycles/{cycle_id}/reports/{report_id}/sample-sets/batch-review", response_model=Dict[str, Any])
+@require_permission("sample_selection", "approve")
+async def batch_review_sample_sets(
+    cycle_id: int,
+    report_id: int,
+    bulk_data: BulkSampleApprovalRequestDTO,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Bulk review multiple sample sets"""
+    try:
+        use_case = BulkReviewSampleSetsUseCase()
+        result = await use_case.execute(
+            cycle_id, report_id, bulk_data, current_user.user_id, db
+        )
+        return result
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to batch review sample sets: {str(e)}"
+        )
+
+
+# Analytics and Statistics Endpoints
+@router.get("/cycles/{cycle_id}/reports/{report_id}/statistics/{attribute_id}", response_model=SampleStatisticsDTO)
+@require_permission("sample_selection", "read")
+async def get_sample_statistics(
+    cycle_id: int,
+    report_id: int,
+    attribute_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get sample statistics for an attribute"""
+    try:
+        use_case = GetSampleStatisticsUseCase()
+        statistics = await use_case.execute(
+            cycle_id, report_id, attribute_id, db
+        )
+        return statistics
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get statistics: {str(e)}"
+        )
+
+
+@router.get("/cycles/{cycle_id}/reports/{report_id}/summary", response_model=List[SampleSelectionSummaryDTO])
+@require_permission("sample_selection", "read")
+async def get_sample_selection_summary(
+    cycle_id: int,
+    report_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get sample selection summary for all attributes"""
+    try:
+        use_case = GetSampleSelectionSummaryUseCase()
+        summary = await use_case.execute(cycle_id, report_id, db)
+        return summary
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get summary: {str(e)}"
+        )
+
+
+# Additional endpoints for backwards compatibility
+@router.get("/cycles/{cycle_id}/reports/{report_id}/sample-sets", response_model=List[SampleSetResponseDTO])
+@require_permission("sample_selection", "read")
+async def list_sample_sets(
+    cycle_id: int,
+    report_id: int,
+    status: Optional[SampleStatusEnum] = None,
+    attribute_id: Optional[int] = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """List sample sets for cycle/report with optional filters"""
+    try:
+        from sqlalchemy import select, and_
+        from app.models.sample_selection import SampleSet
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Listing sample sets for cycle_id={cycle_id}, report_id={report_id}")
+        
+        query = select(SampleSet).where(
+            and_(
+                SampleSet.cycle_id == cycle_id,
+                SampleSet.report_id == report_id
+            )
+        )
+        
+        if status:
+            # Map DTO status to model status
+            status_mapping = {
+                SampleStatusEnum.DRAFT: 'Draft',
+                SampleStatusEnum.SELECTED: 'Pending Approval',
+                SampleStatusEnum.APPROVED: 'Approved',
+                SampleStatusEnum.REJECTED: 'Rejected',
+                SampleStatusEnum.IN_USE: 'Approved'
+            }
+            model_status = status_mapping.get(status)
+            if model_status:
+                query = query.where(SampleSet.status == model_status)
+        
+        query = query.order_by(SampleSet.created_at.desc())
+        
+        result = await db.execute(query)
+        sample_sets = result.scalars().all()
+        
+        return [
+            SampleSelectionMapper.model_to_dto(
+                ss, 
+                attribute_id=attribute_id
+            )
+            for ss in sample_sets
+        ]
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to list sample sets: {str(e)}"
+        )
+
+
+@router.get("/sample-sets/{sample_set_id}", response_model=SampleSetWithRecordsDTO)
+@require_permission("sample_selection", "read")
+async def get_sample_set(
+    sample_set_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get sample set with records"""
+    try:
+        from sqlalchemy import select
+        from sqlalchemy.orm import selectinload
+        from app.models.sample_selection import SampleSet
+        
+        result = await db.execute(
+            select(SampleSet)
+            .where(SampleSet.set_id == sample_set_id)  # Model uses set_id
+            .options(selectinload(SampleSet.sample_records))
+        )
+        sample_set = result.scalar_one_or_none()
+        
+        if not sample_set:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Sample set {sample_set_id} not found"
+            )
+        
+        # Use mapper for the sample set
+        sample_set_dto_dict = SampleSelectionMapper.model_to_dto(sample_set).__dict__
+        
+        # Add sample records
+        sample_set_dto_dict['sample_records'] = [
+            SampleSelectionMapper.record_to_dto(record)
+            for record in sample_set.sample_records
+        ]
+        
+        return SampleSetWithRecordsDTO(**sample_set_dto_dict)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get sample set: {str(e)}"
+        )
+
+
+@router.get("/pending-review", response_model=List[SampleSetResponseDTO])
+@require_permission("sample_selection", "approve")
+async def get_pending_review_sample_sets(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get sample sets pending review for current user"""
+    try:
+        from sqlalchemy import select, and_, or_
+        from app.models.sample_selection import SampleSet
+        from app.models.report import Report, ReportOwner
+        
+        # Map DTO statuses to model statuses
+        pending_statuses = ['Draft', 'Pending Approval']
+        
+        # Get sample sets for reports owned by current user
+        if current_user.role in ['Report Owner', 'Report Owner Executive']:
+            query = select(SampleSet).join(
+                Report, SampleSet.report_id == Report.report_id
+            ).join(
+                ReportOwner, Report.report_id == ReportOwner.report_id
+            ).where(and_(
+                ReportOwner.owner_id == current_user.user_id,
+                SampleSet.status.in_(pending_statuses)
+            ))
+        else:
+            # Admin can see all pending
+            query = select(SampleSet).where(
+                SampleSet.status.in_(pending_statuses)
+            )
+        
+        query = query.order_by(SampleSet.created_at)
+        
+        result = await db.execute(query)
+        sample_sets = result.scalars().all()
+        
+        return [
+            SampleSelectionMapper.model_to_dto(ss)
+            for ss in sample_sets
+        ]
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get pending review sample sets: {str(e)}"
+        )

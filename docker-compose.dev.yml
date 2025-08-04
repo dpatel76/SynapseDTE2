@@ -1,0 +1,201 @@
+version: '3.8'
+
+# Development overrides for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  # PostgreSQL with exposed port for debugging
+  postgres:
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: synapse_dt_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+  # Redis with exposed port and no password for dev
+  redis:
+    command: redis-server --save 20 1 --loglevel debug
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=
+
+  # Backend with hot reload
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      target: builder  # Use builder stage for development
+    container_name: synapse-backend-dev
+    command: |
+      bash -c "
+        echo 'Starting development server with hot reload...'
+        alembic upgrade head
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+      "
+    environment:
+      # Development database
+      DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/synapse_dt_dev"
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: synapse_dt_dev
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+      # Redis without password
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/1"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/1"
+      # Development settings
+      DEBUG: "true"
+      LOG_LEVEL: "DEBUG"
+      RELOAD: "true"
+      # CORS for frontend development
+      ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:3001,http://localhost:8000"
+    volumes:
+      # Mount source code for hot reload
+      - ./app:/app/app:delegated
+      - ./alembic:/app/alembic:delegated
+      - ./alembic.ini:/app/alembic.ini:ro
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+      # Mount requirements for easier updates
+      - ./requirements.txt:/app/requirements.txt:ro
+    ports:
+      - "8000:8000"
+      - "5678:5678"  # Python debugger port
+
+  # Frontend development server
+  frontend-dev:
+    image: node:20-alpine
+    container_name: synapse-frontend-dev
+    working_dir: /app
+    command: |
+      sh -c "
+        echo 'Installing dependencies...'
+        npm install
+        echo 'Starting development server...'
+        npm start
+      "
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:8000/api
+      - REACT_APP_TEMPORAL_UI_URL=http://localhost:8088
+      - PORT=3000
+      - CHOKIDAR_USEPOLLING=true  # For file watching in Docker
+      - WDS_SOCKET_PORT=0  # Fix WebSocket issues
+    volumes:
+      - ./frontend:/app:delegated
+      - /app/node_modules  # Exclude node_modules from bind mount
+    ports:
+      - "3000:3000"
+      - "3001:3001"  # WebSocket for hot reload
+    networks:
+      - synapse-network
+    depends_on:
+      - backend
+
+  # Don't start production frontend in dev
+  frontend:
+    profiles:
+      - production-only
+
+  # Temporal with admin tools enabled
+  temporal:
+    environment:
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_USER: temporal
+      POSTGRES_PWD: temporal
+      POSTGRES_SEEDS: temporal-postgres
+      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development.yaml
+      ENABLE_ES: false
+      LOG_LEVEL: debug
+      TEMPORAL_BROADCAST_ADDRESS: temporal
+    ports:
+      - "7233:7233"
+      - "7234:7234"  # Temporal metrics
+      - "7235:7235"  # Temporal frontend
+      - "7236:7236"  # Temporal matching
+      - "7237:7237"  # Temporal history
+      - "7238:7238"  # Temporal worker
+
+  # Temporal Admin Tools
+  temporal-admin-tools:
+    image: temporalio/admin-tools:1.22.4
+    container_name: temporal-admin-tools
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    stdin_open: true
+    tty: true
+    networks:
+      - temporal-network
+    profiles:
+      - tools
+
+  # Worker with debugging capabilities
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+      target: builder  # Use builder stage for development
+    command: |
+      bash -c "
+        echo 'Starting development worker with debugging...'
+        python -m app.temporal.worker
+      "
+    environment:
+      # Development settings
+      DEBUG: "true"
+      LOG_LEVEL: "DEBUG"
+      TEMPORAL_WORKER_LOG_LEVEL: "DEBUG"
+      PYTHONBREAKPOINT: "ipdb.set_trace"  # Enhanced debugging
+    volumes:
+      # Mount source code for development
+      - ./app:/app/app:delegated
+      - ./logs:/app/logs
+    deploy:
+      replicas: 1  # Single worker for debugging
+
+  # Development database admin tool
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: synapse-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@synapse.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - "5050:80"
+    networks:
+      - synapse-network
+    depends_on:
+      - postgres
+    profiles:
+      - tools
+
+  # Redis Commander for Redis debugging
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: synapse-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+      - HTTP_USER=admin
+      - HTTP_PASSWORD=admin
+    ports:
+      - "8081:8081"
+    networks:
+      - synapse-network
+    depends_on:
+      - redis
+    profiles:
+      - tools
+
+# Additional development volumes
+volumes:
+  node_modules:
+    name: synapse_node_modules

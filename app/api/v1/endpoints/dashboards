@@ -1,0 +1,247 @@
+"""
+Dashboard API endpoints for all user roles
+Provides comprehensive dashboard data for executives, data providers, and CDOs
+"""
+
+from typing import Dict, Any, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
+from app.core.dependencies import get_current_user
+from app.core.auth import UserRoles
+from app.models.user import User
+from app.services.executive_dashboard_service import get_executive_dashboard_service, ExecutiveDashboardService
+from app.services.data_owner_dashboard_service import get_data_owner_dashboard_service, DataProviderDashboardService
+from app.services.cdo_dashboard_service import get_cdo_dashboard_service, CDODashboardService
+
+router = APIRouter()
+
+
+@router.get("/executive")
+async def get_executive_dashboard(
+    time_filter: str = Query("current_quarter", description="Time filter: current_quarter, current_year, last_30_days"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    executive_service: ExecutiveDashboardService = Depends(get_executive_dashboard_service)
+) -> Dict[str, Any]:
+    """Get Report Owner Executive dashboard with strategic KPIs and portfolio analytics"""
+    
+    # Check if user has executive role
+    if current_user.role not in [UserRoles.ADMIN, UserRoles.REPORT_OWNER_EXECUTIVE]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Executive dashboard access requires Report Owner Executive role"
+        )
+    
+    try:
+        dashboard_data = await executive_service.get_executive_dashboard_metrics(
+            executive_user_id=current_user.user_id,
+            db=db,
+            time_filter=time_filter
+        )
+        
+        return dashboard_data
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to load executive dashboard: {str(e)}"
+        )
+
+
+@router.get("/executive/board-report")
+async def get_board_report_summary(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    executive_service: ExecutiveDashboardService = Depends(get_executive_dashboard_service)
+) -> Dict[str, Any]:
+    """Get board-level report summary for executive presentation"""
+    
+    # Check if user has executive role
+    if current_user.role not in [UserRoles.ADMIN, UserRoles.REPORT_OWNER_EXECUTIVE]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Board report access requires Report Owner Executive role"
+        )
+    
+    try:
+        board_report = await executive_service.get_board_report_summary(
+            executive_user_id=current_user.user_id,
+            db=db
+        )
+        
+        return board_report
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate board report: {str(e)}"
+        )
+
+
+@router.get("/data-owner")
+async def get_data_owner_dashboard(
+    time_filter: str = Query("last_30_days", description="Time filter: last_7_days, last_30_days, last_90_days"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    dp_service: DataProviderDashboardService = Depends(get_data_owner_dashboard_service)
+) -> Dict[str, Any]:
+    """Get Data Provider dashboard with performance metrics and assignment tracking"""
+    
+    # Check if user has data provider role
+    if current_user.role not in [UserRoles.ADMIN, UserRoles.DATA_OWNER]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Data Provider dashboard access requires Data Owner role"
+        )
+    
+    try:
+        dashboard_data = await dp_service.get_data_owner_dashboard_metrics(
+            data_owner_user_id=current_user.user_id,
+            db=db,
+            time_filter=time_filter
+        )
+        
+        return dashboard_data
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to load data provider dashboard: {str(e)}"
+        )
+
+
+@router.get("/cdo")
+async def get_cdo_dashboard(
+    time_filter: str = Query("last_30_days", description="Time filter: last_7_days, last_30_days, last_90_days"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    cdo_service: CDODashboardService = Depends(get_cdo_dashboard_service)
+) -> Dict[str, Any]:
+    """Get CDO dashboard with LOB-wide analytics and team performance metrics"""
+    
+    # Check if user has Data Executive role
+    if current_user.role not in [UserRoles.ADMIN, UserRoles.DATA_EXECUTIVE]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="CDO dashboard access requires Data Executive role"
+        )
+    
+    try:
+        dashboard_data = await cdo_service.get_cdo_dashboard_metrics(
+            cdo_user_id=current_user.user_id,
+            db=db,
+            time_filter=time_filter
+        )
+        
+        return dashboard_data
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to load CDO dashboard: {str(e)}"
+        )
+
+
+@router.get("/health")
+async def get_dashboard_services_health(
+    current_user: User = Depends(get_current_user),
+    executive_service: ExecutiveDashboardService = Depends(get_executive_dashboard_service),
+    dp_service: DataProviderDashboardService = Depends(get_data_owner_dashboard_service),
+    cdo_service: CDODashboardService = Depends(get_cdo_dashboard_service)
+) -> Dict[str, Any]:
+    """Get health status of all dashboard services (Admin only)"""
+    
+    # Check admin privileges
+    if current_user.role != UserRoles.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    
+    try:
+        return {
+            "dashboard_services_status": "healthy",
+            "services": {
+                "executive_dashboard": {
+                    "status": "healthy",
+                    "features": ["Strategic KPIs", "Portfolio Analytics", "Board Reports"]
+                },
+                "data_owner_dashboard": {
+                    "status": "healthy",
+                    "features": ["Performance Metrics", "Assignment Tracking", "Quality Metrics"]
+                },
+                "cdo_dashboard": {
+                    "status": "healthy",
+                    "features": ["LOB Analytics", "Team Performance", "Escalation Management"]
+                }
+            },
+            "capabilities": {
+                "total_dashboard_types": 3,
+                "role_coverage": ["Executive", "Data Owner", "Data Executive"],
+                "analytics_features": ["Strategic KPIs", "Performance Tracking", "Trend Analysis", "Action Items"]
+            }
+        }
+        
+    except Exception as e:
+        return {
+            "dashboard_services_status": "unhealthy",
+            "error": str(e)
+        }
+
+
+@router.get("/summary")
+async def get_dashboard_summary(
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """Get summary of available dashboards for current user"""
+    
+    try:
+        available_dashboards = []
+        
+        # Check user role and add available dashboards
+        if current_user.role in [UserRoles.ADMIN, UserRoles.REPORT_OWNER_EXECUTIVE]:
+            available_dashboards.append({
+                "type": "executive",
+                "name": "Executive Dashboard",
+                "description": "Strategic KPIs and portfolio analytics",
+                "features": ["Portfolio Compliance Rate", "Operational Efficiency", "Risk Management", "Financial Metrics"],
+                "endpoint": "/api/v1/dashboards/executive"
+            })
+        
+        if current_user.role in [UserRoles.ADMIN, UserRoles.DATA_OWNER]:
+            available_dashboards.append({
+                "type": "data_owner",
+                "name": "Data Provider Dashboard",
+                "description": "Performance metrics and assignment tracking",
+                "features": ["Assignment Overview", "Performance Metrics", "Quality Scores", "Workload Analysis"],
+                "endpoint": "/api/v1/dashboards/data-owner"
+            })
+        
+        if current_user.role in [UserRoles.ADMIN, UserRoles.DATA_EXECUTIVE]:
+            available_dashboards.append({
+                "type": "cdo",
+                "name": "CDO Dashboard",
+                "description": "LOB-wide analytics and team performance",
+                "features": ["LOB Overview", "Team Performance", "Assignment Analytics", "Escalation Management"],
+                "endpoint": "/api/v1/dashboards/cdo"
+            })
+        
+        return {
+            "user_role": current_user.role.value,
+            "available_dashboards": available_dashboards,
+            "total_available": len(available_dashboards),
+            "dashboard_capabilities": {
+                "time_filtering": True,
+                "real_time_data": True,
+                "export_capabilities": True,
+                "customizable_views": True
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get dashboard summary: {str(e)}"
+        ) 

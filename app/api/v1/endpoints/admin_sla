@@ -1,0 +1,603 @@
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_, or_, func, desc, delete
+
+from app.core.database import get_db
+from app.core.dependencies import get_current_user
+from app.models.user import User
+from app.models.sla import SLAConfiguration, SLAEscalationRule, SLAViolationTracking, EscalationEmailLog
+from app.models.report import Report
+from app.schemas.sla import (
+    SLAConfigurationCreate,
+    SLAConfigurationUpdate,
+    SLAConfigurationResponse,
+    EscalationRuleCreate,
+    EscalationRuleUpdate,
+    EscalationRuleResponse,
+    SLAViolationResponse
+)
+
+router = APIRouter()
+
+# SLA Configuration Endpoints
+
+@router.get("/sla-configurations", response_model=List[SLAConfigurationResponse])
+async def get_sla_configurations(
+    skip: int = 0,
+    limit: int = 100,
+    active_only: bool = False,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Retrieve SLA configurations with optional filtering.
+    """
+    # Check admin permissions
+    if current_user.role not in ["Admin", "Data Executive", "Test Executive"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to view SLA configurations"
+        )
+    
+    stmt = select(SLAConfiguration)
+    
+    if active_only:
+        stmt = stmt.where(SLAConfiguration.is_active == True)
+    
+    stmt = stmt.offset(skip).limit(limit)
+    result = await db.execute(stmt)
+    configurations = result.scalars().all()
+    return configurations
+
+@router.get("/sla-configurations/{config_id}", response_model=SLAConfigurationResponse)
+async def get_sla_configuration(
+    config_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Retrieve a specific SLA configuration by ID.
+    """
+    if current_user.role not in ["Admin", "Data Executive", "Test Executive"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions"
+        )
+    
+    stmt = select(SLAConfiguration).where(SLAConfiguration.sla_config_id == config_id)
+    result = await db.execute(stmt)
+    config = result.scalar_one_or_none()
+    
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="SLA configuration not found"
+        )
+    
+    return config
+
+@router.post("/sla-configurations", response_model=SLAConfigurationResponse)
+async def create_sla_configuration(
+    config_data: SLAConfigurationCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Create a new SLA configuration.
+    """
+    if current_user.role not in ["Admin", "Data Executive", "Test Executive"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to create SLA configurations"
+        )
+    
+    # Check if configuration already exists for this SLA type
+    stmt = select(SLAConfiguration).where(SLAConfiguration.sla_type == config_data.sla_type)
+    result = await db.execute(stmt)
+    existing = result.scalar_one_or_none()
+    
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"SLA configuration already exists for type: {config_data.sla_type}"
+        )
+    
+    # Create new configuration
+    db_config = SLAConfiguration(
+        sla_type=config_data.sla_type,
+        sla_hours=config_data.sla_hours,
+        warning_hours=config_data.warning_hours,
+        escalation_enabled=config_data.escalation_enabled,
+        business_hours_only=config_data.business_hours_only,
+        weekend_excluded=config_data.weekend_excluded,
+        auto_escalate_on_breach=config_data.auto_escalate_on_breach,
+        escalation_interval_hours=config_data.escalation_interval_hours,
+        created_by=current_user.user_id
+    )
+    
+    db.add(db_config)
+    await db.commit()
+    await db.refresh(db_config)
+    
+    return db_config
+
+@router.put("/sla-configurations/{config_id}", response_model=SLAConfigurationResponse)
+async def update_sla_configuration(
+    config_id: int,
+    config_data: SLAConfigurationUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update an existing SLA configuration.
+    """
+    if current_user.role not in ["Admin", "Data Executive", "Test Executive"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to update SLA configurations"
+        )
+    
+    stmt = select(SLAConfiguration).where(SLAConfiguration.sla_config_id == config_id)
+    result = await db.execute(stmt)
+    db_config = result.scalar_one_or_none()
+    
+    if not db_config:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="SLA configuration not found"
+        )
+    
+    # Update fields
+    update_data = config_data.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_config, field, value)
+    
+    db_config.updated_by = current_user.user_id
+    
+    await db.commit()
+    await db.refresh(db_config)
+    
+    return db_config
+
+@router.delete("/sla-configurations/{config_id}")
+async def delete_sla_configuration(
+    config_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Delete an SLA configuration (soft delete by marking inactive).
+    """
+    if current_user.role not in ["Admin", "Data Executive", "Test Executive"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to delete SLA configurations"
+        )
+    
+    stmt = select(SLAConfiguration).where(SLAConfiguration.sla_config_id == config_id)
+    result = await db.execute(stmt)
+    db_config = result.scalar_one_or_none()
+    
+    if not db_config:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="SLA configuration not found"
+        )
+    
+    # Check if configuration is being used
+    violations_stmt = select(func.count(SLAViolationTracking.violation_id)).where(
+        and_(
+            SLAViolationTracking.sla_config_id == config_id,
+            SLAViolationTracking.is_resolved == False
+        )
+    )
+    violations_result = await db.execute(violations_stmt)
+    active_violations = violations_result.scalar()
+    
+    if active_violations > 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete SLA configuration with active violations"
+        )
+    
+    # Soft delete by marking inactive
+    db_config.is_active = False
+    db_config.updated_by = current_user.user_id
+    
+    await db.commit()
+    
+    return {"message": "SLA configuration deleted successfully"}
+
+# Escalation Rules Endpoints
+
+@router.get("/escalation-rules", response_model=List[EscalationRuleResponse])
+async def get_escalation_rules(
+    sla_config_id: Optional[int] = None,
+    active_only: bool = False,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Retrieve escalation rules with optional filtering.
+    """
+    if current_user.role not in ["Admin", "Data Executive", "Test Executive"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions"
+        )
+    
+    stmt = select(SLAEscalationRule)
+    
+    if sla_config_id:
+        stmt = stmt.where(SLAEscalationRule.sla_config_id == sla_config_id)
+    
+    if active_only:
+        stmt = stmt.where(SLAEscalationRule.is_active == True)
+    
+    stmt = stmt.order_by(
+        SLAEscalationRule.sla_config_id,
+        SLAEscalationRule.escalation_order
+    )
+    
+    result = await db.execute(stmt)
+    rules = result.scalars().all()
+    
+    return rules
+
+@router.post("/escalation-rules", response_model=EscalationRuleResponse)
+async def create_escalation_rule(
+    rule_data: EscalationRuleCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Create a new escalation rule.
+    """
+    if current_user.role not in ["Admin", "Data Executive", "Test Executive"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions"
+        )
+    
+    # Verify SLA configuration exists
+    sla_stmt = select(SLAConfiguration).where(SLAConfiguration.sla_config_id == rule_data.sla_config_id)
+    sla_result = await db.execute(sla_stmt)
+    sla_config = sla_result.scalar_one_or_none()
+    
+    if not sla_config:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="SLA configuration not found"
+        )
+    
+    # Check for duplicate escalation order
+    existing_stmt = select(SLAEscalationRule).where(
+        and_(
+            SLAEscalationRule.sla_config_id == rule_data.sla_config_id,
+            SLAEscalationRule.escalation_order == rule_data.escalation_order,
+            SLAEscalationRule.is_active == True
+        )
+    )
+    existing_result = await db.execute(existing_stmt)
+    existing_rule = existing_result.scalar_one_or_none()
+    
+    if existing_rule:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Escalation rule with order {rule_data.escalation_order} already exists"
+        )
+    
+    # Create new rule
+    db_rule = SLAEscalationRule(
+        sla_config_id=rule_data.sla_config_id,
+        escalation_level=rule_data.escalation_level,
+        escalation_order=rule_data.escalation_order,
+        escalate_to_role=rule_data.escalate_to_role,
+        escalate_to_user_id=rule_data.escalate_to_user_id,
+        hours_after_breach=rule_data.hours_after_breach,
+        email_template_subject=rule_data.email_template_subject,
+        email_template_body=rule_data.email_template_body,
+        include_managers=rule_data.include_managers,
+        created_by=current_user.user_id
+    )
+    
+    db.add(db_rule)
+    await db.commit()
+    await db.refresh(db_rule)
+    
+    return db_rule
+
+@router.put("/escalation-rules/{rule_id}", response_model=EscalationRuleResponse)
+async def update_escalation_rule(
+    rule_id: int,
+    rule_data: EscalationRuleUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update an existing escalation rule.
+    """
+    if current_user.role not in ["Admin", "Data Executive", "Test Executive"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions"
+        )
+    
+    stmt = select(SLAEscalationRule).where(SLAEscalationRule.escalation_rule_id == rule_id)
+    result = await db.execute(stmt)
+    db_rule = result.scalar_one_or_none()
+    
+    if not db_rule:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Escalation rule not found"
+        )
+    
+    # Update fields
+    update_data = rule_data.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_rule, field, value)
+    
+    db_rule.updated_by = current_user.user_id
+    
+    await db.commit()
+    await db.refresh(db_rule)
+    
+    return db_rule
+
+@router.delete("/escalation-rules/{rule_id}")
+async def delete_escalation_rule(
+    rule_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Delete an escalation rule.
+    """
+    if current_user.role not in ["Admin", "Data Executive", "Test Executive"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions"
+        )
+    
+    stmt = select(SLAEscalationRule).where(SLAEscalationRule.escalation_rule_id == rule_id)
+    result = await db.execute(stmt)
+    db_rule = result.scalar_one_or_none()
+    
+    if not db_rule:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Escalation rule not found"
+        )
+    
+    # Soft delete by marking inactive
+    db_rule.is_active = False
+    db_rule.updated_by = current_user.user_id
+    
+    await db.commit()
+    
+    return {"message": "Escalation rule deleted successfully"}
+
+# SLA Violation Monitoring Endpoints
+
+@router.get("/sla-violations", response_model=List[dict])
+async def get_sla_violations(
+    active_only: bool = True,
+    sla_type: Optional[str] = None,
+    severity: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Retrieve SLA violations with optional filtering.
+    """
+    if current_user.role not in ["Admin", "Data Executive", "Test Executive", "Report Owner Executive"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions"
+        )
+    
+    # Base query with joins to get report name
+    stmt = select(
+        SLAViolationTracking,
+        Report.report_name
+    ).join(
+        Report,
+        SLAViolationTracking.report_id == Report.report_id
+    )
+    
+    if active_only:
+        stmt = stmt.where(SLAViolationTracking.is_violated == True)
+    
+    if sla_type:
+        stmt = stmt.where(SLAViolationTracking.sla_config_id.in_(
+            select(SLAConfiguration.sla_config_id).where(SLAConfiguration.sla_type == sla_type)
+        ))
+    
+    # Apply severity filter based on violation hours
+    if severity:
+        if severity == "critical":
+            stmt = stmt.where(SLAViolationTracking.violation_hours > 72)
+        elif severity == "high":
+            stmt = stmt.where(
+                and_(
+                    SLAViolationTracking.violation_hours > 48,
+                    SLAViolationTracking.violation_hours <= 72
+                )
+            )
+        elif severity == "medium":
+            stmt = stmt.where(
+                and_(
+                    SLAViolationTracking.violation_hours > 24,
+                    SLAViolationTracking.violation_hours <= 48
+                )
+            )
+        elif severity == "low":
+            stmt = stmt.where(SLAViolationTracking.violation_hours <= 24)
+    
+    stmt = stmt.order_by(
+        desc(SLAViolationTracking.violation_hours)
+    ).offset(skip).limit(limit)
+    
+    result = await db.execute(stmt)
+    violations_with_reports = result.all()
+    
+    # Format response
+    result_list = []
+    for violation, report_name in violations_with_reports:
+        violation_dict = {
+            "violation_id": violation.violation_id,
+            "report_name": report_name,
+            "sla_type": "unknown",  # Would need to join with SLAConfiguration to get this
+            "started_at": violation.started_at.isoformat() if violation.started_at else None,
+            "due_date": violation.due_date.isoformat() if violation.due_date else None,
+            "is_violated": violation.is_violated,
+            "violation_hours": violation.violation_hours,
+            "current_escalation_level": violation.current_escalation_level.value if violation.current_escalation_level else None,
+            "escalation_count": violation.escalation_count
+        }
+        result_list.append(violation_dict)
+    
+    return result_list
+
+@router.get("/sla-violations/summary")
+async def get_sla_violations_summary(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get summary statistics for SLA violations.
+    """
+    if current_user.role not in ["Admin", "Data Executive", "Test Executive", "Report Owner Executive"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions"
+        )
+    
+    # Count total violations
+    total_stmt = select(func.count(SLAViolationTracking.violation_id)).where(
+        SLAViolationTracking.is_violated == True
+    )
+    total_result = await db.execute(total_stmt)
+    total_violations = total_result.scalar()
+    
+    # Count by severity
+    critical_stmt = select(func.count(SLAViolationTracking.violation_id)).where(
+        and_(
+            SLAViolationTracking.is_violated == True,
+            SLAViolationTracking.violation_hours > 72
+        )
+    )
+    critical_result = await db.execute(critical_stmt)
+    critical_count = critical_result.scalar()
+    
+    high_stmt = select(func.count(SLAViolationTracking.violation_id)).where(
+        and_(
+            SLAViolationTracking.is_violated == True,
+            SLAViolationTracking.violation_hours > 48,
+            SLAViolationTracking.violation_hours <= 72
+        )
+    )
+    high_result = await db.execute(high_stmt)
+    high_count = high_result.scalar()
+    
+    medium_stmt = select(func.count(SLAViolationTracking.violation_id)).where(
+        and_(
+            SLAViolationTracking.is_violated == True,
+            SLAViolationTracking.violation_hours > 24,
+            SLAViolationTracking.violation_hours <= 48
+        )
+    )
+    medium_result = await db.execute(medium_stmt)
+    medium_count = medium_result.scalar()
+    
+    low_stmt = select(func.count(SLAViolationTracking.violation_id)).where(
+        and_(
+            SLAViolationTracking.is_violated == True,
+            SLAViolationTracking.violation_hours <= 24
+        )
+    )
+    low_result = await db.execute(low_stmt)
+    low_count = low_result.scalar()
+    
+    return {
+        "total_violations": total_violations,
+        "by_severity": {
+            "critical": critical_count,
+            "high": high_count,
+            "medium": medium_count,
+            "low": low_count
+        },
+        "by_sla_type": {}  # Would need more complex query to populate this
+    }
+
+@router.post("/sla-violations/{violation_id}/resolve")
+async def resolve_sla_violation(
+    violation_id: int,
+    resolution_notes: str = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Manually resolve an SLA violation.
+    """
+    if current_user.role not in ["Admin", "Data Executive", "Test Executive"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions"
+        )
+    
+    stmt = select(SLAViolationTracking).where(SLAViolationTracking.violation_id == violation_id)
+    result = await db.execute(stmt)
+    violation = result.scalar_one_or_none()
+    
+    if not violation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="SLA violation not found"
+        )
+    
+    if violation.is_resolved:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="SLA violation is already resolved"
+        )
+    
+    # Resolve violation
+    violation.is_resolved = True
+    violation.resolved_at = func.now()
+    if resolution_notes:
+        violation.resolution_notes = resolution_notes
+    
+    await db.commit()
+    
+    return {"message": "SLA violation resolved successfully"}
+
+@router.get("/escalation-logs/{violation_id}")
+async def get_escalation_logs(
+    violation_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get escalation history for a specific violation.
+    """
+    if current_user.role not in ["Admin", "Data Executive", "Test Executive", "Report Owner Executive"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions"
+        )
+    
+    stmt = select(EscalationEmailLog).where(
+        EscalationEmailLog.sla_violation_id == violation_id
+    ).order_by(
+        desc(EscalationEmailLog.sent_at)
+    )
+    
+    result = await db.execute(stmt)
+    logs = result.scalars().all()
+    
+    return logs 

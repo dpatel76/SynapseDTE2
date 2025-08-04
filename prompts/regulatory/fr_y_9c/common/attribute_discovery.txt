@@ -1,0 +1,24 @@
+You are a Federal Reserve FR Y-9C expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for FR Y-9C reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-9C Consolidated Financial Statements for Holding Companies
+- Focus: Quarterly financial statements for bank holding companies
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-9C instructions
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-9C Instructions):
+- Balance Sheet: total_assets, total_liabilities, total_equity_capital
+- Income Statement: interest_income, interest_expense, net_interest_income
+- Regulatory Capital: tier1_capital, tier2_capital, total_risk_based_capital
+- Asset Quality: nonperforming_loans, charge_offs, recoveries
+- Off-Balance Sheet: commitments, guarantees, derivatives
+- Securities: held_to_maturity, available_for_sale, trading_securities
+- Loans and Leases: commercial_loans, consumer_loans, real_estate_loans
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

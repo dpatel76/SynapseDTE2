@@ -1,0 +1,98 @@
+REGULATION-SPECIFIC SAMPLE GENERATION
+
+Generate realistic test samples for regulatory reporting validation based on specific regulatory context.
+
+INPUTS:
+- Regulation: ${regulation_context}
+- Report: ${report_name}
+- Scoped Attributes: ${scoped_attributes}
+- Sample Size: ${sample_size}
+- Risk Focus Areas: ${risk_focus_areas}
+
+SAMPLE GENERATION REQUIREMENTS:
+1. Generate values for ALL scoped attributes (both PK and Non-PK)
+2. Primary Key attributes: Unique, realistic identifiers
+3. Non-PK attributes: Regulation-compliant realistic values
+4. Data types must match attribute specifications
+5. Values should reflect real-world business scenarios
+6. LOB assignments based on regulation and sample characteristics
+
+REGULATION-SPECIFIC LOGIC:
+
+BASEL III / CCAR:
+- Large institutional amounts ($1M+)
+- Credit risk focus (exposures, capital ratios)
+- Market risk scenarios (trading portfolios)
+- LOB assignments: Credit Risk, Market Risk
+
+CECL / IFRS 9:
+- Credit loss provisions ($50K-$500K)
+- Historical loss rates (2-15%)
+- Forward-looking scenarios
+- LOB assignments: Credit Risk
+
+Operational Risk:
+- Loss event amounts ($10K-$1M)
+- Frequency distributions
+- Business line categorizations
+- LOB assignments: Operational Risk
+
+SAMPLE DATA PATTERNS:
+
+For Amount Fields:
+- High risk: 95th percentile values
+- Medium risk: 50th-75th percentile values  
+- Low risk: 25th-50th percentile values
+- Edge cases: Boundary values (0, max limits)
+
+For Rate/Percentage Fields:
+- Interest rates: 0.25%-15.00% based on regulation
+- Loss rates: 0.1%-25.0% based on historical data
+- Ratios: Regulation-specific ranges
+
+For Date Fields:
+- Current reporting period
+- Historical comparison periods
+- Forward-looking projection dates
+
+For Identifier Fields:
+- Consistent formatting patterns
+- Realistic business entity IDs
+- Cross-reference integrity
+
+SAMPLE DISTRIBUTION:
+- 40% high-risk scenarios for regulatory focus
+- 30% standard business scenarios  
+- 20% edge cases and boundary conditions
+- 10% cross-LOB integration scenarios
+
+OUTPUT JSON ARRAY:
+[
+  {
+    "sample_id": "SAMPLE_0001",
+    "primary_key_values": {
+      "transaction_id": "TXN_100001",
+      "entity_id": "ENT_50001"
+    },
+    "attribute_values": {
+      "loan_amount": 1500000.00,
+      "interest_rate": 4.25,
+      "maturity_date": "2029-12-15",
+      "borrower_rating": "BBB+",
+      "loss_given_default": 0.45
+    },
+    "risk_score": 0.75,
+    "lob_assignments": ["Credit Risk"],
+    "sample_rationale": "High-value commercial loan for credit risk testing",
+    "regulation_context": "${regulation_context}"
+  }
+]
+
+VALIDATION RULES:
+- All scoped attributes must have values
+- Data types must be consistent
+- Business rules must be applied
+- Regulatory constraints must be met
+- LOB assignments must be logical
+
+Generate ${sample_size} realistic samples now: 

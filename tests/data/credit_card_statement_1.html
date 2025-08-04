@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Card Statement - September 2024</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .statement-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 20px;
+        }
+        .bank-logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #003366;
+        }
+        .statement-info {
+            text-align: right;
+        }
+        .account-summary {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .summary-label {
+            color: #666;
+        }
+        .summary-value {
+            font-weight: bold;
+        }
+        .highlight {
+            background-color: #ffeb3b;
+            padding: 2px 4px;
+        }
+        .transactions {
+            margin-top: 30px;
+        }
+        .transaction-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .transaction-table th {
+            background-color: #003366;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        .transaction-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="statement-container">
+        <div class="header">
+            <div class="bank-logo">FIRST NATIONAL BANK</div>
+            <div class="statement-info">
+                <h2>Credit Card Statement</h2>
+                <p><strong>Statement Period:</strong> 20240924</p>
+                <p><strong>Statement Date:</strong> September 24, 2024</p>
+            </div>
+        </div>
+
+        <div class="customer-info">
+            <h3>Account Information</h3>
+            <p><strong>Customer ID:</strong> OZKG7423OJM8BO4MDG</p>
+            <p><strong>Reference ID:</strong> TXZK9TIGFWHHPPFWBH</p>
+            <p><strong>Card Number:</strong> **** **** **** 4589</p>
+        </div>
+
+        <div class="account-summary">
+            <h3>Account Summary</h3>
+            <div class="summary-grid">
+                <div>
+                    <div class="summary-item">
+                        <span class="summary-label">Previous Balance</span>
+                        <span class="summary-value">$3,245.78</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Payments & Credits</span>
+                        <span class="summary-value">-$3,245.78</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Purchases</span>
+                        <span class="summary-value">$1,892.45</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Cash Advances</span>
+                        <span class="summary-value">$0.00</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="summary-item">
+                        <span class="summary-label">Fees Charged</span>
+                        <span class="summary-value">$0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Interest Charged</span>
+                        <span class="summary-value">$0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">New Balance</span>
+                        <span class="summary-value">$1,892.45</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label highlight">Current Credit Limit</span>
+                        <span class="summary-value highlight">$15,000.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="credit-info">
+            <h3>Credit Information</h3>
+            <div class="summary-item">
+                <span class="summary-label">Available Credit</span>
+                <span class="summary-value">$13,107.55</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Minimum Payment Due</span>
+                <span class="summary-value">$56.77</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Payment Due Date</span>
+                <span class="summary-value">October 18, 2024</span>
+            </div>
+        </div>
+
+        <div class="transactions">
+            <h3>Transaction Details</h3>
+            <table class="transaction-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>09/01/2024</td>
+                        <td>PAYMENT - THANK YOU</td>
+                        <td style="color: green;">-$3,245.78</td>
+                    </tr>
+                    <tr>
+                        <td>09/05/2024</td>
+                        <td>AMAZON.COM MARKETPLACE</td>
+                        <td>$127.99</td>
+                    </tr>
+                    <tr>
+                        <td>09/08/2024</td>
+                        <td>WHOLE FOODS MARKET</td>
+                        <td>$234.56</td>
+                    </tr>
+                    <tr>
+                        <td>09/12/2024</td>
+                        <td>SHELL OIL STATION</td>
+                        <td>$85.42</td>
+                    </tr>
+                    <tr>
+                        <td>09/15/2024</td>
+                        <td>RESTAURANT XYZ</td>
+                        <td>$156.78</td>
+                    </tr>
+                    <tr>
+                        <td>09/18/2024</td>
+                        <td>AIRLINE TICKETS</td>
+                        <td>$892.34</td>
+                    </tr>
+                    <tr>
+                        <td>09/22/2024</td>
+                        <td>HOTEL RESERVATION</td>
+                        <td>$395.36</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>For customer service, call 1-800-XXX-XXXX</p>
+            <p>This statement is for informational purposes only.</p>
+        </div>
+    </div>
+</body>
+</html>

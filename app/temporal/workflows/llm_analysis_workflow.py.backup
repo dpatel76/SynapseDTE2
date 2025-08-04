@@ -1,0 +1,198 @@
+"""LLM Analysis Workflow - Handles asynchronous LLM operations"""
+
+from temporalio import workflow
+from temporalio.common import RetryPolicy
+from datetime import timedelta
+from typing import Dict, Any
+import logging
+
+from app.temporal.shared import (
+    LLMAnalysisWorkflowInput, WorkflowStatus,
+    LLM_ACTIVITY_TIMEOUT, LLM_RETRY_ATTEMPTS
+)
+from app.temporal.activities.llm_activities import (
+    generate_test_attributes_activity,
+    analyze_document_activity,
+    recommend_tests_activity,
+    analyze_patterns_activity
+)
+from app.temporal.activities.notification_activities import (
+    create_in_app_notification_activity, NotificationData
+)
+
+logger = logging.getLogger(__name__)
+
+
+@workflow.defn
+class LLMAnalysisWorkflow:
+    """Workflow for asynchronous LLM analysis operations"""
+    
+    def __init__(self):
+        self.status = WorkflowStatus.PENDING
+        self.analysis_type: str = ""
+        self.result: Dict[str, Any] = {}
+    
+    @workflow.run
+    async def run(self, input_data: LLMAnalysisWorkflowInput) -> Dict[str, Any]:
+        """Execute LLM analysis workflow"""
+        
+        self.status = WorkflowStatus.RUNNING
+        self.analysis_type = input_data.analysis_type
+        workflow.logger.info(f"Starting LLM analysis workflow: {self.analysis_type}")
+        
+        # Define retry policy for LLM operations
+        retry_policy = RetryPolicy(
+            maximum_attempts=LLM_RETRY_ATTEMPTS,
+            initial_interval=timedelta(seconds=5),
+            maximum_interval=timedelta(seconds=60),
+            backoff_coefficient=2
+        )
+        
+        try:
+            # Execute based on analysis type
+            if self.analysis_type == "attributes":
+                result = await self.generate_attributes(input_data, retry_policy)
+            elif self.analysis_type == "document_analysis":
+                result = await self.analyze_document(input_data, retry_policy)
+            elif self.analysis_type == "test_recommendations":
+                result = await self.recommend_tests(input_data, retry_policy)
+            elif self.analysis_type == "pattern_analysis":
+                result = await self.analyze_patterns(input_data, retry_policy)
+            else:
+                raise ValueError(f"Unknown analysis type: {self.analysis_type}")
+            
+            self.result = result
+            self.status = WorkflowStatus.COMPLETED
+            
+            # Notify completion if user specified
+            if input_data.metadata.get("notify_user_id"):
+                await self.notify_completion(
+                    input_data.metadata["notify_user_id"],
+                    retry_policy
+                )
+            
+            return {
+                "status": self.status,
+                "analysis_type": self.analysis_type,
+                "result": self.result
+            }
+            
+        except Exception as e:
+            workflow.logger.error(f"LLM analysis workflow failed: {str(e)}")
+            self.status = WorkflowStatus.FAILED
+            
+            # Notify failure if user specified
+            if input_data.metadata.get("notify_user_id"):
+                await self.notify_failure(
+                    input_data.metadata["notify_user_id"],
+                    str(e),
+                    retry_policy
+                )
+            raise
+    
+    async def generate_attributes(
+        self, input_data: LLMAnalysisWorkflowInput, retry_policy: RetryPolicy
+    ) -> Dict[str, Any]:
+        """Generate test attributes"""
+        result = await workflow.execute_activity(
+            generate_test_attributes_activity,
+            args=[
+                input_data.metadata.get("regulatory_context", ""),
+                input_data.metadata.get("report_type", "Compliance Report"),
+                input_data.metadata.get("preferred_provider")
+            ],
+            start_to_close_timeout=timedelta(seconds=LLM_ACTIVITY_TIMEOUT),
+            retry_policy=retry_policy
+        )
+        
+        return result.data if result.success else {"error": result.error_message}
+    
+    async def analyze_document(
+        self, input_data: LLMAnalysisWorkflowInput, retry_policy: RetryPolicy
+    ) -> Dict[str, Any]:
+        """Analyze document"""
+        result = await workflow.execute_activity(
+            analyze_document_activity,
+            args=[input_data.document_text, input_data.document_type],
+            start_to_close_timeout=timedelta(seconds=LLM_ACTIVITY_TIMEOUT),
+            retry_policy=retry_policy
+        )
+        
+        return result.data if result.success else {"error": result.error_message}
+    
+    async def recommend_tests(
+        self, input_data: LLMAnalysisWorkflowInput, retry_policy: RetryPolicy
+    ) -> Dict[str, Any]:
+        """Generate test recommendations"""
+        result = await workflow.execute_activity(
+            recommend_tests_activity,
+            args=[
+                input_data.metadata.get("attribute_name", ""),
+                input_data.metadata.get("data_type", "string"),
+                input_data.metadata.get("regulatory_context", ""),
+                input_data.metadata.get("historical_issues", [])
+            ],
+            start_to_close_timeout=timedelta(seconds=LLM_ACTIVITY_TIMEOUT),
+            retry_policy=retry_policy
+        )
+        
+        return result.data if result.success else {"error": result.error_message}
+    
+    async def analyze_patterns(
+        self, input_data: LLMAnalysisWorkflowInput, retry_policy: RetryPolicy
+    ) -> Dict[str, Any]:
+        """Analyze historical patterns"""
+        result = await workflow.execute_activity(
+            analyze_patterns_activity,
+            args=[
+                input_data.metadata.get("historical_issues", []),
+                input_data.metadata.get("report_context", "")
+            ],
+            start_to_close_timeout=timedelta(seconds=LLM_ACTIVITY_TIMEOUT),
+            retry_policy=retry_policy
+        )
+        
+        return result.data if result.success else {"error": result.error_message}
+    
+    async def notify_completion(self, user_id: int, retry_policy: RetryPolicy):
+        """Send completion notification"""
+        notification = NotificationData(
+            recipient_user_ids=[user_id],
+            notification_type="llm_analysis_complete",
+            subject=f"LLM Analysis Complete: {self.analysis_type}",
+            message=f"Your {self.analysis_type} analysis has completed successfully.",
+            metadata={
+                "workflow_type": "llm_analysis",
+                "analysis_type": self.analysis_type,
+                "status": "completed"
+            }
+        )
+        
+        await workflow.execute_activity(
+            create_in_app_notification_activity,
+            args=[notification],
+            start_to_close_timeout=timedelta(seconds=60),
+            retry_policy=retry_policy
+        )
+    
+    async def notify_failure(self, user_id: int, error_message: str, retry_policy: RetryPolicy):
+        """Send failure notification"""
+        notification = NotificationData(
+            recipient_user_ids=[user_id],
+            notification_type="llm_analysis_failed",
+            subject=f"LLM Analysis Failed: {self.analysis_type}",
+            message=f"Your {self.analysis_type} analysis has failed: {error_message}",
+            metadata={
+                "workflow_type": "llm_analysis",
+                "analysis_type": self.analysis_type,
+                "status": "failed",
+                "error": error_message
+            }
+        )
+        
+        await workflow.execute_activity(
+            create_in_app_notification_activity,
+            args=[notification],
+            start_to_close_timeout=timedelta(seconds=60),
+            retry_policy=retry_policy
+        )

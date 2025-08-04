@@ -1,0 +1,298 @@
+"""
+Refactored Benchmarking Service
+Removes mock data and implements proper external API integration
+"""
+import logging
+from typing import Dict, List, Optional, Any
+from datetime import datetime, timedelta
+from enum import Enum
+import httpx
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, and_, case
+
+from app.core.config import settings
+from app.core.cache import cache_service
+from app.models.test_cycle import TestCycle, CycleReport
+from app.models.workflow import WorkflowPhase
+from app.models.test_execution import TestExecution
+from app.models.observation import Observation
+from app.models.user import User
+
+logger = logging.getLogger(__name__)
+
+
+class IndustryType(str, Enum):
+    FINANCIAL_SERVICES = "financial_services"
+    HEALTHCARE = "healthcare"
+    MANUFACTURING = "manufacturing"
+    RETAIL = "retail"
+    TECHNOLOGY = "technology"
+
+
+class BenchmarkingService:
+    """Service for retrieving and comparing industry benchmarks"""
+    
+    def __init__(self):
+        self.industry_type = getattr(settings, 'industry_type', IndustryType.FINANCIAL_SERVICES.value)
+        self.benchmark_api_url = getattr(settings, 'benchmark_api_url', None)
+        self.benchmark_api_key = getattr(settings, 'benchmark_api_key', None)
+        self.cache_duration_hours = getattr(settings, 'benchmark_cache_hours', 24)
+        
+        # Mock data disabled by default in refactored version
+        self.use_mock_data = getattr(settings, 'use_mock_benchmarks', False)
+        
+        # Industry-specific benchmark categories
+        self.benchmark_categories = {
+            "operational_efficiency": {
+                "cycle_completion_rate": "Percentage of testing cycles completed on time",
+                "average_cycle_duration": "Average duration of testing cycles in days",
+                "resource_utilization": "Percentage of available resources utilized",
+                "automation_adoption": "Percentage of processes automated"
+            },
+            "quality_assurance": {
+                "test_pass_rate": "Percentage of tests passing on first run",
+                "defect_detection_rate": "Percentage of defects detected before production",
+                "data_quality_score": "Overall data quality assessment score",
+                "false_positive_rate": "Percentage of issues incorrectly flagged"
+            },
+            "compliance_metrics": {
+                "regulatory_adherence": "Percentage compliance with regulatory requirements",
+                "audit_readiness_score": "Readiness score for regulatory audits",
+                "documentation_completeness": "Percentage of required documentation completed",
+                "sla_compliance_rate": "Percentage of SLAs met"
+            },
+            "team_performance": {
+                "tester_productivity": "Average tests completed per tester per day",
+                "issue_resolution_time": "Average time to resolve identified issues",
+                "rework_rate": "Percentage of tests requiring rework",
+                "collaboration_score": "Team collaboration effectiveness score"
+            }
+        }
+    
+    async def get_industry_benchmarks(
+        self,
+        category: Optional[str] = None,
+        metric: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Get industry benchmark data from external API or cache"""
+        
+        # Check if external API is configured
+        if not self.benchmark_api_url or not self.benchmark_api_key:
+            logger.warning("Benchmark API not configured. Benchmarking unavailable.")
+            return {
+                "status": "error",
+                "message": "Benchmarking service not configured",
+                "data": {}
+            }
+        
+        # Generate cache key
+        cache_key = f"benchmarks:{self.industry_type}:{category or 'all'}:{metric or 'all'}"
+        
+        # Try to get from cache
+        cached_data = await cache_service.get(cache_key)
+        if cached_data:
+            return cached_data
+        
+        try:
+            # Call external benchmark API
+            async with httpx.AsyncClient() as client:
+                headers = {
+                    "Authorization": f"Bearer {self.benchmark_api_key}",
+                    "Content-Type": "application/json"
+                }
+                
+                params = {
+                    "industry": self.industry_type,
+                    "category": category,
+                    "metric": metric
+                }
+                
+                response = await client.get(
+                    f"{self.benchmark_api_url}/benchmarks",
+                    headers=headers,
+                    params=params,
+                    timeout=30.0
+                )
+                
+                if response.status_code == 200:
+                    benchmark_data = response.json()
+                    
+                    # Cache the data
+                    await cache_service.set(
+                        cache_key,
+                        benchmark_data,
+                        expire=self.cache_duration_hours * 3600
+                    )
+                    
+                    return {
+                        "status": "success",
+                        "data": benchmark_data,
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+                else:
+                    logger.error(f"Benchmark API error: {response.status_code} - {response.text}")
+                    return {
+                        "status": "error",
+                        "message": f"External API error: {response.status_code}",
+                        "data": {}
+                    }
+                    
+        except httpx.TimeoutException:
+            logger.error("Benchmark API timeout")
+            return {
+                "status": "error",
+                "message": "Benchmark service timeout",
+                "data": {}
+            }
+        except Exception as e:
+            logger.error(f"Benchmark API error: {str(e)}")
+            return {
+                "status": "error",
+                "message": "Benchmark service unavailable",
+                "data": {}
+            }
+    
+    async def calculate_organization_metrics(
+        self,
+        db: AsyncSession,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None
+    ) -> Dict[str, Any]:
+        """Calculate organization's actual metrics for comparison"""
+        
+        if not start_date:
+            start_date = datetime.utcnow() - timedelta(days=90)
+        if not end_date:
+            end_date = datetime.utcnow()
+        
+        metrics = {}
+        
+        # Operational Efficiency Metrics
+        # Cycle completion rate
+        cycle_query = select(
+            func.count(TestCycle.cycle_id).label("total_cycles"),
+            func.count(case((TestCycle.status == "completed", TestCycle.cycle_id))).label("completed_cycles")
+        ).where(
+            and_(
+                TestCycle.created_at >= start_date,
+                TestCycle.created_at <= end_date
+            )
+        )
+        cycle_result = await db.execute(cycle_query)
+        cycle_data = cycle_result.first()
+        
+        metrics["operational_efficiency"] = {
+            "cycle_completion_rate": (
+                (cycle_data.completed_cycles / cycle_data.total_cycles * 100)
+                if cycle_data.total_cycles > 0 else 0
+            )
+        }
+        
+        # Quality Assurance Metrics
+        # Test pass rate
+        test_query = select(
+            func.count(TestExecution.execution_id).label("total_tests"),
+            func.count(case((TestExecution.test_passed == True, TestExecution.execution_id))).label("passed_tests")
+        ).where(
+            and_(
+                TestExecution.tested_at >= start_date,
+                TestExecution.tested_at <= end_date
+            )
+        )
+        test_result = await db.execute(test_query)
+        test_data = test_result.first()
+        
+        metrics["quality_assurance"] = {
+            "test_pass_rate": (
+                (test_data.passed_tests / test_data.total_tests * 100)
+                if test_data.total_tests > 0 else 0
+            )
+        }
+        
+        # Add more metric calculations as needed...
+        
+        return {
+            "status": "success",
+            "data": metrics,
+            "period": {
+                "start_date": start_date.isoformat(),
+                "end_date": end_date.isoformat()
+            }
+        }
+    
+    async def compare_with_benchmarks(
+        self,
+        db: AsyncSession,
+        category: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Compare organization metrics with industry benchmarks"""
+        
+        # Get industry benchmarks
+        benchmarks = await self.get_industry_benchmarks(category)
+        
+        if benchmarks["status"] != "success":
+            return benchmarks
+        
+        # Calculate organization metrics
+        org_metrics = await self.calculate_organization_metrics(db)
+        
+        if org_metrics["status"] != "success":
+            return org_metrics
+        
+        # Perform comparison
+        comparison = {
+            "status": "success",
+            "industry": self.industry_type,
+            "comparison_date": datetime.utcnow().isoformat(),
+            "categories": {}
+        }
+        
+        for cat, metrics in org_metrics["data"].items():
+            if cat in benchmarks["data"]:
+                comparison["categories"][cat] = {
+                    "metrics": {}
+                }
+                
+                for metric, value in metrics.items():
+                    if metric in benchmarks["data"][cat]:
+                        benchmark_value = benchmarks["data"][cat][metric]["value"]
+                        comparison["categories"][cat]["metrics"][metric] = {
+                            "organization_value": value,
+                            "benchmark_value": benchmark_value,
+                            "difference": value - benchmark_value,
+                            "performance": "above" if value > benchmark_value else "below",
+                            "description": self.benchmark_categories.get(cat, {}).get(metric, "")
+                        }
+        
+        return comparison
+    
+    async def get_benchmark_trends(
+        self,
+        db: AsyncSession,
+        metric: str,
+        period_months: int = 12
+    ) -> Dict[str, Any]:
+        """Get historical benchmark trends for a specific metric"""
+        
+        # This would typically call an external API endpoint for historical data
+        # For now, return a structured response indicating the service needs configuration
+        
+        if not self.benchmark_api_url:
+            return {
+                "status": "error",
+                "message": "Benchmark trend data unavailable - service not configured",
+                "data": {}
+            }
+        
+        # Implementation would fetch historical trend data from external API
+        # and combine with organization's historical performance
+        
+        return {
+            "status": "success",
+            "metric": metric,
+            "period_months": period_months,
+            "data": {
+                "trend": [],
+                "forecast": []
+            }
+        }

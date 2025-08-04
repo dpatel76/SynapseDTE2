@@ -1,0 +1,201 @@
+import React, { useMemo } from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  LinearProgress,
+  Chip,
+  Tooltip,
+  IconButton
+} from '@mui/material';
+import {
+  CheckCircle as CheckCircleIcon,
+  RadioButtonUnchecked as PendingIcon,
+  PlayCircle as InProgressIcon,
+  Info as InfoIcon
+} from '@mui/icons-material';
+import { GridLegacy as Grid } from '@mui/material';
+import { allPhases, calculateWorkflowProgress, getTotalWorkSteps } from '../utils/temporalWorkflowSteps';
+
+interface Phase {
+  phase_name: string;
+  state: string;
+  effective_state: string;
+  effective_status: string;
+  progress_percentage: number;
+  has_overrides: boolean;
+  completed_activities?: string[];
+}
+
+interface WorkflowProgressEnhancedProps {
+  phases: Phase[];
+  cycleId: number;
+  reportId: number;
+}
+
+export const WorkflowProgressEnhanced: React.FC<WorkflowProgressEnhancedProps> = ({
+  phases,
+  cycleId,
+  reportId
+}) => {
+  // Calculate overall workflow progress based on completed activities
+  const workflowProgress = useMemo(() => {
+    const allCompletedActivities = phases.flatMap(phase => 
+      phase.completed_activities || []
+    );
+    return calculateWorkflowProgress(allCompletedActivities);
+  }, [phases]);
+
+  const totalWorkSteps = getTotalWorkSteps();
+  const completedWorkSteps = useMemo(() => {
+    const allCompletedActivities = phases.flatMap(phase => 
+      phase.completed_activities || []
+    );
+    return allPhases.reduce((total, phaseConfig) => {
+      const workSteps = phaseConfig.steps.filter(s => s.isWorkActivity);
+      return total + workSteps.filter(s => 
+        allCompletedActivities.includes(s.temporalActivity)
+      ).length;
+    }, 0);
+  }, [phases]);
+
+  const getPhaseIcon = (state: string) => {
+    switch (state) {
+      case 'Complete':
+      case 'completed':
+        return <CheckCircleIcon color="success" fontSize="small" />;
+      case 'In Progress':
+      case 'in_progress':
+        return <InProgressIcon color="primary" fontSize="small" />;
+      default:
+        return <PendingIcon color="disabled" fontSize="small" />;
+    }
+  };
+
+  const getPhaseColor = (state: string) => {
+    switch (state) {
+      case 'Complete':
+      case 'completed':
+        return 'success';
+      case 'In Progress':
+      case 'in_progress':
+        return 'primary';
+      default:
+        return 'default';
+    }
+  };
+
+  const getStatusChipColor = (status: string) => {
+    switch (status) {
+      case 'On Track':
+        return 'success';
+      case 'At Risk':
+        return 'warning';
+      case 'Past Due':
+        return 'error';
+      default:
+        return 'default';
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h6" component="h2">
+            Workflow Progress
+          </Typography>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Chip
+              label={`${completedWorkSteps}/${totalWorkSteps} work steps`}
+              color="primary"
+              size="small"
+            />
+            <Typography variant="h6" color="primary">
+              {workflowProgress.toFixed(0)}%
+            </Typography>
+            <Tooltip title="Progress excludes phase setup and completion activities">
+              <IconButton size="small">
+                <InfoIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
+
+        <LinearProgress
+          variant="determinate"
+          value={workflowProgress}
+          sx={{ height: 10, borderRadius: 1, mb: 3 }}
+        />
+
+        <Grid container spacing={2}>
+          {phases.map((phase, index) => {
+            const phaseConfig = allPhases.find(p => p.phaseName === phase.phase_name);
+            const workSteps = phaseConfig?.steps.filter(s => s.isWorkActivity) || [];
+            const completedWorkSteps = workSteps.filter(s => 
+              phase.completed_activities?.includes(s.temporalActivity)
+            ).length;
+            const phaseWorkProgress = workSteps.length > 0 
+              ? (completedWorkSteps / workSteps.length) * 100 
+              : 0;
+
+            return (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={phase.phase_name}>
+                <Card 
+                  variant="outlined" 
+                  sx={{ 
+                    height: '100%',
+                    borderColor: phase.has_overrides ? 'warning.main' : 'divider',
+                    borderWidth: phase.has_overrides ? 2 : 1
+                  }}
+                >
+                  <CardContent>
+                    <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        {getPhaseIcon(phase.effective_state)}
+                        <Typography variant="subtitle2">
+                          {phase.phase_name}
+                        </Typography>
+                      </Box>
+                      {phase.has_overrides && (
+                        <Tooltip title="Phase has manual overrides">
+                          <Chip label="Override" size="small" color="warning" />
+                        </Tooltip>
+                      )}
+                    </Box>
+
+                    <LinearProgress
+                      variant="determinate"
+                      value={phaseWorkProgress}
+                      color={getPhaseColor(phase.effective_state) as any}
+                      sx={{ mb: 1, height: 6 }}
+                    />
+
+                    <Box display="flex" justifyContent="space-between" alignItems="center">
+                      <Typography variant="caption" color="text.secondary">
+                        {completedWorkSteps}/{workSteps.length} tasks
+                      </Typography>
+                      <Chip
+                        label={phase.effective_status}
+                        size="small"
+                        color={getStatusChipColor(phase.effective_status) as any}
+                      />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
+
+        <Box mt={2} p={2} bgcolor="grey.50" borderRadius={1}>
+          <Typography variant="caption" color="text.secondary">
+            Workflow progress tracks {totalWorkSteps} work activities across all phases. 
+            Phase setup and completion steps are excluded from calculations.
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+};

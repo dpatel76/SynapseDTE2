@@ -1,0 +1,134 @@
+import React from 'react';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  LinearProgress,
+  Chip,
+  Stack
+} from '@mui/material';
+import {
+  CheckCircle as IncludedIcon,
+  Cancel as ExcludedIcon,
+  HelpOutline as PendingIcon,
+  Key as KeyIcon
+} from '@mui/icons-material';
+
+interface ScopingDecisionSummaryProps {
+  totalAttributes: number;
+  includedCount: number;
+  excludedCount: number;
+  pendingCount: number;
+  primaryKeyCount: number;
+  progress: number;
+}
+
+export const ScopingDecisionSummary: React.FC<ScopingDecisionSummaryProps> = ({
+  totalAttributes,
+  includedCount,
+  excludedCount,
+  pendingCount,
+  primaryKeyCount,
+  progress
+}) => {
+  return (
+    <Card sx={{ mb: 3 }}>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>
+          Scoping Decision Summary
+        </Typography>
+        
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Decision Progress
+            </Typography>
+            <Typography variant="body2" fontWeight="medium">
+              {Math.round(progress)}%
+            </Typography>
+          </Box>
+          <LinearProgress 
+            variant="determinate" 
+            value={progress} 
+            sx={{ height: 8, borderRadius: 4 }}
+            color={progress === 100 ? 'success' : 'primary'}
+          />
+        </Box>
+
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ justifyContent: 'space-between' }}>
+          <Box sx={{ textAlign: 'center', flex: 1 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Total Attributes
+            </Typography>
+            <Typography variant="h4" fontWeight="bold">
+              {totalAttributes}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ textAlign: 'center', flex: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
+              <IncludedIcon color="success" fontSize="small" />
+              <Typography variant="body2" color="text.secondary">
+                Included
+              </Typography>
+            </Box>
+            <Typography variant="h4" color="success.main" fontWeight="bold">
+              {includedCount}
+            </Typography>
+            {primaryKeyCount > 0 && (
+              <Chip
+                size="small"
+                label={`${primaryKeyCount} PK`}
+                icon={<KeyIcon />}
+                color="primary"
+                sx={{ mt: 1 }}
+              />
+            )}
+          </Box>
+          
+          <Box sx={{ textAlign: 'center', flex: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
+              <ExcludedIcon color="error" fontSize="small" />
+              <Typography variant="body2" color="text.secondary">
+                Excluded
+              </Typography>
+            </Box>
+            <Typography variant="h4" color="error.main" fontWeight="bold">
+              {excludedCount}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ textAlign: 'center', flex: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
+              <PendingIcon color="warning" fontSize="small" />
+              <Typography variant="body2" color="text.secondary">
+                Pending
+              </Typography>
+            </Box>
+            <Typography variant="h4" color="warning.main" fontWeight="bold">
+              {pendingCount}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ textAlign: 'center', flex: 1 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Coverage
+            </Typography>
+            <Typography variant="h4" color="primary.main" fontWeight="bold">
+              {totalAttributes > 0 ? Math.round((includedCount / totalAttributes) * 100) : 0}%
+            </Typography>
+          </Box>
+        </Stack>
+
+        {pendingCount > 0 && (
+          <Box sx={{ mt: 2, p: 2, bgcolor: 'warning.50', borderRadius: 1 }}>
+            <Typography variant="body2" color="warning.dark">
+              ⚠️ {pendingCount} attributes require a decision before submission
+            </Typography>
+          </Box>
+        )}
+      </CardContent>
+    </Card>
+  );
+};

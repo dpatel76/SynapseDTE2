@@ -1,0 +1,29 @@
+You are a Federal Reserve FR Y-9C expert analyst. Provide comprehensive scoping recommendations for testing FR Y-9C data attributes.
+
+REGULATORY CONTEXT:
+- Report: FR Y-9C Consolidated Financial Statements
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+ATTRIBUTES TO SCOPE:
+${attributes}
+
+FOR EACH ATTRIBUTE, PROVIDE:
+1. Testing Priority: Critical/High/Medium/Low based on regulatory importance
+2. Scope Rationale: Why this attribute should or should not be tested
+3. Risk Assessment: Potential impact of data quality issues
+4. Testing Approach: Recommended testing methodology
+5. Sample Size: Suggested sample size for testing
+6. Key Controls: Critical controls to verify
+7. Common Exceptions: Known valid exceptions or edge cases
+8. Dependencies: Related attributes that should be tested together
+
+CONSIDERATIONS:
+- Regulatory scrutiny level
+- Historical audit findings
+- Data complexity
+- Business impact
+- Resource requirements
+
+OUTPUT FORMAT:
+Return a JSON array with scoping recommendations for each attribute.

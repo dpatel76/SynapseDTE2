@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Card Statement - May 2023</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .statement-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #004080;
+            padding-bottom: 20px;
+        }
+        .bank-logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #004080;
+        }
+        .statement-info {
+            text-align: right;
+        }
+        .account-summary {
+            background-color: #f0f7ff;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .summary-label {
+            color: #666;
+        }
+        .summary-value {
+            font-weight: bold;
+        }
+        .highlight {
+            background-color: #ffeb3b;
+            padding: 2px 4px;
+        }
+        .transactions {
+            margin-top: 30px;
+        }
+        .transaction-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .transaction-table th {
+            background-color: #004080;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        .transaction-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="statement-container">
+        <div class="header">
+            <div class="bank-logo">CENTRAL BANK & TRUST</div>
+            <div class="statement-info">
+                <h2>Credit Card Statement</h2>
+                <p><strong>Statement Period:</strong> 20230506</p>
+                <p><strong>Statement Date:</strong> May 6, 2023</p>
+            </div>
+        </div>
+
+        <div class="customer-info">
+            <h3>Account Information</h3>
+            <p><strong>Customer ID:</strong> 88GQGOPAQ25VBG3BCA</p>
+            <p><strong>Reference ID:</strong> E4LZGN2AUHCTISS7O9</p>
+            <p><strong>Card Number:</strong> **** **** **** 7823</p>
+        </div>
+
+        <div class="account-summary">
+            <h3>Account Summary</h3>
+            <div class="summary-grid">
+                <div>
+                    <div class="summary-item">
+                        <span class="summary-label">Previous Balance</span>
+                        <span class="summary-value">$542.33</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Payments & Credits</span>
+                        <span class="summary-value">-$542.33</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Purchases</span>
+                        <span class="summary-value">$378.92</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Cash Advances</span>
+                        <span class="summary-value">$0.00</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="summary-item">
+                        <span class="summary-label">Fees Charged</span>
+                        <span class="summary-value">$0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Interest Charged</span>
+                        <span class="summary-value">$0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">New Balance</span>
+                        <span class="summary-value">$378.92</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label highlight">Current Credit Limit</span>
+                        <span class="summary-value highlight">$2,000.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="credit-info">
+            <h3>Credit Information</h3>
+            <div class="summary-item">
+                <span class="summary-label">Available Credit</span>
+                <span class="summary-value">$1,621.08</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Minimum Payment Due</span>
+                <span class="summary-value">$25.00</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Payment Due Date</span>
+                <span class="summary-value">May 31, 2023</span>
+            </div>
+        </div>
+
+        <div class="transactions">
+            <h3>Transaction Details</h3>
+            <table class="transaction-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>04/10/2023</td>
+                        <td>PAYMENT - THANK YOU</td>
+                        <td style="color: green;">-$542.33</td>
+                    </tr>
+                    <tr>
+                        <td>04/12/2023</td>
+                        <td>GROCERY MART</td>
+                        <td>$87.45</td>
+                    </tr>
+                    <tr>
+                        <td>04/15/2023</td>
+                        <td>GAS STATION #245</td>
+                        <td>$52.30</td>
+                    </tr>
+                    <tr>
+                        <td>04/20/2023</td>
+                        <td>COFFEE SHOP</td>
+                        <td>$15.87</td>
+                    </tr>
+                    <tr>
+                        <td>04/22/2023</td>
+                        <td>ONLINE SHOPPING</td>
+                        <td>$128.99</td>
+                    </tr>
+                    <tr>
+                        <td>04/28/2023</td>
+                        <td>PHARMACY</td>
+                        <td>$45.23</td>
+                    </tr>
+                    <tr>
+                        <td>05/02/2023</td>
+                        <td>RESTAURANT ABC</td>
+                        <td>$49.08</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>For customer service, call 1-800-555-BANK</p>
+            <p>This statement is for informational purposes only.</p>
+        </div>
+    </div>
+</body>
+</html>

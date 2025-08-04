@@ -1,0 +1,17 @@
+CRITICAL INSTRUCTION: Return ONLY a JSON array. Your entire response must be a valid JSON array starting with [ and ending with ]. No other text whatsoever.
+
+Generate all FR Y-14M Schedule D.1 credit card loan level attributes.
+
+Context: ${report_name} - ${regulatory_context}
+
+Your response must be EXACTLY in this format:
+["attribute_1", "attribute_2", "attribute_3", ...]
+
+Do not include:
+- No explanations
+- No markdown
+- No numbering
+- No notes
+- ONLY the JSON array
+
+Start your response with: [

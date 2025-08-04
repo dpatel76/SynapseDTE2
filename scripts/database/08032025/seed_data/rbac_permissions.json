@@ -1,0 +1,877 @@
+{
+  "table": "rbac_permissions",
+  "row_count": 87,
+  "extracted_at": "2025-08-03T11:29:28.906098",
+  "data": [
+    {
+      "permission_id": 1,
+      "resource": "system",
+      "action": "admin",
+      "description": "admin access to System Administration",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 2,
+      "resource": "permissions",
+      "action": "manage",
+      "description": "manage access to Permissions Management",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 3,
+      "resource": "cycles",
+      "action": "create",
+      "description": "create access to Test Cycles",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 4,
+      "resource": "cycles",
+      "action": "read",
+      "description": "read access to Test Cycles",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 5,
+      "resource": "cycles",
+      "action": "update",
+      "description": "update access to Test Cycles",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 6,
+      "resource": "cycles",
+      "action": "delete",
+      "description": "delete access to Test Cycles",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 7,
+      "resource": "cycles",
+      "action": "assign",
+      "description": "assign access to Test Cycles",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 8,
+      "resource": "reports",
+      "action": "create",
+      "description": "create access to Reports",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 9,
+      "resource": "reports",
+      "action": "read",
+      "description": "read access to Reports",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 10,
+      "resource": "reports",
+      "action": "update",
+      "description": "update access to Reports",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 11,
+      "resource": "reports",
+      "action": "delete",
+      "description": "delete access to Reports",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 12,
+      "resource": "reports",
+      "action": "assign",
+      "description": "assign access to Reports",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 13,
+      "resource": "reports",
+      "action": "approve",
+      "description": "approve access to Reports",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 14,
+      "resource": "reports",
+      "action": "override",
+      "description": "override access to Reports",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 15,
+      "resource": "users",
+      "action": "create",
+      "description": "create access to Users",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 16,
+      "resource": "users",
+      "action": "read",
+      "description": "read access to Users",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 17,
+      "resource": "users",
+      "action": "update",
+      "description": "update access to Users",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 18,
+      "resource": "users",
+      "action": "delete",
+      "description": "delete access to Users",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 19,
+      "resource": "users",
+      "action": "assign",
+      "description": "assign access to Users",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 20,
+      "resource": "lobs",
+      "action": "create",
+      "description": "create access to Lines of Business",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 21,
+      "resource": "lobs",
+      "action": "read",
+      "description": "read access to Lines of Business",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 22,
+      "resource": "lobs",
+      "action": "update",
+      "description": "update access to Lines of Business",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 23,
+      "resource": "lobs",
+      "action": "delete",
+      "description": "delete access to Lines of Business",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 24,
+      "resource": "lobs",
+      "action": "manage",
+      "description": "manage access to Lines of Business",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 25,
+      "resource": "workflow",
+      "action": "read",
+      "description": "read access to Workflow",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 26,
+      "resource": "workflow",
+      "action": "approve",
+      "description": "approve access to Workflow",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 27,
+      "resource": "workflow",
+      "action": "override",
+      "description": "override access to Workflow",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 28,
+      "resource": "planning",
+      "action": "execute",
+      "description": "execute access to Planning Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 29,
+      "resource": "planning",
+      "action": "upload",
+      "description": "upload access to Planning Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 30,
+      "resource": "planning",
+      "action": "create",
+      "description": "create access to Planning Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 31,
+      "resource": "planning",
+      "action": "update",
+      "description": "update access to Planning Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 32,
+      "resource": "planning",
+      "action": "delete",
+      "description": "delete access to Planning Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 33,
+      "resource": "planning",
+      "action": "complete",
+      "description": "complete access to Planning Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 34,
+      "resource": "scoping",
+      "action": "execute",
+      "description": "execute access to Scoping Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 35,
+      "resource": "scoping",
+      "action": "generate",
+      "description": "generate access to Scoping Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 36,
+      "resource": "scoping",
+      "action": "submit",
+      "description": "submit access to Scoping Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 37,
+      "resource": "scoping",
+      "action": "approve",
+      "description": "approve access to Scoping Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 38,
+      "resource": "scoping",
+      "action": "complete",
+      "description": "complete access to Scoping Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 85,
+      "resource": "data_source",
+      "action": "manage",
+      "description": "Create, update and test data sources",
+      "created_at": "2025-07-30T00:37:00.232046+00:00",
+      "updated_at": "2025-07-30T00:37:00.232046+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 45,
+      "resource": "sample_selection",
+      "action": "execute",
+      "description": "execute access to Sample Selection Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 46,
+      "resource": "sample_selection",
+      "action": "generate",
+      "description": "generate access to Sample Selection Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 47,
+      "resource": "sample_selection",
+      "action": "upload",
+      "description": "upload access to Sample Selection Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 48,
+      "resource": "sample_selection",
+      "action": "approve",
+      "description": "approve access to Sample Selection Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 49,
+      "resource": "sample_selection",
+      "action": "complete",
+      "description": "complete access to Sample Selection Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 50,
+      "resource": "request_info",
+      "action": "execute",
+      "description": "execute access to Request Information Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 51,
+      "resource": "request_info",
+      "action": "upload",
+      "description": "upload access to Request Information Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 52,
+      "resource": "request_info",
+      "action": "provide",
+      "description": "provide access to Request Information Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 53,
+      "resource": "request_info",
+      "action": "complete",
+      "description": "complete access to Request Information Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 54,
+      "resource": "testing",
+      "action": "execute",
+      "description": "execute access to Testing Execution Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 55,
+      "resource": "testing",
+      "action": "submit",
+      "description": "submit access to Testing Execution Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 56,
+      "resource": "testing",
+      "action": "review",
+      "description": "review access to Testing Execution Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 57,
+      "resource": "testing",
+      "action": "approve",
+      "description": "approve access to Testing Execution Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 58,
+      "resource": "testing",
+      "action": "complete",
+      "description": "complete access to Testing Execution Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 59,
+      "resource": "observations",
+      "action": "create",
+      "description": "create access to Observation Management Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 60,
+      "resource": "observations",
+      "action": "submit",
+      "description": "submit access to Observation Management Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 61,
+      "resource": "observations",
+      "action": "review",
+      "description": "review access to Observation Management Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 62,
+      "resource": "observations",
+      "action": "approve",
+      "description": "approve access to Observation Management Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 63,
+      "resource": "observations",
+      "action": "override",
+      "description": "override access to Observation Management Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 64,
+      "resource": "observations",
+      "action": "complete",
+      "description": "complete access to Observation Management Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 65,
+      "resource": "testing",
+      "action": "read",
+      "description": "View testing execution data and test cases",
+      "created_at": "2025-06-15T03:03:46.685855+00:00",
+      "updated_at": "2025-06-15T03:03:46.685855+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 66,
+      "resource": "observations",
+      "action": "read",
+      "description": "View observations and observation reports",
+      "created_at": "2025-06-15T16:22:59.230804+00:00",
+      "updated_at": "2025-06-15T16:22:59.230804+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 67,
+      "resource": "test-cycles",
+      "action": "read",
+      "description": "View test cycles",
+      "created_at": "2025-06-15T16:46:46.752147+00:00",
+      "updated_at": "2025-06-15T16:46:46.752147+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 68,
+      "resource": "analytics",
+      "action": "read",
+      "description": "View analytics dashboard",
+      "created_at": "2025-06-15T16:46:46.752147+00:00",
+      "updated_at": "2025-06-15T16:46:46.752147+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 39,
+      "resource": "data_owner",
+      "action": "execute",
+      "description": "execute access to Data Provider ID Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 40,
+      "resource": "data_owner",
+      "action": "identify",
+      "description": "identify access to Data Provider ID Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 41,
+      "resource": "data_owner",
+      "action": "assign",
+      "description": "assign access to Data Provider ID Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 42,
+      "resource": "data_owner",
+      "action": "upload",
+      "description": "upload access to Data Provider ID Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 43,
+      "resource": "data_owner",
+      "action": "escalate",
+      "description": "escalate access to Data Provider ID Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 44,
+      "resource": "data_owner",
+      "action": "complete",
+      "description": "complete access to Data Provider ID Phase",
+      "created_at": "2025-06-07T17:03:28.993444+00:00",
+      "updated_at": "2025-06-07T17:03:28.993444+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 70,
+      "resource": "data_owner",
+      "action": "read",
+      "description": "Read data owner information",
+      "created_at": "2025-06-15T18:29:47.639758+00:00",
+      "updated_at": "2025-06-15T18:29:47.639758+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 71,
+      "resource": "sample_selection",
+      "action": "read",
+      "description": "Read sample selection data",
+      "created_at": "2025-06-16T00:49:46.355399+00:00",
+      "updated_at": "2025-06-15T20:49:46.351102+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 72,
+      "resource": "request_info",
+      "action": "read",
+      "description": "Read request info data",
+      "created_at": "2025-06-16T01:41:47.849630+00:00",
+      "updated_at": "2025-06-15T21:41:47.844914+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 73,
+      "resource": "metrics",
+      "action": "read",
+      "description": "Read metrics and analytics data",
+      "created_at": "2025-06-17T21:00:39.250842+00:00",
+      "updated_at": "2025-06-17T21:00:39.250842+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 74,
+      "resource": "metrics",
+      "action": "generate",
+      "description": "Generate metrics reports",
+      "created_at": "2025-06-17T21:00:39.250842+00:00",
+      "updated_at": "2025-06-17T21:00:39.250842+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 75,
+      "resource": "scoping",
+      "action": "read",
+      "description": "Read scoping data",
+      "created_at": "2025-06-17T21:02:52.856624+00:00",
+      "updated_at": "2025-06-17T21:02:52.856624+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 76,
+      "resource": "data_profiling",
+      "action": "assign",
+      "description": "Create and assign tasks to report owners for data profiling",
+      "created_at": "2025-06-22T21:31:51.617522+00:00",
+      "updated_at": "2025-06-22T21:31:51.617522+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 77,
+      "resource": "test_report",
+      "action": "read",
+      "description": "View test report content",
+      "created_at": "2025-06-25T02:13:41.917903+00:00",
+      "updated_at": "2025-06-25T02:13:41.917903+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 78,
+      "resource": "test_report",
+      "action": "write",
+      "description": "Generate and configure test reports",
+      "created_at": "2025-06-25T02:13:41.917903+00:00",
+      "updated_at": "2025-06-25T02:13:41.917903+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 79,
+      "resource": "test_report",
+      "action": "approve",
+      "description": "Approve test reports",
+      "created_at": "2025-06-25T02:13:41.917903+00:00",
+      "updated_at": "2025-06-25T02:13:41.917903+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 80,
+      "resource": "observation_enhanced",
+      "action": "read",
+      "description": "View enhanced observation management",
+      "created_at": "2025-06-25T02:13:41.917903+00:00",
+      "updated_at": "2025-06-25T02:13:41.917903+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 81,
+      "resource": "observation_enhanced",
+      "action": "write",
+      "description": "Create and manage enhanced observations",
+      "created_at": "2025-06-25T02:13:41.917903+00:00",
+      "updated_at": "2025-06-25T02:13:41.917903+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 82,
+      "resource": "observation_enhanced",
+      "action": "rate",
+      "description": "Rate observation severity",
+      "created_at": "2025-06-25T02:13:41.917903+00:00",
+      "updated_at": "2025-06-25T02:13:41.917903+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 83,
+      "resource": "observation_enhanced",
+      "action": "approve",
+      "description": "Approve or reject observations",
+      "created_at": "2025-06-25T02:13:41.917903+00:00",
+      "updated_at": "2025-06-25T02:13:41.917903+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 84,
+      "resource": "observation_enhanced",
+      "action": "finalize",
+      "description": "Finalize observation groups",
+      "created_at": "2025-06-25T02:13:41.917903+00:00",
+      "updated_at": "2025-06-25T02:13:41.917903+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 86,
+      "resource": "request_info",
+      "action": "write",
+      "description": "Write access to request info resources",
+      "created_at": "2025-07-30T00:37:00.232046+00:00",
+      "updated_at": "2025-07-30T00:37:00.232046+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 87,
+      "resource": "request_info",
+      "action": "review",
+      "description": "Review evidence submissions in Request Info phase",
+      "created_at": "2025-07-31T17:09:58.755505+00:00",
+      "updated_at": "2025-07-31T17:09:58.755505+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "permission_id": 88,
+      "resource": "observations",
+      "action": "delete",
+      "description": "Delete observations",
+      "created_at": "2025-08-01T22:55:15.906579+00:00",
+      "updated_at": "2025-08-01T22:55:15.906579+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    }
+  ]
+}

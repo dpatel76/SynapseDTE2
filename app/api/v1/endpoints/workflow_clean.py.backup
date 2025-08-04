@@ -1,0 +1,140 @@
+"""Workflow management endpoints using clean architecture"""
+from typing import Any, Optional
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.v1 import deps
+from app.application.dto.workflow_dto import WorkflowTransitionDTO
+from app.infrastructure.container import get_container, get_db
+
+router = APIRouter()
+
+
+@router.get("/{cycle_id}/reports/{report_id}/status")
+async def get_workflow_status(
+    *,
+    cycle_id: int,
+    report_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(deps.get_current_user),
+    container=Depends(get_container)
+) -> Any:
+    """
+    Get current workflow status for a report
+    """
+    request = {
+        "cycle_id": cycle_id,
+        "report_id": report_id
+    }
+    
+    use_case = container.get_workflow_status_use_case(db)
+    result = await use_case.execute(request)
+    
+    if not result.success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result.error
+        )
+    
+    # Convert DTO to response
+    workflow_state = result.data
+    phases = [
+        {
+            "phase_name": phase.phase_name,
+            "status": phase.status,
+            "started_at": phase.started_at,
+            "completed_at": phase.completed_at
+        }
+        for phase in workflow_state.phases
+    ]
+    
+    return {
+        "current_phase": workflow_state.current_phase,
+        "phases": phases,
+        "can_advance": workflow_state.can_advance,
+        "next_available_phases": workflow_state.next_available_phases,
+        "sla_status": workflow_state.sla_status
+    }
+
+
+@router.post("/{cycle_id}/reports/{report_id}/advance")
+async def advance_workflow_phase(
+    *,
+    cycle_id: int,
+    report_id: int,
+    from_phase: str,
+    to_phase: str,
+    override_dependencies: bool = False,
+    reason: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(deps.get_current_user),
+    container=Depends(get_container)
+) -> Any:
+    """
+    Advance workflow to next phase
+    """
+    # Create DTO
+    dto = WorkflowTransitionDTO(
+        cycle_id=cycle_id,
+        report_id=report_id,
+        from_phase=from_phase,
+        to_phase=to_phase,
+        requested_by=current_user.user_id,
+        override_dependencies=override_dependencies,
+        reason=reason
+    )
+    
+    use_case = container.get_advance_workflow_phase_use_case(db)
+    result = await use_case.execute(dto)
+    
+    if not result.success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=result.error
+        )
+    
+    return {
+        "message": f"Workflow advanced from {from_phase} to {to_phase}",
+        "current_phase": result.data.current_phase,
+        "can_advance": result.data.can_advance,
+        "next_available_phases": result.data.next_available_phases
+    }
+
+
+@router.put("/{cycle_id}/reports/{report_id}/phases/{phase_name}/override")
+async def override_phase_status(
+    *,
+    cycle_id: int,
+    report_id: int,
+    phase_name: str,
+    new_status: str,
+    reason: str,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(deps.get_current_user),
+    container=Depends(get_container)
+) -> Any:
+    """
+    Override phase status (admin function)
+    """
+    request = {
+        "cycle_id": cycle_id,
+        "report_id": report_id,
+        "phase_name": phase_name,
+        "new_status": new_status,
+        "user_id": current_user.user_id,
+        "reason": reason
+    }
+    
+    use_case = container.get_override_phase_use_case(db)
+    result = await use_case.execute(request)
+    
+    if not result.success:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=result.error
+        )
+    
+    return {
+        "message": f"Phase {phase_name} status overridden to {new_status}",
+        "reason": reason
+    }

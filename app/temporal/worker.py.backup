@@ -1,0 +1,137 @@
+"""Temporal worker for executing workflows and activities"""
+
+import asyncio
+import logging
+from temporalio.client import Client
+from temporalio.worker import Worker
+from typing import Optional
+
+from app.temporal.shared.constants import (
+    TASK_QUEUE_WORKFLOW, TASK_QUEUE_LLM, 
+    TASK_QUEUE_NOTIFICATION, TASK_QUEUE_REPORT
+)
+from app.temporal.workflows.test_cycle_workflow import TestCycleWorkflow
+from app.temporal.workflows.report_testing_workflow import ReportTestingWorkflow
+from app.temporal.workflows.llm_analysis_workflow import LLMAnalysisWorkflow
+from app.temporal.activities import (
+    # Phase activities
+    start_phase_activity, complete_phase_activity,
+    check_phase_dependencies_activity, get_phase_status_activity,
+    # LLM activities
+    generate_test_attributes_activity, analyze_document_activity,
+    recommend_tests_activity, analyze_patterns_activity,
+    # Test activities
+    create_test_cases_activity, execute_test_activity,
+    batch_execute_tests_activity, validate_test_results_activity,
+    # Notification activities
+    send_email_notification_activity, create_in_app_notification_activity,
+    send_phase_completion_notification_activity
+)
+from app.core.config import get_settings
+
+logger = logging.getLogger(__name__)
+
+
+class TemporalWorker:
+    """Manages Temporal workers"""
+    
+    def __init__(self):
+        self.client: Optional[Client] = None
+        self.workers = []
+        self.settings = get_settings()
+    
+    async def start(self):
+        """Start all workers"""
+        try:
+            # Connect to Temporal
+            self.client = await Client.connect(
+                self.settings.TEMPORAL_HOST or "localhost:7233",
+                namespace=self.settings.TEMPORAL_NAMESPACE or "default"
+            )
+            
+            # Create workflow worker
+            workflow_worker = Worker(
+                self.client,
+                task_queue=TASK_QUEUE_WORKFLOW,
+                workflows=[
+                    TestCycleWorkflow,
+                    ReportTestingWorkflow,
+                    LLMAnalysisWorkflow
+                ],
+                activities=[
+                    start_phase_activity,
+                    complete_phase_activity,
+                    check_phase_dependencies_activity,
+                    get_phase_status_activity,
+                    create_test_cases_activity,
+                    execute_test_activity,
+                    batch_execute_tests_activity,
+                    validate_test_results_activity,
+                    send_phase_completion_notification_activity,
+                    create_in_app_notification_activity
+                ]
+            )
+            self.workers.append(workflow_worker)
+            
+            # Create LLM worker (separate for resource isolation)
+            llm_worker = Worker(
+                self.client,
+                task_queue=TASK_QUEUE_LLM,
+                workflows=[LLMAnalysisWorkflow],
+                activities=[
+                    generate_test_attributes_activity,
+                    analyze_document_activity,
+                    recommend_tests_activity,
+                    analyze_patterns_activity
+                ]
+            )
+            self.workers.append(llm_worker)
+            
+            # Create notification worker
+            notification_worker = Worker(
+                self.client,
+                task_queue=TASK_QUEUE_NOTIFICATION,
+                activities=[
+                    send_email_notification_activity,
+                    create_in_app_notification_activity,
+                    send_phase_completion_notification_activity
+                ]
+            )
+            self.workers.append(notification_worker)
+            
+            # Start all workers
+            await asyncio.gather(*[worker.run() for worker in self.workers])
+            
+        except Exception as e:
+            logger.error(f"Failed to start Temporal workers: {str(e)}")
+            raise
+    
+    async def stop(self):
+        """Stop all workers"""
+        for worker in self.workers:
+            await worker.shutdown()
+        
+        if self.client:
+            await self.client.close()
+
+
+async def main():
+    """Main entry point for worker"""
+    logging.basicConfig(level=logging.INFO)
+    logger.info("Starting Temporal workers...")
+    
+    worker = TemporalWorker()
+    
+    try:
+        await worker.start()
+    except KeyboardInterrupt:
+        logger.info("Shutting down workers...")
+        await worker.stop()
+    except Exception as e:
+        logger.error(f"Worker error: {str(e)}")
+        await worker.stop()
+        raise
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

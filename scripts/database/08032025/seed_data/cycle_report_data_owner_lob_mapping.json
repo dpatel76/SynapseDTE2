@@ -1,0 +1,29 @@
+{
+  "table": "cycle_report_data_owner_lob_mapping",
+  "row_count": 1,
+  "extracted_at": "2025-08-03T11:29:28.745587",
+  "data": [
+    {
+      "mapping_id": "b1e2a8ce-cec1-444e-a312-b6e30ec177ab",
+      "version_id": null,
+      "phase_id": 478,
+      "sample_id": null,
+      "attribute_id": 400,
+      "lob_id": 338,
+      "data_owner_id": 6,
+      "data_executive_id": 5,
+      "assigned_by_data_executive_at": "2025-07-29T17:54:55.259993+00:00",
+      "assignment_rationale": "",
+      "previous_data_owner_id": null,
+      "change_reason": null,
+      "assignment_status": "assigned",
+      "data_owner_acknowledged": false,
+      "data_owner_acknowledged_at": null,
+      "data_owner_response_notes": null,
+      "created_at": "2025-07-29T03:32:56.997573+00:00",
+      "created_by_id": 3,
+      "updated_at": "2025-07-29T17:54:55.259993+00:00",
+      "updated_by_id": 5
+    }
+  ]
+}

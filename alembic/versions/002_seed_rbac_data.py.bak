@@ -1,0 +1,390 @@
+"""Seed RBAC roles, permissions, and essential data
+
+Revision ID: 002_seed_rbac_data
+Revises: 001_add_missing_indexes
+Create Date: 2024-12-01 11:00:00.000000
+
+"""
+from alembic import op
+import sqlalchemy as sa
+from sqlalchemy.sql import table, column
+from datetime import datetime
+
+
+# revision identifiers, used by Alembic.
+revision = '002_seed_rbac_data'
+down_revision = '001_add_missing_indexes'
+branch_labels = None
+depends_on = None
+
+
+def upgrade() -> None:
+    """Seed RBAC roles, permissions, and essential configuration data"""
+    
+    # Create references to tables
+    roles_table = table('roles',
+        column('role_id', sa.Integer),
+        column('role_name', sa.String),
+        column('display_label', sa.String),
+        column('description', sa.Text),
+        column('is_active', sa.Boolean),
+        column('created_at', sa.DateTime)
+    )
+    
+    permissions_table = table('permissions',
+        column('permission_id', sa.Integer),
+        column('permission_name', sa.String),
+        column('resource', sa.String),
+        column('action', sa.String),
+        column('description', sa.Text),
+        column('created_at', sa.DateTime)
+    )
+    
+    role_permissions_table = table('role_permissions',
+        column('role_id', sa.Integer),
+        column('permission_id', sa.Integer),
+        column('created_at', sa.DateTime)
+    )
+    
+    workflow_phase_config_table = table('workflow_phase_configurations',
+        column('phase_id', sa.Integer),
+        column('phase_name', sa.String),
+        column('display_name', sa.String),
+        column('sequence_order', sa.Integer),
+        column('is_required', sa.Boolean),
+        column('can_run_parallel', sa.Boolean),
+        column('depends_on', sa.JSON),
+        column('sla_hours', sa.Integer),
+        column('created_at', sa.DateTime)
+    )
+    
+    sla_configurations_table = table('sla_configurations',
+        column('sla_id', sa.Integer),
+        column('sla_type', sa.String),
+        column('duration_hours', sa.Integer),
+        column('warning_hours', sa.Integer),
+        column('business_hours_only', sa.Boolean),
+        column('exclude_weekends', sa.Boolean),
+        column('escalation_enabled', sa.Boolean),
+        column('is_active', sa.Boolean),
+        column('created_at', sa.DateTime)
+    )
+    
+    # Insert roles with new naming
+    op.bulk_insert(roles_table, [
+        {
+            'role_id': 1,
+            'role_name': 'tester',
+            'display_label': 'Tester',
+            'description': 'Executes testing workflow and creates test cases',
+            'is_active': True,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'role_id': 2,
+            'role_name': 'test_executive',
+            'display_label': 'Test Executive',
+            'description': 'Manages test cycles and assigns reports to testers',
+            'is_active': True,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'role_id': 3,
+            'role_name': 'data_owner',
+            'display_label': 'Data Owner',
+            'description': 'Provides source data and confirms information accuracy',
+            'is_active': True,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'role_id': 4,
+            'role_name': 'data_executive',
+            'display_label': 'Data Executive',
+            'description': 'Manages data owner assignments for line of business',
+            'is_active': True,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'role_id': 5,
+            'role_name': 'report_owner',
+            'display_label': 'Report Owner',
+            'description': 'Approves testing decisions and reviews observations',
+            'is_active': True,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'role_id': 6,
+            'role_name': 'report_executive',
+            'display_label': 'Report Executive',
+            'description': 'Executive oversight of report portfolio',
+            'is_active': True,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'role_id': 7,
+            'role_name': 'admin',
+            'display_label': 'Administrator',
+            'description': 'System administrator with full access',
+            'is_active': True,
+            'created_at': datetime.utcnow()
+        }
+    ])
+    
+    # Insert permissions (sample set - expand as needed)
+    permissions_data = [
+        # Test cycle management
+        {'permission_id': 1, 'permission_name': 'create_test_cycle', 'resource': 'test_cycle', 'action': 'create'},
+        {'permission_id': 2, 'permission_name': 'view_test_cycle', 'resource': 'test_cycle', 'action': 'read'},
+        {'permission_id': 3, 'permission_name': 'update_test_cycle', 'resource': 'test_cycle', 'action': 'update'},
+        {'permission_id': 4, 'permission_name': 'delete_test_cycle', 'resource': 'test_cycle', 'action': 'delete'},
+        
+        # Report assignment
+        {'permission_id': 5, 'permission_name': 'assign_reports', 'resource': 'report_assignment', 'action': 'create'},
+        {'permission_id': 6, 'permission_name': 'view_assignments', 'resource': 'report_assignment', 'action': 'read'},
+        
+        # Workflow phases
+        {'permission_id': 10, 'permission_name': 'execute_planning', 'resource': 'planning_phase', 'action': 'execute'},
+        {'permission_id': 11, 'permission_name': 'execute_scoping', 'resource': 'scoping_phase', 'action': 'execute'},
+        {'permission_id': 12, 'permission_name': 'approve_scoping', 'resource': 'scoping_phase', 'action': 'approve'},
+        {'permission_id': 13, 'permission_name': 'execute_sample_selection', 'resource': 'sample_phase', 'action': 'execute'},
+        {'permission_id': 14, 'permission_name': 'approve_sample_selection', 'resource': 'sample_phase', 'action': 'approve'},
+        {'permission_id': 15, 'permission_name': 'assign_data_owners', 'resource': 'data_owner_phase', 'action': 'assign'},
+        {'permission_id': 16, 'permission_name': 'submit_source_info', 'resource': 'request_info_phase', 'action': 'submit'},
+        {'permission_id': 17, 'permission_name': 'execute_testing', 'resource': 'testing_phase', 'action': 'execute'},
+        {'permission_id': 18, 'permission_name': 'create_observations', 'resource': 'observation_phase', 'action': 'create'},
+        {'permission_id': 19, 'permission_name': 'approve_observations', 'resource': 'observation_phase', 'action': 'approve'},
+        {'permission_id': 20, 'permission_name': 'generate_report', 'resource': 'testing_report', 'action': 'generate'},
+        
+        # Dashboard access
+        {'permission_id': 30, 'permission_name': 'view_tester_dashboard', 'resource': 'dashboard', 'action': 'view_tester'},
+        {'permission_id': 31, 'permission_name': 'view_executive_dashboard', 'resource': 'dashboard', 'action': 'view_executive'},
+        {'permission_id': 32, 'permission_name': 'view_data_dashboard', 'resource': 'dashboard', 'action': 'view_data'},
+        
+        # Admin permissions
+        {'permission_id': 50, 'permission_name': 'manage_users', 'resource': 'user', 'action': 'manage'},
+        {'permission_id': 51, 'permission_name': 'manage_rbac', 'resource': 'rbac', 'action': 'manage'},
+        {'permission_id': 52, 'permission_name': 'view_audit_logs', 'resource': 'audit', 'action': 'read'},
+    ]
+    
+    for perm in permissions_data:
+        perm['description'] = f"{perm['action'].title()} {perm['resource'].replace('_', ' ')}"
+        perm['created_at'] = datetime.utcnow()
+    
+    op.bulk_insert(permissions_table, permissions_data)
+    
+    # Insert role-permission mappings
+    role_permissions_data = [
+        # Tester permissions
+        {'role_id': 1, 'permission_id': 2},   # view_test_cycle
+        {'role_id': 1, 'permission_id': 10},  # execute_planning
+        {'role_id': 1, 'permission_id': 11},  # execute_scoping
+        {'role_id': 1, 'permission_id': 13},  # execute_sample_selection
+        {'role_id': 1, 'permission_id': 17},  # execute_testing
+        {'role_id': 1, 'permission_id': 18},  # create_observations
+        {'role_id': 1, 'permission_id': 20},  # generate_report
+        {'role_id': 1, 'permission_id': 30},  # view_tester_dashboard
+        
+        # Test Executive permissions (includes all tester permissions plus more)
+        {'role_id': 2, 'permission_id': 1},   # create_test_cycle
+        {'role_id': 2, 'permission_id': 2},   # view_test_cycle
+        {'role_id': 2, 'permission_id': 3},   # update_test_cycle
+        {'role_id': 2, 'permission_id': 5},   # assign_reports
+        {'role_id': 2, 'permission_id': 6},   # view_assignments
+        {'role_id': 2, 'permission_id': 10},  # execute_planning
+        {'role_id': 2, 'permission_id': 11},  # execute_scoping
+        {'role_id': 2, 'permission_id': 13},  # execute_sample_selection
+        {'role_id': 2, 'permission_id': 17},  # execute_testing
+        {'role_id': 2, 'permission_id': 18},  # create_observations
+        {'role_id': 2, 'permission_id': 20},  # generate_report
+        {'role_id': 2, 'permission_id': 30},  # view_tester_dashboard
+        {'role_id': 2, 'permission_id': 31},  # view_executive_dashboard
+        
+        # Data Owner permissions
+        {'role_id': 3, 'permission_id': 16},  # submit_source_info
+        {'role_id': 3, 'permission_id': 32},  # view_data_dashboard
+        
+        # Data Executive permissions
+        {'role_id': 4, 'permission_id': 15},  # assign_data_owners
+        {'role_id': 4, 'permission_id': 32},  # view_data_dashboard
+        {'role_id': 4, 'permission_id': 31},  # view_executive_dashboard
+        
+        # Report Owner permissions
+        {'role_id': 5, 'permission_id': 12},  # approve_scoping
+        {'role_id': 5, 'permission_id': 14},  # approve_sample_selection
+        {'role_id': 5, 'permission_id': 19},  # approve_observations
+        {'role_id': 5, 'permission_id': 30},  # view_tester_dashboard
+        
+        # Report Executive permissions
+        {'role_id': 6, 'permission_id': 31},  # view_executive_dashboard
+        {'role_id': 6, 'permission_id': 52},  # view_audit_logs
+        
+        # Admin gets all permissions
+        {'role_id': 7, 'permission_id': pid} for pid in range(1, 53)
+    ]
+    
+    for mapping in role_permissions_data:
+        mapping['created_at'] = datetime.utcnow()
+    
+    op.bulk_insert(role_permissions_table, role_permissions_data)
+    
+    # Insert workflow phase configurations (8 phases)
+    op.bulk_insert(workflow_phase_config_table, [
+        {
+            'phase_id': 1,
+            'phase_name': 'planning',
+            'display_name': 'Planning',
+            'sequence_order': 1,
+            'is_required': True,
+            'can_run_parallel': False,
+            'depends_on': [],
+            'sla_hours': 72,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'phase_id': 2,
+            'phase_name': 'scoping',
+            'display_name': 'Scoping',
+            'sequence_order': 2,
+            'is_required': True,
+            'can_run_parallel': False,
+            'depends_on': ['planning'],
+            'sla_hours': 48,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'phase_id': 3,
+            'phase_name': 'sample_selection',
+            'display_name': 'Sample Selection',
+            'sequence_order': 3,
+            'is_required': True,
+            'can_run_parallel': True,
+            'depends_on': ['scoping'],
+            'sla_hours': 48,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'phase_id': 4,
+            'phase_name': 'data_owner_identification',
+            'display_name': 'Data Owner Identification',
+            'sequence_order': 4,
+            'is_required': True,
+            'can_run_parallel': True,
+            'depends_on': ['scoping'],
+            'sla_hours': 24,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'phase_id': 5,
+            'phase_name': 'request_source_information',
+            'display_name': 'Request Source Information',
+            'sequence_order': 5,
+            'is_required': True,
+            'can_run_parallel': False,
+            'depends_on': ['data_owner_identification'],
+            'sla_hours': 120,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'phase_id': 6,
+            'phase_name': 'test_execution',
+            'display_name': 'Test Execution',
+            'sequence_order': 6,
+            'is_required': True,
+            'can_run_parallel': False,
+            'depends_on': ['request_source_information', 'sample_selection'],
+            'sla_hours': 168,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'phase_id': 7,
+            'phase_name': 'observation_management',
+            'display_name': 'Observation Management',
+            'sequence_order': 7,
+            'is_required': True,
+            'can_run_parallel': False,
+            'depends_on': ['test_execution'],
+            'sla_hours': 48,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'phase_id': 8,
+            'phase_name': 'testing_report',
+            'display_name': 'Testing Report',
+            'sequence_order': 8,
+            'is_required': True,
+            'can_run_parallel': False,
+            'depends_on': ['observation_management'],
+            'sla_hours': 24,
+            'created_at': datetime.utcnow()
+        }
+    ])
+    
+    # Insert SLA configurations
+    op.bulk_insert(sla_configurations_table, [
+        {
+            'sla_id': 1,
+            'sla_type': 'planning_phase',
+            'duration_hours': 72,
+            'warning_hours': 24,
+            'business_hours_only': True,
+            'exclude_weekends': True,
+            'escalation_enabled': True,
+            'is_active': True,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'sla_id': 2,
+            'sla_type': 'scoping_phase',
+            'duration_hours': 48,
+            'warning_hours': 12,
+            'business_hours_only': True,
+            'exclude_weekends': True,
+            'escalation_enabled': True,
+            'is_active': True,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'sla_id': 3,
+            'sla_type': 'data_owner_assignment',
+            'duration_hours': 24,
+            'warning_hours': 6,
+            'business_hours_only': True,
+            'exclude_weekends': True,
+            'escalation_enabled': True,
+            'is_active': True,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'sla_id': 4,
+            'sla_type': 'approval_request',
+            'duration_hours': 24,
+            'warning_hours': 6,
+            'business_hours_only': True,
+            'exclude_weekends': True,
+            'escalation_enabled': True,
+            'is_active': True,
+            'created_at': datetime.utcnow()
+        },
+        {
+            'sla_id': 5,
+            'sla_type': 'data_submission',
+            'duration_hours': 120,
+            'warning_hours': 24,
+            'business_hours_only': True,
+            'exclude_weekends': True,
+            'escalation_enabled': True,
+            'is_active': True,
+            'created_at': datetime.utcnow()
+        }
+    ])
+
+
+def downgrade() -> None:
+    """Remove seeded RBAC data"""
+    
+    # Delete in reverse order due to foreign key constraints
+    op.execute("DELETE FROM role_permissions")
+    op.execute("DELETE FROM permissions")
+    op.execute("DELETE FROM roles")
+    op.execute("DELETE FROM workflow_phase_configurations")
+    op.execute("DELETE FROM sla_configurations")

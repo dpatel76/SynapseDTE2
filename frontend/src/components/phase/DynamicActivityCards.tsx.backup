@@ -1,0 +1,274 @@
+import { useState } from 'react';
+import { 
+  Card, CardContent, Box, Typography, Chip, Button, IconButton, 
+  Tooltip, CircularProgress, Dialog, DialogTitle, DialogContent, 
+  DialogActions, List, ListItem, ListItemText 
+} from '@mui/material';
+import { 
+  RestartAlt as ResetIcon, 
+  PlayArrow as StartIcon,
+  CheckCircle as CompleteIcon,
+  Warning as WarningIcon 
+} from '@mui/icons-material';
+import { ActivityStatus } from '../../hooks/useUnifiedStatus';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import apiClient from '../../api/client';
+import { useNotifications } from '../../contexts/NotificationContext';
+
+interface DynamicActivityCardsProps {
+  activities: ActivityStatus[];
+  cycleId: number;
+  reportId: number;
+  phaseName: string;
+  onActivityAction?: (activity: ActivityStatus, action: string) => void;
+  variant?: 'stepper' | 'cards' | 'timeline';
+}
+
+const getStatusColor = (status: string): 'default' | 'primary' | 'success' | 'warning' | 'error' => {
+  switch (status) {
+    case 'completed':
+      return 'success';
+    case 'active':
+      return 'primary';
+    case 'blocked':
+      return 'error';
+    case 'skipped':
+      return 'warning';
+    default:
+      return 'default';
+  }
+};
+
+const formatStatusText = (status: string): string => {
+  switch (status) {
+    case 'pending':
+      return 'Pending';
+    case 'active':
+      return 'In Progress';
+    case 'completed':
+      return 'Completed';
+    case 'blocked':
+      return 'Blocked';
+    case 'skipped':
+      return 'Skipped';
+    default:
+      return status;
+  }
+};
+
+export const DynamicActivityCards: React.FC<DynamicActivityCardsProps> = ({
+  activities,
+  cycleId,
+  reportId,
+  phaseName,
+  onActivityAction,
+  variant = 'cards'
+}) => {
+  const queryClient = useQueryClient();
+  const { showToast } = useNotifications();
+  const [resetDialog, setResetDialog] = useState<{
+    open: boolean;
+    activity: ActivityStatus | null;
+    affectedActivities: string[];
+  }>({ open: false, activity: null, affectedActivities: [] });
+
+  // Reset mutation
+  const resetMutation = useMutation({
+    mutationFn: async (activityId: string) => {
+      const response = await apiClient.post(
+        `/activity-states/activities/${activityId}/reset`,
+        null,
+        {
+          params: { cycle_id: cycleId, report_id: reportId, phase_name: phaseName }
+        }
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      showToast('success', data.message || 'Activities reset successfully');
+      // Invalidate phase status to refresh
+      queryClient.invalidateQueries({ 
+        queryKey: ['phaseStatus', phaseName, cycleId, reportId] 
+      });
+      setResetDialog({ open: false, activity: null, affectedActivities: [] });
+    },
+    onError: (error: any) => {
+      showToast('error', error.response?.data?.detail || 'Failed to reset activity');
+    }
+  });
+
+  const handleResetClick = (activity: ActivityStatus) => {
+    // Find all subsequent activities that would be affected
+    const activityIndex = activities.findIndex(a => a.activity_id === activity.activity_id);
+    const affectedActivities = activities
+      .slice(activityIndex + 1)
+      .filter(a => a.status === 'completed')
+      .map(a => a.name);
+    
+    setResetDialog({
+      open: true,
+      activity,
+      affectedActivities
+    });
+  };
+
+  const handleResetConfirm = () => {
+    if (resetDialog.activity) {
+      resetMutation.mutate(resetDialog.activity.activity_id);
+    }
+  };
+
+  const renderActivityCard = (activity: ActivityStatus) => {
+    const canReset = activity.status === 'completed' && activity.can_reset !== false;
+    
+    return (
+      <Card 
+        key={activity.activity_id} 
+        sx={{ 
+          flex: '1 1 250px', 
+          minWidth: 250,
+          position: 'relative',
+          transition: 'all 0.3s',
+          '&:hover': {
+            boxShadow: 3,
+            transform: 'translateY(-2px)'
+          }
+        }}
+      >
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h6" sx={{ fontSize: '0.9rem' }}>
+                {activity.name}
+              </Typography>
+              <Chip 
+                label={formatStatusText(activity.status)} 
+                color={getStatusColor(activity.status)}
+                size="small"
+                sx={{ mt: 0.5 }}
+              />
+            </Box>
+            {canReset && (
+              <Tooltip title="Reset this activity and all subsequent activities">
+                <IconButton
+                  size="small"
+                  onClick={() => handleResetClick(activity)}
+                  sx={{ 
+                    ml: 1,
+                    color: 'warning.main',
+                    '&:hover': { backgroundColor: 'warning.light', color: 'warning.dark' }
+                  }}
+                >
+                  <ResetIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
+          
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            {activity.description}
+          </Typography>
+          
+          {/* Show reset history if exists */}
+          {activity.metadata?.reset_history && activity.metadata.reset_history.length > 0 && (
+            <Typography variant="caption" color="warning.main" sx={{ display: 'block', mt: 1 }}>
+              <WarningIcon sx={{ fontSize: 12, verticalAlign: 'middle', mr: 0.5 }} />
+              Previously reset {activity.metadata.reset_history.length} time(s)
+            </Typography>
+          )}
+          
+          {/* Action buttons */}
+          <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+            {activity.can_start && (
+              <Button 
+                size="small" 
+                startIcon={<StartIcon />}
+                onClick={() => onActivityAction?.(activity, 'start')}
+                variant="outlined"
+              >
+                Start
+              </Button>
+            )}
+            {activity.can_complete && (
+              <Button 
+                size="small" 
+                color="success"
+                startIcon={<CompleteIcon />}
+                onClick={() => onActivityAction?.(activity, 'complete')}
+                variant="contained"
+              >
+                Complete
+              </Button>
+            )}
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  return (
+    <>
+      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        {activities.map(activity => renderActivityCard(activity))}
+      </Box>
+      
+      {/* Reset Confirmation Dialog */}
+      <Dialog 
+        open={resetDialog.open} 
+        onClose={() => setResetDialog({ open: false, activity: null, affectedActivities: [] })}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <WarningIcon color="warning" />
+            Reset Activity Confirmation
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" gutterBottom>
+            Are you sure you want to reset "{resetDialog.activity?.name}"?
+          </Typography>
+          
+          {resetDialog.affectedActivities.length > 0 && (
+            <>
+              <Typography variant="body2" color="warning.main" sx={{ mt: 2, mb: 1 }}>
+                This will also reset the following completed activities:
+              </Typography>
+              <List dense sx={{ bgcolor: 'warning.light', borderRadius: 1, p: 1 }}>
+                {resetDialog.affectedActivities.map((name, idx) => (
+                  <ListItem key={idx}>
+                    <ListItemText 
+                      primary={name}
+                      primaryTypographyProps={{ variant: 'body2' }}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </>
+          )}
+          
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+            Note: You will need to complete these activities again to finish the phase.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setResetDialog({ open: false, activity: null, affectedActivities: [] })}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleResetConfirm} 
+            color="warning"
+            variant="contained"
+            disabled={resetMutation.isPending}
+            startIcon={resetMutation.isPending ? <CircularProgress size={16} /> : <ResetIcon />}
+          >
+            Reset Activities
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+};

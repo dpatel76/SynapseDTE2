@@ -1,0 +1,325 @@
+"""
+Clean Architecture Lines of Business API endpoints
+"""
+
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_, or_
+
+from app.core.database import get_db
+from app.core.dependencies import get_current_user
+from app.core.permissions import require_permission
+from app.infrastructure.di import get_repository, get_use_case
+from app.application.dtos import LOBDTO, LOBCreateDTO, LOBUpdateDTO
+
+router = APIRouter()
+
+
+@router.get("/", response_model=List[LOBDTO])
+@require_permission("lobs", "read")
+async def get_lobs(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    active_only: bool = Query(True),
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """Get all lines of business with pagination"""
+    
+    # Get repository
+    lob_repository = get_repository("lob_repository")
+    
+    if not lob_repository:
+        # Fallback to direct implementation
+        from app.models.lob import LOB
+        
+        query = select(LOB)
+        if active_only:
+            query = query.where(LOB.is_active == True)
+        
+        query = query.order_by(LOB.lob_name).offset(skip).limit(limit)
+        result = await db.execute(query)
+        lobs = result.scalars().all()
+        
+        return [
+            LOBDTO(
+                lob_id=lob.lob_id,
+                lob_name=lob.lob_name,
+                lob_code=lob.lob_code,
+                description=lob.description,
+                is_active=lob.is_active,
+                created_at=lob.created_at,
+                updated_at=lob.updated_at
+            )
+            for lob in lobs
+        ]
+    
+    # Use clean architecture implementation
+    lobs = await lob_repository.get_all(
+        skip=skip,
+        limit=limit,
+        active_only=active_only,
+        db=db
+    )
+    
+    return lobs
+
+
+@router.get("/{lob_id}", response_model=LOBDTO)
+@require_permission("lobs", "read")
+async def get_lob(
+    lob_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """Get a specific line of business by ID"""
+    
+    # Get repository
+    lob_repository = get_repository("lob_repository")
+    
+    if not lob_repository:
+        # Fallback to direct implementation
+        from app.models.lob import LOB
+        
+        result = await db.execute(
+            select(LOB).where(LOB.lob_id == lob_id)
+        )
+        lob = result.scalar_one_or_none()
+        
+        if not lob:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Line of business not found"
+            )
+        
+        return LOBDTO(
+            lob_id=lob.lob_id,
+            lob_name=lob.lob_name,
+            lob_code=lob.lob_code,
+            description=lob.description,
+            is_active=lob.is_active,
+            created_at=lob.created_at,
+            updated_at=lob.updated_at
+        )
+    
+    # Use clean architecture implementation
+    lob = await lob_repository.get_by_id(lob_id, db)
+    
+    if not lob:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Line of business not found"
+        )
+    
+    return lob
+
+
+@router.post("/", response_model=LOBDTO)
+@require_permission("lobs", "create")
+async def create_lob(
+    lob_data: LOBCreateDTO,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """Create a new line of business"""
+    
+    # Get use case
+    create_lob_use_case = get_use_case("create_lob")
+    
+    if not create_lob_use_case:
+        # Fallback to direct implementation
+        from app.models.lob import LOB
+        
+        # Check if LOB name or code already exists
+        result = await db.execute(
+            select(LOB).where(
+                or_(
+                    LOB.lob_name == lob_data.lob_name,
+                    LOB.lob_code == lob_data.lob_code
+                )
+            )
+        )
+        existing = result.scalar_one_or_none()
+        
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Line of business with this name or code already exists"
+            )
+        
+        # Create LOB
+        lob = LOB(
+            lob_name=lob_data.lob_name,
+            lob_code=lob_data.lob_code,
+            description=lob_data.description,
+            is_active=True,
+            created_by=current_user.user_id
+        )
+        
+        db.add(lob)
+        await db.commit()
+        await db.refresh(lob)
+        
+        return LOBDTO(
+            lob_id=lob.lob_id,
+            lob_name=lob.lob_name,
+            lob_code=lob.lob_code,
+            description=lob.description,
+            is_active=lob.is_active,
+            created_at=lob.created_at,
+            updated_at=lob.updated_at
+        )
+    
+    # Use clean architecture implementation
+    try:
+        lob = await create_lob_use_case.execute(
+            lob_data=lob_data,
+            created_by=current_user.user_id,
+            db=db
+        )
+        return lob
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
+@router.put("/{lob_id}", response_model=LOBDTO)
+@require_permission("lobs", "update")
+async def update_lob(
+    lob_id: int,
+    lob_data: LOBUpdateDTO,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """Update an existing line of business"""
+    
+    # Get use case
+    update_lob_use_case = get_use_case("update_lob")
+    
+    if not update_lob_use_case:
+        # Fallback to direct implementation
+        from app.models.lob import LOB
+        from datetime import datetime
+        
+        result = await db.execute(
+            select(LOB).where(LOB.lob_id == lob_id)
+        )
+        lob = result.scalar_one_or_none()
+        
+        if not lob:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Line of business not found"
+            )
+        
+        # Update fields
+        if lob_data.lob_name is not None:
+            lob.lob_name = lob_data.lob_name
+        if lob_data.lob_code is not None:
+            lob.lob_code = lob_data.lob_code
+        if lob_data.description is not None:
+            lob.description = lob_data.description
+        if lob_data.is_active is not None:
+            lob.is_active = lob_data.is_active
+        
+        lob.updated_at = datetime.utcnow()
+        lob.updated_by = current_user.user_id
+        
+        await db.commit()
+        await db.refresh(lob)
+        
+        return LOBDTO(
+            lob_id=lob.lob_id,
+            lob_name=lob.lob_name,
+            lob_code=lob.lob_code,
+            description=lob.description,
+            is_active=lob.is_active,
+            created_at=lob.created_at,
+            updated_at=lob.updated_at
+        )
+    
+    # Use clean architecture implementation
+    try:
+        lob = await update_lob_use_case.execute(
+            lob_id=lob_id,
+            lob_data=lob_data,
+            updated_by=current_user.user_id,
+            db=db
+        )
+        return lob
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
+@router.delete("/{lob_id}")
+@require_permission("lobs", "delete")
+async def delete_lob(
+    lob_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """Delete a line of business (soft delete)"""
+    
+    # Get use case
+    delete_lob_use_case = get_use_case("delete_lob")
+    
+    if not delete_lob_use_case:
+        # Fallback to direct implementation
+        from app.models.lob import LOB
+        from app.models.user import User
+        from datetime import datetime
+        
+        # Check if LOB is in use
+        user_result = await db.execute(
+            select(User).where(
+                and_(
+                    User.lob_id == lob_id,
+                    User.is_active == True
+                )
+            ).limit(1)
+        )
+        if user_result.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot delete LOB that has active users assigned"
+            )
+        
+        result = await db.execute(
+            select(LOB).where(LOB.lob_id == lob_id)
+        )
+        lob = result.scalar_one_or_none()
+        
+        if not lob:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Line of business not found"
+            )
+        
+        # Soft delete
+        lob.is_active = False
+        lob.deleted_at = datetime.utcnow()
+        lob.deleted_by = current_user.user_id
+        
+        await db.commit()
+        
+        return {"message": "Line of business deleted successfully"}
+    
+    # Use clean architecture implementation
+    try:
+        await delete_lob_use_case.execute(
+            lob_id=lob_id,
+            deleted_by=current_user.user_id,
+            db=db
+        )
+        return {"message": "Line of business deleted successfully"}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )

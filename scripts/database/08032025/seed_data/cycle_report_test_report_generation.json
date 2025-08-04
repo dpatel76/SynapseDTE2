@@ -1,0 +1,35 @@
+{
+  "table": "cycle_report_test_report_generation",
+  "row_count": 1,
+  "extracted_at": "2025-08-03T11:29:28.886552",
+  "data": [
+    {
+      "id": 2,
+      "phase_id": 482,
+      "cycle_id": 58,
+      "report_id": 156,
+      "generation_started_at": "2025-08-03T07:56:51.928165+00:00",
+      "generation_completed_at": "2025-08-03T07:56:52.195916+00:00",
+      "generation_duration_ms": 267,
+      "phase_data_collected": null,
+      "status": "completed",
+      "error_message": null,
+      "total_sections": 10,
+      "sections_completed": 10,
+      "output_formats_generated": [
+        "json",
+        "markdown",
+        "html"
+      ],
+      "all_approvals_received": false,
+      "phase_completion_ready": false,
+      "phase_completed_at": null,
+      "phase_completed_by": null,
+      "generated_by": 3,
+      "created_at": "2025-08-02T12:33:19.586789+00:00",
+      "updated_at": "2025-08-03T03:56:51.960196+00:00",
+      "created_by_id": null,
+      "updated_by_id": null
+    }
+  ]
+}

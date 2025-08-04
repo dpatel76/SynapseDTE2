@@ -1,0 +1,182 @@
+[
+  {
+    "sample_id": 1,
+    "cycle_id": 1,
+    "report_id": 1,
+    "sample_number": "SAMP0001",
+    "sample_category": "high_risk",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 2,
+    "cycle_id": 1,
+    "report_id": 1,
+    "sample_number": "SAMP0002",
+    "sample_category": "normal",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 3,
+    "cycle_id": 1,
+    "report_id": 1,
+    "sample_number": "SAMP0003",
+    "sample_category": "high_risk",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 4,
+    "cycle_id": 1,
+    "report_id": 1,
+    "sample_number": "SAMP0004",
+    "sample_category": "anomaly",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 5,
+    "cycle_id": 1,
+    "report_id": 1,
+    "sample_number": "SAMP0005",
+    "sample_category": "normal",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 6,
+    "cycle_id": 1,
+    "report_id": 1,
+    "sample_number": "SAMP0006",
+    "sample_category": "high_risk",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 7,
+    "cycle_id": 1,
+    "report_id": 1,
+    "sample_number": "SAMP0007",
+    "sample_category": "anomaly",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 8,
+    "cycle_id": 1,
+    "report_id": 1,
+    "sample_number": "SAMP0008",
+    "sample_category": "normal",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 9,
+    "cycle_id": 1,
+    "report_id": 1,
+    "sample_number": "SAMP0009",
+    "sample_category": "normal",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 10,
+    "cycle_id": 1,
+    "report_id": 1,
+    "sample_number": "SAMP0010",
+    "sample_category": "high_risk",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 11,
+    "cycle_id": 1,
+    "report_id": 2,
+    "sample_number": "SAMP0011",
+    "sample_category": "anomaly",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 12,
+    "cycle_id": 1,
+    "report_id": 2,
+    "sample_number": "SAMP0012",
+    "sample_category": "normal",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 13,
+    "cycle_id": 1,
+    "report_id": 2,
+    "sample_number": "SAMP0013",
+    "sample_category": "normal",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 14,
+    "cycle_id": 1,
+    "report_id": 2,
+    "sample_number": "SAMP0014",
+    "sample_category": "anomaly",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 15,
+    "cycle_id": 1,
+    "report_id": 2,
+    "sample_number": "SAMP0015",
+    "sample_category": "normal",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 16,
+    "cycle_id": 1,
+    "report_id": 2,
+    "sample_number": "SAMP0016",
+    "sample_category": "normal",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 17,
+    "cycle_id": 1,
+    "report_id": 2,
+    "sample_number": "SAMP0017",
+    "sample_category": "high_risk",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 18,
+    "cycle_id": 1,
+    "report_id": 2,
+    "sample_number": "SAMP0018",
+    "sample_category": "normal",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 19,
+    "cycle_id": 1,
+    "report_id": 2,
+    "sample_number": "SAMP0019",
+    "sample_category": "high_risk",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "sample_id": 20,
+    "cycle_id": 1,
+    "report_id": 2,
+    "sample_number": "SAMP0020",
+    "sample_category": "anomaly",
+    "is_selected": true,
+    "created_at": "2025-08-03T13:55:58.374470"
+  }
+]

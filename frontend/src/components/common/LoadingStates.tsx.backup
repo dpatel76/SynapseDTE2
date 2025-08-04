@@ -1,0 +1,202 @@
+import React from 'react';
+import {
+  Box,
+  CircularProgress,
+  Skeleton,
+  Typography,
+  Card,
+  CardContent,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  LinearProgress
+} from '@mui/material';
+import { colors, spacing } from '../../styles/design-system';
+
+// Page-level skeleton loader
+export const PageSkeleton: React.FC = () => (
+  <Box sx={{ p: 3 }}>
+    {/* Header skeleton */}
+    <Box sx={{ mb: 4 }}>
+      <Skeleton variant="text" width="40%" height={40} />
+      <Box display="flex" gap={1} mt={2}>
+        <Skeleton variant="rectangular" width={100} height={32} sx={{ borderRadius: 2 }} />
+        <Skeleton variant="rectangular" width={100} height={32} sx={{ borderRadius: 2 }} />
+        <Skeleton variant="rectangular" width={100} height={32} sx={{ borderRadius: 2 }} />
+      </Box>
+    </Box>
+
+    {/* Content skeleton */}
+    <Box display="flex" gap={3}>
+      <Box flex={1}>
+        <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 2 }} />
+      </Box>
+      <Box width={300}>
+        <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 2, mb: 2 }} />
+        <Skeleton variant="rectangular" height={180} sx={{ borderRadius: 2 }} />
+      </Box>
+    </Box>
+  </Box>
+);
+
+// Table skeleton loader
+export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({ 
+  rows = 5, 
+  columns = 4 
+}) => (
+  <Table>
+    <TableHead>
+      <TableRow>
+        {Array.from({ length: columns }).map((_, index) => (
+          <TableCell key={index}>
+            <Skeleton variant="text" width="80%" />
+          </TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {Array.from({ length: rows }).map((_, rowIndex) => (
+        <TableRow key={rowIndex}>
+          {Array.from({ length: columns }).map((_, colIndex) => (
+            <TableCell key={colIndex}>
+              <Skeleton variant="text" width={colIndex === 0 ? "60%" : "90%"} />
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+);
+
+// Card skeleton loader
+export const CardSkeleton: React.FC<{ height?: number }> = ({ height = 200 }) => (
+  <Card>
+    <CardContent>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Skeleton variant="text" width="40%" height={32} />
+        <Skeleton variant="circular" width={40} height={40} />
+      </Box>
+      <Skeleton variant="rectangular" height={height - 100} sx={{ borderRadius: 1 }} />
+    </CardContent>
+  </Card>
+);
+
+// Inline loader for small components
+export const InlineLoader: React.FC<{ size?: number; message?: string }> = ({ 
+  size = 20, 
+  message 
+}) => (
+  <Box display="flex" alignItems="center" gap={1}>
+    <CircularProgress size={size} />
+    {message && (
+      <Typography variant="body2" color="textSecondary">
+        {message}
+      </Typography>
+    )}
+  </Box>
+);
+
+// Full page loading with message
+export const FullPageLoader: React.FC<{ message?: string }> = ({ 
+  message = "Loading..." 
+}) => (
+  <Box
+    display="flex"
+    flexDirection="column"
+    alignItems="center"
+    justifyContent="center"
+    minHeight="80vh"
+    gap={2}
+  >
+    <CircularProgress size={60} />
+    <Typography variant="h6" color="textSecondary">
+      {message}
+    </Typography>
+  </Box>
+);
+
+// Progress loader with steps
+export const StepLoader: React.FC<{
+  currentStep: number;
+  totalSteps: number;
+  message?: string;
+}> = ({ currentStep, totalSteps, message }) => (
+  <Box sx={{ width: '100%', p: 3 }}>
+    <Box display="flex" justifyContent="space-between" mb={1}>
+      <Typography variant="body2">
+        {message || `Step ${currentStep} of ${totalSteps}`}
+      </Typography>
+      <Typography variant="body2" color="textSecondary">
+        {Math.round((currentStep / totalSteps) * 100)}%
+      </Typography>
+    </Box>
+    <LinearProgress 
+      variant="determinate" 
+      value={(currentStep / totalSteps) * 100}
+      sx={{ height: 8, borderRadius: 4 }}
+    />
+  </Box>
+);
+
+// List skeleton loader
+export const ListSkeleton: React.FC<{ items?: number }> = ({ items = 3 }) => (
+  <Box>
+    {Array.from({ length: items }).map((_, index) => (
+      <Box key={index} sx={{ mb: 2, p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Skeleton variant="circular" width={40} height={40} />
+          <Box flex={1}>
+            <Skeleton variant="text" width="60%" />
+            <Skeleton variant="text" width="40%" height={16} />
+          </Box>
+          <Skeleton variant="rectangular" width={80} height={32} sx={{ borderRadius: 1 }} />
+        </Box>
+      </Box>
+    ))}
+  </Box>
+);
+
+// Async content wrapper with loading state
+interface AsyncContentProps {
+  loading: boolean;
+  error?: Error | null;
+  skeleton?: React.ReactNode;
+  children: React.ReactNode;
+}
+
+export const AsyncContent: React.FC<AsyncContentProps> = ({
+  loading,
+  error,
+  skeleton,
+  children
+}) => {
+  if (loading) {
+    return <>{skeleton || <FullPageLoader />}</>;
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography color="error">
+          Error: {error.message}
+        </Typography>
+      </Box>
+    );
+  }
+
+  return <>{children}</>;
+};
+
+// Export all loading states
+export const LoadingStates = {
+  page: PageSkeleton,
+  table: TableSkeleton,
+  card: CardSkeleton,
+  inline: InlineLoader,
+  fullPage: FullPageLoader,
+  step: StepLoader,
+  list: ListSkeleton,
+  async: AsyncContent
+};

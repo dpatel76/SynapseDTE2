@@ -1,0 +1,55 @@
+Suggest the database table and column for the given report attribute.
+
+CONTEXT:
+- Report: ${report_name}
+- Regulatory Context: ${regulatory_context}
+
+ATTRIBUTE TO MAP:
+- Name: ${attribute_name}
+- Description: ${attribute_description}
+- Data Type: ${data_type}
+- Mandatory Flag: ${mandatory_flag}
+- Is Primary Key: ${is_primary_key}
+
+AVAILABLE DATA SOURCES WITH SCHEMA:
+${data_sources}
+
+TASK:
+Based on the attribute information above and the ACTUAL DATABASE SCHEMA provided for each data source, identify the most appropriate table and column to map this attribute to.
+
+CRITICAL INSTRUCTIONS:
+- You MUST ONLY suggest columns that ACTUALLY EXIST in the schema_summary provided above
+- DO NOT use any knowledge about database schemas outside of what is explicitly provided
+- DO NOT suggest system tables or columns (those starting with cycle_report_, activity_, workflow_, etc.)
+- If you cannot find a suitable match in the provided schema, return null for source_field
+- Look for column names that semantically match the attribute
+- Consider data type compatibility
+- For primary keys, prefer columns marked as (PK)
+
+Please suggest:
+1. The data source ID where you found the best match
+2. The EXACT fully qualified column name as it appears in the schema (schema.table.column)
+3. Your confidence in this mapping (0-100)
+4. Brief rationale explaining why this specific column from the provided schema is the best match
+
+REMEMBER: The source_field MUST be one of the columns shown in the schema_summary above. Do not suggest columns that are not explicitly listed.
+
+Return as JSON:
+{
+    "data_source_id": number,
+    "source_field": "schema.table_name.column_name OR just column_name",
+    "table_name": "table_name (optional, extracted from schema)",
+    "column_name": "column_name (the actual column name)",
+    "confidence_score": number,
+    "rationale": "Explanation referencing the actual column found in the schema",
+    "alternative_mappings": [
+        {
+            "data_source_id": number,
+            "source_field": "schema.table_name.column_name OR just column_name",
+            "confidence_score": number,
+            "rationale": "string"
+        }
+    ]
+}
+
+Note: If the data source only contains one table, you may return just the column name in source_field. The system will automatically qualify it with the table name.

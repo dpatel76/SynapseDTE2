@@ -1,0 +1,53 @@
+Subject: Data Request for Testing Cycle {{ cycle_id }} - Action Required
+
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #0E7C7B; color: white; padding: 20px; text-align: center; }
+        .content { background-color: #f9f9f9; padding: 20px; margin-top: 0; }
+        .info-box { background-color: white; padding: 15px; margin: 15px 0; border-left: 4px solid #0E7C7B; }
+        .button { background-color: #0E7C7B; color: white; padding: 12px 30px; text-decoration: none; display: inline-block; margin: 20px 0; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Data Request Notification</h1>
+        </div>
+        <div class="content">
+            <p>Dear {{ data_owner_name }},</p>
+            
+            <p>You have been assigned a new data request for the following testing cycle:</p>
+            
+            <div class="info-box">
+                <strong>Request Details:</strong><br>
+                Request ID: <strong>{{ rfi_id }}</strong><br>
+                Cycle ID: {{ cycle_id }}<br>
+                Report ID: {{ report_id }}<br>
+                Number of Attributes: <strong>{{ attribute_count }}</strong><br>
+                Due Date: <strong style="color: #d9534f;">{{ due_date }}</strong>
+            </div>
+            
+            <p>Please log in to the SynapseDTE platform to review the specific attributes requested and submit your responses by the due date.</p>
+            
+            <center>
+                <a href="#" class="button">Access SynapseDTE Platform</a>
+            </center>
+            
+            <p><strong>Important:</strong> This request is part of our regulatory compliance testing process. Your timely response is critical for maintaining compliance deadlines.</p>
+            
+            <p>If you have any questions or need assistance, please contact your Test Executive.</p>
+            
+            <p>Best regards,<br>
+            SynapseDTE Team</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated message from SynapseDTE. Please do not reply directly to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

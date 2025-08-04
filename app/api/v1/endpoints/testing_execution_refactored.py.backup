@@ -1,0 +1,496 @@
+"""
+Refactored Testing Execution API endpoints
+Removes mock data and implements proper functionality
+"""
+from typing import List, Optional, Dict, Any
+from datetime import datetime
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_, or_, func, distinct, case
+from sqlalchemy.orm import selectinload, joinedload
+
+from app.api.v1 import deps
+from app.core.auth import get_current_user
+from app.core.database import get_db
+from app.models.workflow import WorkflowPhase
+from app.models.testing_execution import (
+    TestingExecutionPhase, TestExecution, DocumentAnalysis, 
+    DatabaseTest, TestingExecutionAuditLog
+)
+from app.models.report_attribute import ReportAttribute
+from app.models.sample_selection import SampleSet, SampleRecord
+from app.models.data_provider import DataProviderAssignment
+from app.models.request_info import SubmittedTestCase
+from app.models.user import User
+from app.models.test_cycle import TestCycle, CycleReport
+from app.models.report import Report
+from app.schemas import testing_execution as schemas
+from app.services.llm_service import get_llm_service
+from app.services.data_source_service import DataSourceService
+from app.services.document_service import DocumentService
+from app.services.audit_service import AuditService
+from app.core.celery_app import celery_app
+
+router = APIRouter()
+logger = logging.getLogger(__name__)
+
+# Background task for LLM document analysis
+@celery_app.task(bind=True, max_retries=3)
+def analyze_document_task(
+    self,
+    document_id: int,
+    attribute_name: str,
+    sample_identifier: str,
+    test_type: str
+):
+    """Background task for document analysis using LLM"""
+    try:
+        # This will be properly implemented with LLM service
+        # For now, return a proper error
+        raise NotImplementedError(
+            "Document analysis via LLM is being implemented. "
+            "Please use manual testing mode."
+        )
+    except Exception as exc:
+        # Retry with exponential backoff
+        raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
+
+
+async def log_audit_action(
+    db: AsyncSession, 
+    cycle_id: int, 
+    report_id: int, 
+    action: str, 
+    entity_type: str,
+    performed_by: int, 
+    request: Request, 
+    entity_id: str = None, 
+    old_values: Dict = None,
+    new_values: Dict = None
+):
+    """Log audit action for testing execution phase"""
+    audit_service = AuditService(db)
+    await audit_service.log_action(
+        user_id=performed_by,
+        action=action,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        old_values=old_values,
+        new_values=new_values,
+        ip_address=request.client.host,
+        user_agent=request.headers.get("user-agent"),
+        additional_data={
+            "cycle_id": cycle_id,
+            "report_id": report_id,
+            "phase": "Test Execution"
+        }
+    )
+
+
+@router.get("/phase/{cycle_id}/{report_id}", response_model=schemas.TestingExecutionPhaseResponse)
+async def get_testing_execution_phase(
+    cycle_id: int,
+    report_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get testing execution phase details"""
+    # Check user permissions
+    if current_user.role not in ["Admin", "Tester", "Test Manager", "Data Provider"]:
+        raise HTTPException(status_code=403, detail="Not authorized to view testing execution")
+    
+    # Get phase details
+    phase_query = select(TestingExecutionPhase).where(
+        and_(
+            TestingExecutionPhase.cycle_id == cycle_id,
+            TestingExecutionPhase.report_id == report_id
+        )
+    )
+    result = await db.execute(phase_query)
+    phase = result.scalar_one_or_none()
+    
+    if not phase:
+        # Create phase if it doesn't exist
+        phase = TestingExecutionPhase(
+            cycle_id=cycle_id,
+            report_id=report_id,
+            status="not_started",
+            created_by=current_user.user_id
+        )
+        db.add(phase)
+        await db.commit()
+        await db.refresh(phase)
+    
+    # Get workflow phase status
+    workflow_query = select(WorkflowPhase).where(
+        and_(
+            WorkflowPhase.cycle_id == cycle_id,
+            WorkflowPhase.report_id == report_id,
+            WorkflowPhase.phase_name == "Test Execution"
+        )
+    )
+    workflow_result = await db.execute(workflow_query)
+    workflow_phase = workflow_result.scalar_one_or_none()
+    
+    # Get test execution statistics
+    stats_query = select(
+        func.count(distinct(TestExecution.execution_id)).label("total_tests"),
+        func.count(distinct(case(
+            (TestExecution.test_passed == True, TestExecution.execution_id),
+            else_=None
+        ))).label("passed_tests"),
+        func.count(distinct(case(
+            (TestExecution.test_passed == False, TestExecution.execution_id),
+            else_=None
+        ))).label("failed_tests")
+    ).where(
+        and_(
+            TestExecution.cycle_id == cycle_id,
+            TestExecution.report_id == report_id
+        )
+    )
+    stats_result = await db.execute(stats_query)
+    stats = stats_result.first()
+    
+    return schemas.TestingExecutionPhaseResponse(
+        phase_id=phase.phase_id,
+        cycle_id=phase.cycle_id,
+        report_id=phase.report_id,
+        status=phase.status,
+        total_tests=stats.total_tests or 0,
+        passed_tests=stats.passed_tests or 0,
+        failed_tests=stats.failed_tests or 0,
+        workflow_status=workflow_phase.state if workflow_phase else "Not Started",
+        created_at=phase.created_at,
+        updated_at=phase.updated_at
+    )
+
+
+@router.post("/execute-test", response_model=schemas.TestExecutionResponse)
+async def execute_test(
+    test_data: schemas.TestExecutionCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    request: Request = None
+):
+    """Execute a test for an attribute"""
+    # Check permissions
+    if current_user.role not in ["Admin", "Tester", "Test Manager"]:
+        raise HTTPException(status_code=403, detail="Not authorized to execute tests")
+    
+    # Validate test case exists
+    test_case_query = select(SubmittedTestCase).where(
+        SubmittedTestCase.test_case_id == test_data.test_case_id
+    )
+    test_case_result = await db.execute(test_case_query)
+    test_case = test_case_result.scalar_one_or_none()
+    
+    if not test_case:
+        raise HTTPException(status_code=404, detail="Test case not found")
+    
+    # Create test execution record
+    test_execution = TestExecution(
+        cycle_id=test_data.cycle_id,
+        report_id=test_data.report_id,
+        attribute_id=test_case.attribute_id,
+        sample_record_id=test_case.sample_record_id,
+        test_type=test_data.test_type,
+        expected_value=test_case.expected_value,
+        tested_by=current_user.user_id,
+        test_status="in_progress"
+    )
+    
+    db.add(test_execution)
+    await db.commit()
+    
+    # Execute test based on type
+    if test_data.test_type == "manual":
+        # Manual test - user provides the result
+        test_execution.retrieved_value = test_data.retrieved_value
+        test_execution.test_passed = test_data.test_passed
+        test_execution.test_notes = test_data.test_notes
+        test_execution.test_status = "completed"
+        test_execution.confidence_score = 1.0  # Manual tests have 100% confidence
+        
+    elif test_data.test_type == "document":
+        if test_data.document_id:
+            # Queue document analysis task
+            task = analyze_document_task.delay(
+                document_id=test_data.document_id,
+                attribute_name=test_case.attribute_name,
+                sample_identifier=test_case.sample_identifier,
+                test_type="document"
+            )
+            
+            test_execution.test_status = "processing"
+            test_execution.task_id = task.id
+            
+            # Create document analysis record
+            doc_analysis = DocumentAnalysis(
+                execution_id=test_execution.execution_id,
+                document_id=test_data.document_id,
+                analysis_status="processing",
+                analysis_task_id=task.id
+            )
+            db.add(doc_analysis)
+        else:
+            raise HTTPException(status_code=400, detail="Document ID required for document testing")
+            
+    elif test_data.test_type == "database":
+        if test_data.database_source_id:
+            # Execute database query
+            data_source_service = DataSourceService(db)
+            
+            try:
+                # Test connection and execute query
+                test_result = await data_source_service.execute_test_query(
+                    source_id=test_data.database_source_id,
+                    query=test_data.test_query,
+                    parameters={
+                        "sample_id": test_case.sample_record_id,
+                        "attribute": test_case.attribute_name
+                    }
+                )
+                
+                # Create database test record
+                db_test = DatabaseTest(
+                    execution_id=test_execution.execution_id,
+                    database_submission_id=test_data.database_source_id,
+                    test_query=test_data.test_query,
+                    connection_successful=test_result.get("success", False),
+                    query_successful=test_result.get("success", False),
+                    retrieved_value=str(test_result.get("value", "")),
+                    execution_time_ms=test_result.get("execution_time_ms", 0),
+                    error_message=test_result.get("error")
+                )
+                db.add(db_test)
+                
+                # Update test execution
+                test_execution.retrieved_value = db_test.retrieved_value
+                test_execution.test_passed = (
+                    test_execution.expected_value == db_test.retrieved_value
+                    if db_test.query_successful else None
+                )
+                test_execution.test_status = "completed" if db_test.query_successful else "failed"
+                test_execution.confidence_score = 1.0 if db_test.query_successful else 0.0
+                
+            except Exception as e:
+                logger.error(f"Database test execution failed: {str(e)}")
+                test_execution.test_status = "failed"
+                test_execution.test_notes = f"Database test failed: {str(e)}"
+        else:
+            raise HTTPException(status_code=400, detail="Database source ID required for database testing")
+    
+    await db.commit()
+    await db.refresh(test_execution)
+    
+    # Log audit action
+    await log_audit_action(
+        db=db,
+        cycle_id=test_data.cycle_id,
+        report_id=test_data.report_id,
+        action="test_executed",
+        entity_type="test_execution",
+        entity_id=str(test_execution.execution_id),
+        performed_by=current_user.user_id,
+        request=request,
+        new_values={
+            "test_type": test_data.test_type,
+            "status": test_execution.test_status
+        }
+    )
+    
+    return schemas.TestExecutionResponse(
+        execution_id=test_execution.execution_id,
+        test_status=test_execution.test_status,
+        test_passed=test_execution.test_passed,
+        retrieved_value=test_execution.retrieved_value,
+        confidence_score=test_execution.confidence_score,
+        task_id=test_execution.task_id
+    )
+
+
+@router.get("/test-status/{execution_id}", response_model=schemas.TestExecutionStatus)
+async def get_test_status(
+    execution_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get test execution status"""
+    # Get test execution
+    query = select(TestExecution).where(
+        TestExecution.execution_id == execution_id
+    ).options(
+        selectinload(TestExecution.document_analyses),
+        selectinload(TestExecution.database_tests)
+    )
+    
+    result = await db.execute(query)
+    test_execution = result.scalar_one_or_none()
+    
+    if not test_execution:
+        raise HTTPException(status_code=404, detail="Test execution not found")
+    
+    # Check if user has access
+    if current_user.role not in ["Admin", "Tester", "Test Manager"]:
+        # Check if user is assigned to this test
+        if test_execution.tested_by != current_user.user_id:
+            raise HTTPException(status_code=403, detail="Not authorized to view this test")
+    
+    # Get task status if processing
+    task_status = None
+    if test_execution.task_id and test_execution.test_status == "processing":
+        try:
+            from app.core.celery_app import celery_app
+            task = celery_app.AsyncResult(test_execution.task_id)
+            task_status = {
+                "state": task.state,
+                "info": task.info if isinstance(task.info, dict) else str(task.info)
+            }
+        except Exception as e:
+            logger.error(f"Failed to get task status: {str(e)}")
+    
+    return schemas.TestExecutionStatus(
+        execution_id=test_execution.execution_id,
+        test_status=test_execution.test_status,
+        test_passed=test_execution.test_passed,
+        retrieved_value=test_execution.retrieved_value,
+        confidence_score=test_execution.confidence_score,
+        task_status=task_status,
+        document_analysis=test_execution.document_analyses[0] if test_execution.document_analyses else None,
+        database_test=test_execution.database_tests[0] if test_execution.database_tests else None
+    )
+
+
+@router.get("/test-results/{cycle_id}/{report_id}", response_model=List[schemas.TestResultSummary])
+async def get_test_results(
+    cycle_id: int,
+    report_id: int,
+    attribute_id: Optional[int] = Query(None),
+    test_status: Optional[str] = Query(None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get test results for a report"""
+    # Build query
+    query = select(TestExecution).where(
+        and_(
+            TestExecution.cycle_id == cycle_id,
+            TestExecution.report_id == report_id
+        )
+    ).options(
+        selectinload(TestExecution.attribute),
+        selectinload(TestExecution.sample_record),
+        selectinload(TestExecution.tested_by_user)
+    )
+    
+    # Apply filters
+    if attribute_id:
+        query = query.where(TestExecution.attribute_id == attribute_id)
+    
+    if test_status:
+        query = query.where(TestExecution.test_status == test_status)
+    
+    # Execute query
+    result = await db.execute(query)
+    test_executions = result.scalars().all()
+    
+    # Format results
+    results = []
+    for execution in test_executions:
+        results.append(schemas.TestResultSummary(
+            execution_id=execution.execution_id,
+            attribute_name=execution.attribute.attribute_name if execution.attribute else "Unknown",
+            sample_identifier=execution.sample_record.sample_identifier if execution.sample_record else "Unknown",
+            test_type=execution.test_type,
+            test_status=execution.test_status,
+            test_passed=execution.test_passed,
+            expected_value=execution.expected_value,
+            retrieved_value=execution.retrieved_value,
+            confidence_score=execution.confidence_score,
+            tested_by=execution.tested_by_user.username if execution.tested_by_user else "Unknown",
+            tested_at=execution.tested_at
+        ))
+    
+    return results
+
+
+@router.post("/complete-phase/{cycle_id}/{report_id}")
+async def complete_testing_phase(
+    cycle_id: int,
+    report_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    request: Request = None
+):
+    """Complete the testing execution phase"""
+    # Check permissions
+    if current_user.role not in ["Admin", "Tester", "Test Manager"]:
+        raise HTTPException(status_code=403, detail="Not authorized to complete testing phase")
+    
+    # Check if all tests are completed
+    incomplete_query = select(func.count()).select_from(TestExecution).where(
+        and_(
+            TestExecution.cycle_id == cycle_id,
+            TestExecution.report_id == report_id,
+            TestExecution.test_status.in_(["in_progress", "processing"])
+        )
+    )
+    
+    incomplete_result = await db.execute(incomplete_query)
+    incomplete_count = incomplete_result.scalar()
+    
+    if incomplete_count > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot complete phase. {incomplete_count} tests are still in progress."
+        )
+    
+    # Update phase status
+    phase_query = select(TestingExecutionPhase).where(
+        and_(
+            TestingExecutionPhase.cycle_id == cycle_id,
+            TestingExecutionPhase.report_id == report_id
+        )
+    )
+    phase_result = await db.execute(phase_query)
+    phase = phase_result.scalar_one_or_none()
+    
+    if phase:
+        phase.status = "completed"
+        phase.completed_at = datetime.utcnow()
+        phase.completed_by = current_user.user_id
+    
+    # Update workflow phase
+    workflow_query = select(WorkflowPhase).where(
+        and_(
+            WorkflowPhase.cycle_id == cycle_id,
+            WorkflowPhase.report_id == report_id,
+            WorkflowPhase.phase_name == "Test Execution"
+        )
+    )
+    workflow_result = await db.execute(workflow_query)
+    workflow_phase = workflow_result.scalar_one_or_none()
+    
+    if workflow_phase:
+        workflow_phase.state = "Completed"
+        workflow_phase.completed_at = datetime.utcnow()
+    
+    await db.commit()
+    
+    # Log audit action
+    await log_audit_action(
+        db=db,
+        cycle_id=cycle_id,
+        report_id=report_id,
+        action="phase_completed",
+        entity_type="testing_execution_phase",
+        entity_id=str(phase.phase_id) if phase else None,
+        performed_by=current_user.user_id,
+        request=request,
+        new_values={"status": "completed"}
+    )
+    
+    return {"message": "Testing execution phase completed successfully"}

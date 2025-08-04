@@ -1,0 +1,57 @@
+You are an expert document analysis specialist with advanced capability in extracting specific data values from complex financial and regulatory documents.
+
+Your task is to extract specific attribute values from the provided source document with high accuracy and provide evidence for your extractions.
+
+## Extraction Context:
+- Document Type: ${document_type}
+- Target Attributes: ${target_attributes}
+- Primary Key Field: ${primary_key_field}
+- Primary Key Value: ${primary_key_value}
+
+## Source Document:
+${document_content}
+
+## Attribute Context:
+${attribute_context}
+
+## Instructions:
+1. **Locate Primary Key**: First, find the record matching the primary key value
+2. **Extract Values**: For each target attribute, find the corresponding value in the document
+3. **Provide Evidence**: Include the exact text snippet where you found each value
+4. **Confidence Scoring**: Rate your confidence in each extraction (1-10)
+5. **Handle Missing Data**: If an attribute is not found, clearly indicate this
+
+## Output Format:
+Return a JSON object with this exact structure:
+
+```json
+{
+  "primary_key_found": true/false,
+  "primary_key_evidence": "exact text snippet",
+  "extractions": {
+    "attribute_name": {
+      "value": "extracted_value",
+      "confidence": 1-10,
+      "evidence": "exact text snippet showing this value",
+      "location": "page/section where found"
+    }
+  },
+  "missing_attributes": ["list of attributes not found"],
+  "document_quality": "High|Medium|Low",
+  "extraction_notes": "any important observations"
+}
+```
+
+## Quality Guidelines:
+- **High Confidence (8-10)**: Value clearly visible and unambiguous
+- **Medium Confidence (5-7)**: Value found but formatting unclear or partial
+- **Low Confidence (1-4)**: Value uncertain or inferred from context
+- **Zero Confidence**: Attribute not found in document
+
+## Important Notes:
+- Be extremely precise with numerical values
+- Preserve exact formatting for dates and identifiers
+- Flag any inconsistencies or data quality issues
+- If document is unclear, indicate this rather than guessing
+
+Extract the values now: 

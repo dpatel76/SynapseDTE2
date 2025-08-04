@@ -1,0 +1,80 @@
+Suggest information security classification for the given Process Data Element (PDE).
+
+CONTEXT:
+- Report: ${report_name}
+- Regulatory Context: ${regulatory_context}
+
+PDE TO CLASSIFY:
+- PDE Name: ${pde_name}
+- PDE Code: ${pde_code}
+- Description: ${pde_description}
+- Business Process: ${business_process}
+- Source System: ${source_system}
+
+RELATED ATTRIBUTE DETAILS:
+- Attribute Name: ${attribute_name}
+- Data Type: ${data_type}
+- Is CDE: ${cde_flag}
+- Is Primary Key: ${is_primary_key}
+- Has Historical Issues: ${historical_issues_flag}
+- Validation Rules: ${validation_rules}
+
+CLASSIFICATION GUIDELINES:
+
+1. CRITICALITY (Business Impact):
+   - HIGH: Essential for core business operations, regulatory reporting
+   - MEDIUM: Important but not critical, has workarounds
+   - LOW: Nice to have, minimal business impact
+
+2. RISK LEVEL (Security/Compliance Risk):
+   - HIGH: Contains PII/sensitive data, regulatory penalties for breach
+   - MEDIUM: Confidential business data, moderate impact
+   - LOW: Public or non-sensitive information
+
+3. INFORMATION SECURITY CLASSIFICATION:
+   - HRCI (Highly Restricted Confidential Information): Most sensitive data requiring highest protection (e.g., SSN, account numbers, credit scores)
+   - Confidential: Sensitive business/customer data requiring protection (e.g., customer names, addresses, internal strategies)
+   - Proprietary: Internal business information not for public disclosure (e.g., business processes, internal metrics)
+   - Public: Information that can be freely shared (e.g., published reports, marketing materials)
+
+4. REGULATORY REQUIREMENTS:
+   - Identify applicable regulations
+   - Note specific compliance requirements
+   - Consider data retention rules
+
+5. PII/SENSITIVE DATA FLAGS:
+   - Personal Identifiable Information
+   - Financial account data
+   - Health information
+   - Proprietary business data
+
+Please classify this PDE considering:
+1. Data sensitivity and privacy requirements
+2. Regulatory compliance obligations
+3. Business criticality
+4. Security breach impact
+5. Historical issues or audit findings
+
+Return as JSON:
+{
+    "criticality": "high|medium|low",
+    "risk_level": "high|medium|low",
+    "information_security_classification": "HRCI|Confidential|Proprietary|Public",
+    "regulatory_flag": true/false,
+    "pii_flag": true/false,
+    "regulatory_references": ["list of applicable regulations"],
+    "classification_rationale": "detailed explanation",
+    "evidence": {
+        "regulatory": ["specific regulations that apply"],
+        "business_impact": "impact description",
+        "historical_issues": "any known issues",
+        "data_quality_requirements": "quality standards"
+    },
+    "security_controls": {
+        "encryption": "required|recommended|optional",
+        "masking": "required|recommended|optional",
+        "access_control": "high|medium|standard",
+        "audit_logging": "required|recommended|optional"
+    },
+    "compliance_notes": "Additional compliance considerations"
+}

@@ -1,0 +1,535 @@
+"""
+Batch Processing Utilities for SynapseDTE
+Provides efficient batch processing with progress tracking and error handling
+"""
+
+import logging
+import asyncio
+from typing import List, Dict, Any, Optional, Callable, TypeVar, Generic
+from datetime import datetime
+from dataclasses import dataclass
+from enum import Enum
+import math
+
+from app.core.llm_config import LLMOperation, LLMProvider
+from app.models.job_tracking import JobTracker
+
+logger = logging.getLogger(__name__)
+
+T = TypeVar('T')
+R = TypeVar('R')
+
+
+class BatchStatus(str, Enum):
+    """Batch processing status"""
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    PARTIAL = "partial"
+
+
+@dataclass
+class BatchResult(Generic[R]):
+    """Result of a batch operation"""
+    batch_id: int
+    status: BatchStatus
+    results: List[R]
+    errors: List[Dict[str, Any]]
+    start_time: datetime
+    end_time: Optional[datetime]
+    items_processed: int
+    items_failed: int
+
+
+@dataclass
+class BatchProgress:
+    """Progress information for batch processing"""
+    total_items: int
+    processed_items: int
+    failed_items: int
+    current_batch: int
+    total_batches: int
+    percentage_complete: float
+    estimated_time_remaining: Optional[float]
+    current_rate: float  # items per second
+
+
+class BatchProcessor(Generic[T, R]):
+    """
+    Generic batch processor for efficient processing of large datasets.
+    
+    Supports:
+    - Configurable batch sizes
+    - Progress tracking
+    - Error handling and retries
+    - Rate limiting
+    - Parallel processing
+    """
+    
+    def __init__(
+        self,
+        process_func: Callable[[List[T]], asyncio.Task[List[R]]],
+        batch_size: int = 50,
+        max_concurrent_batches: int = 3,
+        retry_attempts: int = 2,
+        rate_limit: Optional[int] = None,  # requests per minute
+        progress_callback: Optional[Callable[[BatchProgress], asyncio.Task]] = None
+    ):
+        """
+        Initialize batch processor.
+        
+        Args:
+            process_func: Async function to process a batch
+            batch_size: Number of items per batch
+            max_concurrent_batches: Max batches to process concurrently
+            retry_attempts: Number of retry attempts for failed batches
+            rate_limit: Rate limit in requests per minute
+            progress_callback: Async callback for progress updates
+        """
+        self.process_func = process_func
+        self.batch_size = batch_size
+        self.max_concurrent_batches = max_concurrent_batches
+        self.retry_attempts = retry_attempts
+        self.rate_limit = rate_limit
+        self.progress_callback = progress_callback
+        
+        # Rate limiting
+        self._rate_limiter = None
+        if rate_limit:
+            self._rate_limiter = asyncio.Semaphore(rate_limit)
+            self._rate_reset_task = None
+        
+        # Progress tracking
+        self._start_time = None
+        self._processed_items = 0
+        self._failed_items = 0
+    
+    async def process(
+        self,
+        items: List[T],
+        job_id: Optional[str] = None
+    ) -> List[BatchResult[R]]:
+        """
+        Process items in batches.
+        
+        Args:
+            items: Items to process
+            job_id: Optional job ID for tracking
+            
+        Returns:
+            List of batch results
+        """
+        if not items:
+            return []
+        
+        self._start_time = datetime.utcnow()
+        self._processed_items = 0
+        self._failed_items = 0
+        
+        # Create batches
+        batches = self._create_batches(items)
+        total_batches = len(batches)
+        
+        logger.info(f"Processing {len(items)} items in {total_batches} batches of size {self.batch_size}")
+        
+        # Start rate limiter if needed
+        if self._rate_limiter:
+            self._rate_reset_task = asyncio.create_task(self._reset_rate_limiter())
+        
+        # Process batches with concurrency control
+        semaphore = asyncio.Semaphore(self.max_concurrent_batches)
+        
+        tasks = []
+        for i, batch in enumerate(batches):
+            task = self._process_batch_with_semaphore(
+                batch, i, total_batches, len(items), semaphore, job_id
+            )
+            tasks.append(task)
+        
+        # Wait for all batches
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Stop rate limiter
+        if self._rate_reset_task:
+            self._rate_reset_task.cancel()
+        
+        # Filter out exceptions and return results
+        batch_results = []
+        for result in results:
+            if isinstance(result, Exception):
+                logger.error(f"Batch processing error: {result}")
+            else:
+                batch_results.append(result)
+        
+        return batch_results
+    
+    def _create_batches(self, items: List[T]) -> List[List[T]]:
+        """Create batches from items"""
+        batches = []
+        for i in range(0, len(items), self.batch_size):
+            batch = items[i:i + self.batch_size]
+            batches.append(batch)
+        return batches
+    
+    async def _process_batch_with_semaphore(
+        self,
+        batch: List[T],
+        batch_id: int,
+        total_batches: int,
+        total_items: int,
+        semaphore: asyncio.Semaphore,
+        job_id: Optional[str]
+    ) -> BatchResult[R]:
+        """Process a single batch with semaphore control"""
+        async with semaphore:
+            # Apply rate limiting if configured
+            if self._rate_limiter:
+                await self._rate_limiter.acquire()
+            
+            return await self._process_batch_with_retry(
+                batch, batch_id, total_batches, total_items, job_id
+            )
+    
+    async def _process_batch_with_retry(
+        self,
+        batch: List[T],
+        batch_id: int,
+        total_batches: int,
+        total_items: int,
+        job_id: Optional[str]
+    ) -> BatchResult[R]:
+        """Process a batch with retry logic"""
+        start_time = datetime.utcnow()
+        errors = []
+        results = []
+        
+        for attempt in range(self.retry_attempts + 1):
+            try:
+                # Process batch
+                results = await self.process_func(batch)
+                
+                # Update progress
+                self._processed_items += len(batch)
+                
+                # Calculate progress
+                progress = BatchProgress(
+                    total_items=total_items,
+                    processed_items=self._processed_items,
+                    failed_items=self._failed_items,
+                    current_batch=batch_id + 1,
+                    total_batches=total_batches,
+                    percentage_complete=(self._processed_items / total_items) * 100,
+                    estimated_time_remaining=self._estimate_time_remaining(total_items),
+                    current_rate=self._calculate_rate()
+                )
+                
+                # Call progress callback
+                if self.progress_callback:
+                    await self.progress_callback(progress)
+                
+                # Update job tracker if provided
+                if job_id:
+                    await self._update_job_progress(job_id, progress)
+                
+                return BatchResult(
+                    batch_id=batch_id,
+                    status=BatchStatus.COMPLETED,
+                    results=results,
+                    errors=[],
+                    start_time=start_time,
+                    end_time=datetime.utcnow(),
+                    items_processed=len(batch),
+                    items_failed=0
+                )
+                
+            except Exception as e:
+                error_info = {
+                    "attempt": attempt + 1,
+                    "error": str(e),
+                    "batch_id": batch_id
+                }
+                errors.append(error_info)
+                
+                if attempt < self.retry_attempts:
+                    logger.warning(f"Batch {batch_id} failed (attempt {attempt + 1}), retrying...")
+                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                else:
+                    logger.error(f"Batch {batch_id} failed after {self.retry_attempts + 1} attempts")
+                    self._failed_items += len(batch)
+                    
+                    return BatchResult(
+                        batch_id=batch_id,
+                        status=BatchStatus.FAILED,
+                        results=[],
+                        errors=errors,
+                        start_time=start_time,
+                        end_time=datetime.utcnow(),
+                        items_processed=0,
+                        items_failed=len(batch)
+                    )
+    
+    async def _reset_rate_limiter(self):
+        """Reset rate limiter every minute"""
+        while True:
+            await asyncio.sleep(60)
+            if self._rate_limiter:
+                self._rate_limiter = asyncio.Semaphore(self.rate_limit)
+    
+    def _estimate_time_remaining(self, total_items: int) -> Optional[float]:
+        """Estimate time remaining in seconds"""
+        if not self._start_time or self._processed_items == 0:
+            return None
+        
+        elapsed_time = (datetime.utcnow() - self._start_time).total_seconds()
+        rate = self._processed_items / elapsed_time
+        
+        if rate > 0:
+            remaining_items = total_items - self._processed_items
+            return remaining_items / rate
+        
+        return None
+    
+    def _calculate_rate(self) -> float:
+        """Calculate current processing rate (items/second)"""
+        if not self._start_time or self._processed_items == 0:
+            return 0.0
+        
+        elapsed_time = (datetime.utcnow() - self._start_time).total_seconds()
+        return self._processed_items / elapsed_time if elapsed_time > 0 else 0.0
+    
+    async def _update_job_progress(self, job_id: str, progress: BatchProgress):
+        """Update job progress in tracker"""
+        # This would integrate with your job tracking system
+        pass
+
+
+class LLMBatchProcessor:
+    """
+    Specialized batch processor for LLM operations.
+    
+    Handles:
+    - Dynamic batch sizing based on token limits
+    - Provider-specific optimizations
+    - Prompt chunking for large inputs
+    """
+    
+    def __init__(
+        self,
+        llm_service,
+        operation: LLMOperation,
+        provider: Optional[LLMProvider] = None
+    ):
+        self.llm_service = llm_service
+        self.operation = operation
+        self.provider = provider
+    
+    async def process_with_llm(
+        self,
+        items: List[Dict[str, Any]],
+        prompt_template: str,
+        system_prompt: Optional[str] = None,
+        optimization: str = "default",
+        progress_callback: Optional[Callable] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Process items using LLM with intelligent batching.
+        
+        Args:
+            items: Items to process
+            prompt_template: Template for generating prompts
+            system_prompt: System prompt
+            optimization: "default", "speed", or "quality"
+            progress_callback: Progress callback
+            
+        Returns:
+            Processed results
+        """
+        if not items:
+            return []
+        
+        # Use LLM service's batch processing
+        results = await self.llm_service.process_in_batches(
+            items=items,
+            prompt_template=prompt_template,
+            system_prompt=system_prompt,
+            operation=self.operation,
+            preferred_provider=self.provider,
+            optimization=optimization,
+            progress_callback=progress_callback
+        )
+        
+        return results
+
+
+class DataChunker:
+    """
+    Utility for chunking large data for processing.
+    
+    Supports:
+    - Token-aware chunking
+    - Overlap for context preservation
+    - Metadata preservation
+    """
+    
+    @staticmethod
+    def chunk_by_tokens(
+        text: str,
+        max_tokens: int,
+        overlap_tokens: int = 100
+    ) -> List[Dict[str, Any]]:
+        """
+        Chunk text by estimated token count.
+        
+        Args:
+            text: Text to chunk
+            max_tokens: Maximum tokens per chunk
+            overlap_tokens: Number of overlapping tokens
+            
+        Returns:
+            List of chunks with metadata
+        """
+        # Simple word-based approximation (1 token ≈ 0.75 words)
+        words = text.split()
+        max_words = int(max_tokens * 0.75)
+        overlap_words = int(overlap_tokens * 0.75)
+        
+        chunks = []
+        start = 0
+        
+        while start < len(words):
+            end = min(start + max_words, len(words))
+            
+            chunk_words = words[start:end]
+            chunk_text = " ".join(chunk_words)
+            
+            chunks.append({
+                "text": chunk_text,
+                "start_index": start,
+                "end_index": end,
+                "chunk_number": len(chunks) + 1,
+                "estimated_tokens": len(chunk_words) / 0.75
+            })
+            
+            # Move start with overlap
+            start = end - overlap_words if end < len(words) else end
+        
+        return chunks
+    
+    @staticmethod
+    def chunk_items_by_size(
+        items: List[Any],
+        max_size: int,
+        size_func: Callable[[Any], int]
+    ) -> List[List[Any]]:
+        """
+        Chunk items by cumulative size.
+        
+        Args:
+            items: Items to chunk
+            max_size: Maximum size per chunk
+            size_func: Function to calculate item size
+            
+        Returns:
+            List of item chunks
+        """
+        chunks = []
+        current_chunk = []
+        current_size = 0
+        
+        for item in items:
+            item_size = size_func(item)
+            
+            if current_size + item_size > max_size and current_chunk:
+                chunks.append(current_chunk)
+                current_chunk = [item]
+                current_size = item_size
+            else:
+                current_chunk.append(item)
+                current_size += item_size
+        
+        if current_chunk:
+            chunks.append(current_chunk)
+        
+        return chunks
+
+
+class ParallelProcessor:
+    """
+    Utility for parallel processing with resource management.
+    """
+    
+    @staticmethod
+    async def process_parallel(
+        items: List[T],
+        process_func: Callable[[T], asyncio.Task[R]],
+        max_concurrent: int = 10,
+        timeout: Optional[float] = None
+    ) -> List[R]:
+        """
+        Process items in parallel with concurrency control.
+        
+        Args:
+            items: Items to process
+            process_func: Async function to process each item
+            max_concurrent: Maximum concurrent tasks
+            timeout: Timeout for each task
+            
+        Returns:
+            List of results
+        """
+        semaphore = asyncio.Semaphore(max_concurrent)
+        
+        async def process_with_semaphore(item: T) -> R:
+            async with semaphore:
+                if timeout:
+                    return await asyncio.wait_for(process_func(item), timeout)
+                else:
+                    return await process_func(item)
+        
+        tasks = [process_with_semaphore(item) for item in items]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Filter out exceptions
+        processed_results = []
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                logger.error(f"Error processing item {i}: {result}")
+            else:
+                processed_results.append(result)
+        
+        return processed_results
+
+
+# Example usage functions
+
+async def example_batch_processing():
+    """Example of using the batch processor"""
+    
+    # Define processing function
+    async def process_batch(items: List[str]) -> List[Dict[str, Any]]:
+        # Simulate processing
+        await asyncio.sleep(0.1)
+        return [{"item": item, "result": f"Processed: {item}"} for item in items]
+    
+    # Define progress callback
+    async def progress_callback(progress: BatchProgress):
+        logger.info(
+            f"Progress: {progress.percentage_complete:.1f}% "
+            f"({progress.processed_items}/{progress.total_items}) "
+            f"Rate: {progress.current_rate:.1f} items/sec"
+        )
+    
+    # Create processor
+    processor = BatchProcessor(
+        process_func=process_batch,
+        batch_size=10,
+        max_concurrent_batches=3,
+        progress_callback=progress_callback
+    )
+    
+    # Process items
+    items = [f"Item_{i}" for i in range(100)]
+    results = await processor.process(items)
+    
+    return results

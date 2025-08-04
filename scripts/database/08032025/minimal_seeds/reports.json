@@ -1,0 +1,31 @@
+{
+  "table": "reports",
+  "row_count": 2,
+  "extracted_at": "2025-08-03T15:23:44.570867",
+  "data": [
+    {
+      "report_id": 1,
+      "report_name": "FR Y-14M Schedule D.1",
+      "report_code": "FRY14M-D1",
+      "description": "Commercial Real Estate Loans",
+      "frequency": "Monthly",
+      "regulatory_framework": "Federal Reserve",
+      "lob_id": 2,
+      "is_active": true,
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "report_id": 2,
+      "report_name": "FR Y-14Q Schedule A",
+      "report_code": "FRY14Q-A",
+      "description": "Retail Exposures",
+      "frequency": "Quarterly",
+      "regulatory_framework": "Federal Reserve",
+      "lob_id": 1,
+      "is_active": true,
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    }
+  ]
+}

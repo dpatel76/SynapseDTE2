@@ -1,0 +1,63 @@
+{
+  "table": "test_cycles",
+  "row_count": 4,
+  "extracted_at": "2025-08-03T11:29:28.927161",
+  "data": [
+    {
+      "cycle_id": 58,
+      "cycle_name": "Test Cycle 2 - DGO Q3 2025",
+      "description": "Test Cycle 2 - DGO Q3 2025",
+      "test_executive_id": 2,
+      "created_at": "2025-07-22T20:51:22.942579+00:00",
+      "updated_at": "2025-07-22T20:51:41.251610+00:00",
+      "start_date": "2025-07-22",
+      "end_date": "2025-08-15",
+      "status": "Active",
+      "workflow_id": null,
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "cycle_id": 57,
+      "cycle_name": "Comprehensive Test Cycle 2024",
+      "description": "Test cycle for comprehensive API testing",
+      "test_executive_id": 2,
+      "created_at": "2025-07-20T03:30:29.973858+00:00",
+      "updated_at": "2025-07-20T03:30:29.973858+00:00",
+      "start_date": "2024-01-01",
+      "end_date": "2024-12-31",
+      "status": "Active",
+      "workflow_id": null,
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "cycle_id": 56,
+      "cycle_name": "API Test Cycle 2024",
+      "description": "Test cycle created for API workflow testing",
+      "test_executive_id": 2,
+      "created_at": "2025-07-20T03:28:36.873982+00:00",
+      "updated_at": "2025-07-20T03:28:36.873982+00:00",
+      "start_date": "2024-01-01",
+      "end_date": "2024-12-31",
+      "status": "Active",
+      "workflow_id": null,
+      "created_by_id": null,
+      "updated_by_id": null
+    },
+    {
+      "cycle_id": 55,
+      "cycle_name": "Test Cycle 1 - DGO Q3 2025",
+      "description": "Test Cycle 1 - DGO Q3 2025",
+      "test_executive_id": 2,
+      "created_at": "2025-07-20T02:59:28.404804+00:00",
+      "updated_at": "2025-07-20T02:59:52.221735+00:00",
+      "start_date": "2025-07-20",
+      "end_date": "2025-08-08",
+      "status": "Active",
+      "workflow_id": null,
+      "created_by_id": null,
+      "updated_by_id": null
+    }
+  ]
+}

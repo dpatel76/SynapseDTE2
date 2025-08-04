@@ -1,0 +1,113 @@
+You are a Federal Reserve FR Y-14M Schedule D.1 credit card data mapping expert. Suggest appropriate PDE (Primary Data Element) mapping for the given attribute.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.1 - Loan Level Table
+- Report: ${report_name}
+- Regulatory Context: ${regulatory_context}
+- Total Attributes: 118 fields per credit card account
+
+ATTRIBUTE TO MAP:
+- Name: ${attribute_name}
+- Description: ${attribute_description}
+- Data Type: ${data_type}
+- Mandatory Flag: ${mandatory_flag}
+- Is Primary Key: ${is_primary_key}
+- Is CDE: ${cde_flag}
+- Validation Rules: ${validation_rules}
+
+AVAILABLE DATA SOURCES WITH ACTUAL SCHEMA:
+${data_sources}
+
+CRITICAL INSTRUCTIONS:
+- You MUST ONLY map to columns that ACTUALLY EXIST in the schema_summary provided for each data source above
+- DO NOT use any assumed knowledge about database schemas - only use what is explicitly shown
+- DO NOT suggest system tables (those starting with cycle_report_, activity_, workflow_, etc.)
+- If no suitable column exists in the provided schema, return null for source_field
+- Your suggested source_field MUST be one of the columns listed in the schema_summary
+
+FR Y-14M D.1 SPECIFIC MAPPING GUIDELINES:
+1. Account Identifiers:
+   - CUSIP_NUM -> Card product CUSIP identifier
+   - ACCT_NUM -> Unique account number (hashed/masked)
+   - CUST_ID -> Customer identifier
+
+2. Balance Fields (as of cycle date):
+   - CYCL_DT_BAL -> Cycle date balance
+   - PROMO_BAL -> Promotional balance
+   - CASH_ADV_BAL -> Cash advance balance
+   - PUR_BAL -> Purchase balance
+
+3. Credit Limit Fields:
+   - ORIG_LINE -> Original credit limit
+   - CURR_LINE -> Current credit limit
+   - CASH_LINE -> Cash advance limit
+
+4. Rate Fields (as decimals, not percentages):
+   - STD_PUR_APR -> Standard purchase APR
+   - CASH_APR -> Cash advance APR
+   - PROMO_APR -> Promotional APR
+
+5. Date Fields (YYYYMMDD format):
+   - ACCT_OPEN_DT -> Account open date
+   - CYCL_DT -> Cycle date
+   - ORIG_DT -> Origination date
+
+6. Payment/Collection Fields:
+   - MIN_PMT_DUE -> Minimum payment due
+   - ACT_PMT_AMT -> Actual payment amount
+   - DAYS_PAST_DUE -> Days past due
+
+7. Risk/Score Fields:
+   - ORIG_FICO -> Original FICO score
+   - CURR_FICO -> Current FICO score
+   - BEHAV_SCORE -> Behavioral score
+
+MAPPING REQUIREMENTS:
+- Use exact FR Y-14M field names where applicable
+- Map to credit card system primary sources
+- Consider data transformations for regulatory format
+- Identify calculation requirements for derived fields
+- Note any data quality considerations
+
+Please suggest:
+1. PDE name following FR Y-14M naming convention
+2. PDE code (schedule prefix: D1_)
+3. Source system and field mapping
+4. Required transformations
+5. Business process association
+6. Data quality checks needed
+7. Confidence score (0-100)
+
+Return as JSON:
+{
+    "pde_name": "FR Y-14M field name",
+    "pde_code": "D1_XXX format",
+    "pde_description": "Official FR Y-14M description",
+    "data_source_id": number or null,
+    "source_system": "Credit card platform/Loan servicing system",
+    "source_field": "column_name OR schema.table.column_name",
+    "table_name": "table_name (optional)",
+    "column_name": "column_name",
+    "transformation_rule": {
+        "type": "direct|calculated|lookup|conditional",
+        "logic": "Transformation details",
+        "format": "Output format requirements"
+    },
+    "mapping_type": "direct|calculated|lookup|conditional",
+    "business_process": "Account origination|Billing cycle|Payment processing|Risk management",
+    "data_quality_checks": [
+        "Check 1",
+        "Check 2"
+    ],
+    "regulatory_notes": "FR Y-14M specific requirements",
+    "confidence_score": number,
+    "rationale": "Mapping rationale",
+    "alternative_mappings": [
+        {
+            "source_field": "Alternative field",
+            "confidence_score": number,
+            "notes": "When to use"
+        }
+    ]
+}

@@ -1,0 +1,317 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  LinearProgress,
+  Typography,
+  Box,
+  Alert,
+  Chip,
+  CircularProgress
+} from '@mui/material';
+import { Cancel, CheckCircle, Error } from '@mui/icons-material';
+import { planningApi, JobStatus } from '../api/planning';
+
+interface LLMProgressModalProps {
+  open: boolean;
+  jobId: string | null;
+  onClose: () => void;
+  onComplete: (result?: any) => void;
+  onError: (error: string) => void;
+  autoCloseDelay?: number; // in milliseconds, default 5000 (5 seconds)
+}
+
+const LLMProgressModal: React.FC<LLMProgressModalProps> = ({
+  open,
+  jobId,
+  onClose,
+  onComplete,
+  onError,
+  autoCloseDelay = 5000
+}) => {
+  const [jobStatus, setJobStatus] = useState<JobStatus | null>(null);
+  const [polling, setPolling] = useState(false);
+  const [autoCloseTimer, setAutoCloseTimer] = useState<NodeJS.Timeout | null>(null);
+  const [remainingTime, setRemainingTime] = useState<number>(0);
+
+  // Poll job status every 2 seconds
+  useEffect(() => {
+    if (!open || !jobId) {
+      setPolling(false);
+      return;
+    }
+
+    setPolling(true);
+    const pollInterval = setInterval(async () => {
+      try {
+        const status = await planningApi.getJobStatus(jobId);
+        console.log('Job status:', status);
+        setJobStatus(status);
+
+        // Handle completion
+        if (status.status === 'completed') {
+          setPolling(false);
+          clearInterval(pollInterval);
+          
+          // Start auto-close timer
+          setRemainingTime(autoCloseDelay / 1000);
+          const countdown = setInterval(() => {
+            setRemainingTime(prev => {
+              if (prev <= 1) {
+                clearInterval(countdown);
+                onComplete(status.result);
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+          setAutoCloseTimer(countdown);
+          
+        } else if (status.status === 'failed') {
+          setPolling(false);
+          clearInterval(pollInterval);
+          onError(status.error || 'Job failed');
+        } else if (status.status === 'cancelled') {
+          setPolling(false);
+          clearInterval(pollInterval);
+          onError('Job was cancelled');
+        }
+      } catch (error) {
+        console.error('Error polling job status:', error);
+        // Don't stop polling on network errors, they might be temporary
+      }
+    }, 2000);
+
+    return () => {
+      clearInterval(pollInterval);
+      setPolling(false);
+      if (autoCloseTimer) {
+        clearInterval(autoCloseTimer);
+        setAutoCloseTimer(null);
+      }
+    };
+  }, [open, jobId, onComplete, onError]);
+
+  const handleCancel = async () => {
+    if (!jobId) return;
+
+    try {
+      // For now, we'll just close the modal and stop polling
+      // The backend doesn't have a cancel endpoint yet
+      setPolling(false);
+      onError('Job monitoring cancelled by user');
+    } catch (error) {
+      console.error('Error cancelling job:', error);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'default';
+      case 'running': return 'primary';
+      case 'completed': return 'success';
+      case 'failed': return 'error';
+      case 'cancelled': return 'warning';
+      default: return 'default';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending': return <CircularProgress size={16} />;
+      case 'running': return <CircularProgress size={16} />;
+      case 'completed': return <CheckCircle />;
+      case 'failed': return <Error />;
+      case 'cancelled': return <Cancel />;
+      default: return undefined;
+    }
+  };
+
+  const formatDuration = (startTime?: string, endTime?: string) => {
+    if (!startTime) return 'Not started';
+    
+    const start = new Date(startTime);
+    const end = endTime ? new Date(endTime) : new Date();
+    const duration = Math.floor((end.getTime() - start.getTime()) / 1000);
+    
+    const minutes = Math.floor(duration / 60);
+    const seconds = duration % 60;
+    
+    return `${minutes}m ${seconds}s`;
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Typography variant="h6">LLM Attribute Generation</Typography>
+          {jobStatus && (
+            <Chip
+              label={jobStatus.status.toUpperCase()}
+              color={getStatusColor(jobStatus.status) as any}
+              icon={getStatusIcon(jobStatus.status)}
+              size="small"
+            />
+          )}
+        </Box>
+      </DialogTitle>
+
+      <DialogContent>
+        {jobStatus ? (
+          <Box>
+            {/* Progress Bar */}
+            <Box mb={3}>
+              <Box display="flex" justifyContent="space-between" mb={1}>
+                <Typography variant="body2" color="textSecondary">
+                  Progress
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  {jobStatus.progress_percentage}%
+                </Typography>
+              </Box>
+              <LinearProgress
+                variant="determinate"
+                value={jobStatus.progress_percentage}
+                sx={{ 
+                  height: 8, 
+                  borderRadius: 4,
+                  '& .MuiLinearProgress-bar': {
+                    backgroundColor: jobStatus.status === 'failed' ? 'error.main' : undefined
+                  }
+                }}
+              />
+            </Box>
+
+            {/* Current Step */}
+            <Box mb={2}>
+              <Typography variant="subtitle2" gutterBottom>
+                Current Step
+              </Typography>
+              <Typography variant="body1" color="primary">
+                {jobStatus.current_step || 'Initializing...'}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                {jobStatus.message}
+              </Typography>
+            </Box>
+
+            {/* Progress Details */}
+            {jobStatus.total_steps > 0 && (
+              <Box mb={2}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Progress Details
+                </Typography>
+                <Typography variant="body2">
+                  {jobStatus.completed_steps} of {jobStatus.total_steps} steps completed
+                </Typography>
+              </Box>
+            )}
+
+            {/* Timing Information */}
+            <Box mb={2}>
+              <Typography variant="subtitle2" gutterBottom>
+                Timing
+              </Typography>
+              <Typography variant="body2">
+                Duration: {formatDuration(jobStatus.started_at, jobStatus.completed_at)}
+              </Typography>
+              {jobStatus.created_at && (
+                <Typography variant="body2" color="textSecondary">
+                  Started: {new Date(jobStatus.created_at).toLocaleTimeString()}
+                </Typography>
+              )}
+            </Box>
+
+            {/* Provider Information */}
+            {jobStatus.metadata && (
+              <Box mb={2}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Configuration
+                </Typography>
+                {jobStatus.metadata.discovery_provider && (
+                  <Typography variant="body2">
+                    Discovery: {jobStatus.metadata.discovery_provider}
+                  </Typography>
+                )}
+                {jobStatus.metadata.details_provider && (
+                  <Typography variant="body2">
+                    Details: {jobStatus.metadata.details_provider}
+                  </Typography>
+                )}
+                {jobStatus.metadata.provider && (
+                  <Typography variant="body2">
+                    Provider: {jobStatus.metadata.provider}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {/* Results */}
+            {jobStatus.status === 'completed' && jobStatus.result && (
+              <Alert severity="success" sx={{ mt: 2 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Generation Complete! {remainingTime > 0 && `(Auto-closing in ${remainingTime}s)`}
+                </Typography>
+                <Typography variant="body2">
+                  Generated: {jobStatus.result.total_generated} attributes
+                </Typography>
+                <Typography variant="body2">
+                  Saved: {jobStatus.result.total_saved} attributes
+                </Typography>
+                {jobStatus.result.cde_matches > 0 && (
+                  <Typography variant="body2">
+                    CDE Matches: {jobStatus.result.cde_matches}
+                  </Typography>
+                )}
+                {jobStatus.result.historical_matches > 0 && (
+                  <Typography variant="body2">
+                    Historical Issues: {jobStatus.result.historical_matches}
+                  </Typography>
+                )}
+                <Typography variant="body2">
+                  Method: {jobStatus.result.method} ({jobStatus.result.provider_used})
+                </Typography>
+              </Alert>
+            )}
+
+            {/* Error */}
+            {jobStatus.status === 'failed' && jobStatus.error && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Generation Failed
+                </Typography>
+                <Typography variant="body2">
+                  {jobStatus.error}
+                </Typography>
+              </Alert>
+            )}
+          </Box>
+        ) : (
+          <Box display="flex" alignItems="center" gap={2}>
+            <CircularProgress size={24} />
+            <Typography>Loading job status...</Typography>
+          </Box>
+        )}
+      </DialogContent>
+
+      <DialogActions>
+        {jobStatus?.status === 'running' && (
+          <Button onClick={handleCancel} color="warning">
+            Cancel Job
+          </Button>
+        )}
+        <Button 
+          onClick={onClose} 
+          disabled={jobStatus?.status === 'running'}
+        >
+          {jobStatus?.status === 'completed' ? 'Close' : 'Close'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+export default LLMProgressModal; 

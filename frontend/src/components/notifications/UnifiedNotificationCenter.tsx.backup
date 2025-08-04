@@ -1,0 +1,324 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Badge,
+  IconButton,
+  Popover,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Typography,
+  Box,
+  Divider,
+  Button,
+  Chip,
+  Tab,
+  Tabs,
+  Paper,
+  Avatar,
+  Tooltip
+} from '@mui/material';
+import {
+  NotificationsOutlined,
+  CheckCircleOutline,
+  WarningAmber,
+  Info,
+  Error,
+  Assignment,
+  Schedule,
+  Flag,
+  MarkEmailRead,
+  Delete
+} from '@mui/icons-material';
+import { formatDistanceToNow } from 'date-fns';
+import { useNotifications } from '../../contexts/NotificationContext';
+import { colors } from '../../styles/design-system';
+
+interface Notification {
+  id: string;
+  type: 'info' | 'warning' | 'error' | 'success' | 'task' | 'sla';
+  title: string;
+  message: string;
+  timestamp: Date;
+  read: boolean;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  actionUrl?: string;
+  metadata?: {
+    cycleId?: number;
+    reportId?: number;
+    phase?: string;
+    dueDate?: Date;
+  };
+}
+
+const UnifiedNotificationCenter: React.FC = () => {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedTab, setSelectedTab] = useState(0);
+  const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications();
+  
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setSelectedTab(newValue);
+  };
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case 'success':
+        return <CheckCircleOutline sx={{ color: colors.success.main }} />;
+      case 'warning':
+        return <WarningAmber sx={{ color: colors.warning.main }} />;
+      case 'error':
+        return <Error sx={{ color: colors.error.main }} />;
+      case 'task':
+        return <Assignment sx={{ color: colors.primary.main }} />;
+      case 'sla':
+        return <Schedule sx={{ color: colors.warning.main }} />;
+      default:
+        return <Info sx={{ color: colors.info.main }} />;
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'critical':
+        return colors.error.main;
+      case 'high':
+        return colors.warning.main;
+      case 'medium':
+        return colors.info.main;
+      default:
+        return colors.grey[600];
+    }
+  };
+
+  const filterNotifications = () => {
+    switch (selectedTab) {
+      case 0: // All
+        return notifications;
+      case 1: // Unread
+        return notifications.filter((n: Notification) => !n.read);
+      case 2: // Tasks
+        return notifications.filter((n: Notification) => n.type === 'task');
+      case 3: // SLA Alerts
+        return notifications.filter((n: Notification) => n.type === 'sla');
+      default:
+        return notifications;
+    }
+  };
+
+  const filteredNotifications = filterNotifications();
+
+  const open = Boolean(anchorEl);
+
+  return (
+    <>
+      <Tooltip title="Notifications">
+        <IconButton
+          onClick={handleClick}
+          size="large"
+          sx={{
+            color: open ? colors.primary.main : 'inherit',
+            '&:hover': {
+              backgroundColor: colors.primary.light + '20'
+            }
+          }}
+        >
+          <Badge 
+            badgeContent={unreadCount} 
+            color="error"
+            overlap="circular"
+            sx={{
+              '& .MuiBadge-badge': {
+                right: -3,
+                top: 13,
+                border: `2px solid ${colors.background.paper}`,
+                padding: '0 4px',
+              }
+            }}
+          >
+            <NotificationsOutlined />
+          </Badge>
+        </IconButton>
+      </Tooltip>
+
+      <Popover
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        PaperProps={{
+          sx: {
+            width: 420,
+            maxHeight: 600,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column'
+          }
+        }}
+      >
+        {/* Header */}
+        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">Notifications</Typography>
+            {unreadCount > 0 && (
+              <Button
+                size="small"
+                startIcon={<MarkEmailRead />}
+                onClick={markAllAsRead}
+                sx={{ textTransform: 'none' }}
+              >
+                Mark all as read
+              </Button>
+            )}
+          </Box>
+        </Box>
+
+        {/* Tabs */}
+        <Tabs
+          value={selectedTab}
+          onChange={handleTabChange}
+          variant="fullWidth"
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab label="All" />
+          <Tab label={`Unread (${unreadCount})`} />
+          <Tab label="Tasks" />
+          <Tab label="SLA Alerts" />
+        </Tabs>
+
+        {/* Notification List */}
+        <List sx={{ flex: 1, overflow: 'auto', p: 0 }}>
+          {filteredNotifications.length === 0 ? (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography color="textSecondary">
+                No notifications
+              </Typography>
+            </Box>
+          ) : (
+            filteredNotifications.map((notification: Notification, index: number) => (
+              <React.Fragment key={notification.id}>
+                <ListItem
+                  sx={{
+                    backgroundColor: notification.read ? 'transparent' : colors.primary.light + '08',
+                    '&:hover': {
+                      backgroundColor: colors.grey[100]
+                    },
+                    cursor: 'pointer',
+                    position: 'relative',
+                    pr: 6
+                  }}
+                  onClick={() => {
+                    markAsRead(notification.id);
+                    if (notification.actionUrl) {
+                      window.location.href = notification.actionUrl;
+                    }
+                  }}
+                >
+                  <ListItemIcon>
+                    {getIcon(notification.type)}
+                  </ListItemIcon>
+                  
+                  <ListItemText
+                    primary={
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            fontWeight: notification.read ? 400 : 600,
+                            color: notification.read ? colors.text.secondary : colors.text.primary
+                          }}
+                        >
+                          {notification.title}
+                        </Typography>
+                        {notification.priority !== 'low' && (
+                          <Flag 
+                            sx={{ 
+                              fontSize: 16,
+                              color: getPriorityColor(notification.priority)
+                            }} 
+                          />
+                        )}
+                      </Box>
+                    }
+                    secondary={
+                      <>
+                        <Typography
+                          variant="body2"
+                          color="textSecondary"
+                          sx={{ mb: 0.5 }}
+                        >
+                          {notification.message}
+                        </Typography>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Typography variant="caption" color="textSecondary">
+                            {formatDistanceToNow(notification.timestamp, { addSuffix: true })}
+                          </Typography>
+                          {notification.metadata?.phase && (
+                            <Chip
+                              label={notification.metadata.phase}
+                              size="small"
+                              sx={{ height: 20 }}
+                            />
+                          )}
+                        </Box>
+                      </>
+                    }
+                  />
+                  
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeNotification(notification.id);
+                    }}
+                    sx={{
+                      position: 'absolute',
+                      right: 8,
+                      top: '50%',
+                      transform: 'translateY(-50%)'
+                    }}
+                  >
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </ListItem>
+                {index < filteredNotifications.length - 1 && <Divider />}
+              </React.Fragment>
+            ))
+          )}
+        </List>
+
+        {/* Footer */}
+        {filteredNotifications.length > 0 && (
+          <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', textAlign: 'center' }}>
+            <Button
+              size="small"
+              sx={{ textTransform: 'none' }}
+              onClick={() => {
+                handleClose();
+                window.location.href = '/notifications';
+              }}
+            >
+              View all notifications
+            </Button>
+          </Box>
+        )}
+      </Popover>
+    </>
+  );
+};
+
+export default UnifiedNotificationCenter;

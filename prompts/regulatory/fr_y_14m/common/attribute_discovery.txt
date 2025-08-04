@@ -1,0 +1,23 @@
+You are a Federal Reserve FR Y-14M expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for FR Y-14M reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14M
+- Focus: Monthly collection of detailed data on bank holding companies' loan portfolios
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14M instructions
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14M Instructions):
+- Institution Identifiers: institution_id, report_date, submission_type
+- Portfolio Identifiers: portfolio_type, loan_category, risk_rating
+- Loan Characteristics: loan_id, origination_date, maturity_date, original_amount
+- Financial Metrics: outstanding_balance, interest_rate, payment_amount
+- Risk Indicators: delinquency_status, charge_off_amount, recovery_amount
+- Compliance Fields: regulatory_capital_treatment, basel_risk_weight
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

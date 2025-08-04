@@ -1,0 +1,720 @@
+"""
+Cycle Report management endpoints
+"""
+
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_, or_, func, Integer, case
+from sqlalchemy.orm import selectinload
+from datetime import datetime
+
+from app.core.database import get_db
+from app.core.dependencies import get_current_user, require_management
+from app.core.auth import UserRoles, RoleChecker
+from app.core.permissions import require_permission
+from app.models.user import User
+from app.models.report import Report
+from app.schemas.cycle import CycleReportResponse
+from app.core.exceptions import ValidationException
+from app.core.logging import get_logger
+from app.models.cycle_report import CycleReport
+from app.models.test_cycle import TestCycle
+from app.models.workflow import WorkflowPhase
+from app.models.testing import Observation
+from app.schemas.workflow_phase import WorkflowPhase as WorkflowPhaseSchema, WorkflowPhaseUpdate, PhaseTransitionRequest, WorkflowStatusResponse, WorkflowPhaseOverride
+from app.schemas.activity import ActivityResponse
+from app.schemas.observation import ObservationResponse
+from app.models.audit import AuditLog
+from app.services.workflow_orchestrator import WorkflowOrchestrator
+
+logger = get_logger(__name__)
+router = APIRouter()
+
+# Role-based access control
+management_roles = [UserRoles.TEST_EXECUTIVE, UserRoles.REPORT_OWNER, UserRoles.REPORT_OWNER_EXECUTIVE]
+admin_roles = [UserRoles.TEST_EXECUTIVE]
+
+
+@router.get("/by-tester/{tester_id}", response_model=List[CycleReportResponse])
+async def get_reports_by_tester(
+    tester_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get all reports assigned to a tester
+    """
+    # Check permissions
+    if current_user.user_id != tester_id and current_user.role not in [UserRoles.TEST_EXECUTIVE, UserRoles.REPORT_OWNER_EXECUTIVE]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to view these reports"
+        )
+    
+    try:
+        # Get cycle reports with eager loading of relationships in a single query
+        stmt = (
+            select(CycleReport)
+            .options(
+                selectinload(CycleReport.report).selectinload(Report.lob),
+                selectinload(CycleReport.cycle),
+                selectinload(CycleReport.tester),
+                selectinload(CycleReport.workflow_phases),
+                selectinload(CycleReport.observations)
+            )
+            .where(
+                and_(
+                    CycleReport.tester_id == tester_id,
+                    CycleReport.status.in_(['Not Started', 'In Progress', 'Complete'])
+                )
+            )
+            .order_by(CycleReport.created_at.desc())
+        )
+        
+        result = await db.execute(stmt)
+        cycle_reports = result.scalars().all()
+        
+        # Transform data to include additional fields
+        enhanced_reports = []
+        for cr in cycle_reports:
+            report_data = CycleReportResponse.model_validate(cr)
+            
+            # Add report name and LOB info
+            if cr.report:
+                report_data.report_name = cr.report.report_name
+                if cr.report.lob:
+                    report_data.lob_name = cr.report.lob.lob_name
+            
+            # Add cycle name
+            if cr.cycle:
+                report_data.cycle_name = cr.cycle.cycle_name
+            
+            # Get current phase from preloaded phases
+            incomplete_phases = [p for p in cr.workflow_phases if p.status != 'Complete']
+            if incomplete_phases:
+                current_phase = max(incomplete_phases, key=lambda p: p.phase_id)
+                report_data.current_phase = current_phase.phase_name
+            
+            # Calculate overall progress
+            total_phases = 7  # Total number of workflow phases
+            completed_phases = len([p for p in cr.workflow_phases if p.status == 'Complete'])
+            report_data.overall_progress = int((completed_phases / total_phases) * 100) if completed_phases else 0
+            
+            # Get issues count from preloaded observations
+            report_data.issues_count = len([o for o in cr.observations if o.status == 'Open'])
+            
+            enhanced_reports.append(report_data)
+        
+        return enhanced_reports
+        
+    except Exception as e:
+        logger.error(f"Error fetching reports by tester: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching reports"
+        )
+
+
+@router.get("/tester-stats/{tester_id}")
+@require_permission("cycles", "read")
+async def get_tester_stats(
+    tester_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get statistics for a tester's assigned reports
+    """
+    
+    # If user is a tester, they can only view their own stats
+    if current_user.role == UserRoles.TESTER and current_user.user_id != tester_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: You can only view your own stats"
+        )
+    
+    valid_statuses = ["Not Started", "In Progress", "Complete"]
+    
+    # Get all stats in a single query
+    stats_query = select(
+        func.count().label('total_assigned'),
+        func.sum(case((CycleReport.status == "In Progress", 1), else_=0)).label('in_progress'),
+        func.sum(case((CycleReport.status == "Complete", 1), else_=0)).label('completed'),
+        func.sum(case((CycleReport.status == "Not Started", 1), else_=0)).label('pending_actions'),
+        func.sum(case((
+            and_(
+                CycleReport.status.in_(valid_statuses),
+                CycleReport.completed_at == None,
+                CycleReport.cycle.has(TestCycle.end_date < func.now())
+            ), 1
+        ), else_=0)).label('overdue_items')
+    ).select_from(CycleReport).where(
+        CycleReport.tester_id == tester_id,
+        CycleReport.status.in_(valid_statuses)
+    )
+    
+    result = await db.execute(stats_query)
+    stats = result.first()
+    
+    return {
+        "total_assigned": stats.total_assigned or 0,
+        "in_progress": stats.in_progress or 0,
+        "completed": stats.completed or 0,
+        "pending_actions": stats.pending_actions or 0,
+        "overdue_items": stats.overdue_items or 0
+    }
+
+
+@router.get("/{cycle_id}/reports/{report_id}", response_model=CycleReportResponse)
+async def get_cycle_report_details(
+    cycle_id: int,
+    report_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get detailed information about a specific report in a cycle"""
+    # Get cycle report with all related data
+    result = await db.execute(
+        select(CycleReport)
+        .options(
+            selectinload(CycleReport.report).selectinload(Report.lob),
+            selectinload(CycleReport.report).selectinload(Report.owner),
+            selectinload(CycleReport.cycle),
+            selectinload(CycleReport.tester)
+        )
+        .where(
+            and_(
+                CycleReport.cycle_id == cycle_id,
+                CycleReport.report_id == report_id
+            )
+        )
+    )
+    cycle_report = result.scalar_one_or_none()
+    
+    if not cycle_report:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Report not found in this cycle"
+        )
+    
+    # Transform data
+    report_data = CycleReportResponse.model_validate(cycle_report)
+    
+    # Add report name and LOB info
+    if cycle_report.report:
+        report_data.report_name = cycle_report.report.report_name
+        if cycle_report.report.lob:
+            report_data.lob_name = cycle_report.report.lob.lob_name
+        
+        # Add report owner information
+        if cycle_report.report.owner:
+            report_data.report_owner_id = cycle_report.report.report_owner_id
+            report_data.report_owner_name = f"{cycle_report.report.owner.first_name} {cycle_report.report.owner.last_name}"
+            report_data.report_owner_email = cycle_report.report.owner.email
+    
+    # Add cycle name
+    if cycle_report.cycle:
+        report_data.cycle_name = cycle_report.cycle.cycle_name
+    
+    # Add tester name
+    if cycle_report.tester:
+        report_data.tester_name = f"{cycle_report.tester.first_name} {cycle_report.tester.last_name}"
+    
+    # Get current phase
+    phase_result = await db.execute(
+        select(WorkflowPhase)
+        .where(
+            and_(
+                WorkflowPhase.cycle_id == cycle_id,
+                WorkflowPhase.report_id == report_id,
+                WorkflowPhase.status != 'Complete'
+            )
+        )
+        .order_by(WorkflowPhase.phase_id.desc())
+        .limit(1)
+    )
+    current_phase = phase_result.scalar_one_or_none()
+    if current_phase:
+        report_data.current_phase = current_phase.phase_name
+    
+    # Calculate overall progress
+    total_phases = 7  # Total number of workflow phases
+    completed_phases = await db.scalar(
+        select(func.count())
+        .select_from(WorkflowPhase)
+        .where(
+            and_(
+                WorkflowPhase.cycle_id == cycle_id,
+                WorkflowPhase.report_id == report_id,
+                WorkflowPhase.status == 'Complete'
+            )
+        )
+    )
+    report_data.overall_progress = int((completed_phases / total_phases) * 100) if completed_phases else 0
+    
+    return report_data
+
+
+@router.get("/{cycle_id}/reports/{report_id}/phases", response_model=List[WorkflowPhaseSchema])
+async def get_report_workflow_phases(
+    cycle_id: int,
+    report_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get all workflow phases for a report"""
+    # Check if report exists and is assigned to cycle
+    result = await db.execute(
+        select(CycleReport).where(
+            and_(CycleReport.cycle_id == cycle_id, CycleReport.report_id == report_id)
+        )
+    )
+    cycle_report = result.scalar_one_or_none()
+    
+    if not cycle_report:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Report not found in specified cycle"
+        )
+    
+    # Get workflow phases
+    result = await db.execute(
+        select(WorkflowPhase).where(
+            and_(
+                WorkflowPhase.cycle_id == cycle_id,
+                WorkflowPhase.report_id == report_id
+            )
+        ).order_by(WorkflowPhase.phase_id)
+    )
+    phases = result.scalars().all()
+    
+    phase_responses = [WorkflowPhaseSchema.model_validate(phase) for phase in phases]
+    
+    return phase_responses
+
+
+@router.get("/{cycle_id}/reports/{report_id}/activity", response_model=List[ActivityResponse])
+async def get_cycle_report_activity(
+    cycle_id: int,
+    report_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get activity log for a specific report"""
+    # Query audit logs for this report
+    result = await db.execute(
+        select(AuditLog)
+        .where(
+            and_(
+                AuditLog.table_name == "cycle_reports",
+                AuditLog.record_id == report_id,
+                AuditLog.old_values['cycle_id'].astext.cast(Integer) == cycle_id
+            )
+        )
+        .order_by(AuditLog.timestamp.desc())
+    )
+    activities = result.scalars().all()
+    return [ActivityResponse.model_validate(activity) for activity in activities]
+
+
+@router.get("/{cycle_id}/reports/{report_id}/observations", response_model=List[ObservationResponse])
+async def get_cycle_report_observations(
+    cycle_id: int,
+    report_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get all observations for a report"""
+    result = await db.execute(
+        select(Observation)
+        .where(
+            and_(
+                Observation.cycle_id == cycle_id,
+                Observation.report_id == report_id
+            )
+        )
+        .order_by(Observation.created_at.desc())
+    )
+    observations = result.scalars().all()
+    return [ObservationResponse.model_validate(obs) for obs in observations]
+
+
+# ===== WORKFLOW MANAGEMENT ENDPOINTS =====
+
+@router.get("/{cycle_id}/reports/{report_id}/workflow-status", response_model=dict)
+async def get_cycle_report_workflow_status(
+    cycle_id: int,
+    report_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get comprehensive workflow status for a report"""
+    orchestrator = WorkflowOrchestrator(db)
+    workflow_status = await orchestrator.get_workflow_status(cycle_id, report_id)
+    
+    return {
+        "cycle_id": cycle_id,
+        "report_id": report_id,
+        **workflow_status
+    }
+
+
+@router.get("/{cycle_id}/reports/{report_id}/phase-dependencies/{phase_name}", response_model=dict)
+async def check_cycle_report_phase_dependencies(
+    cycle_id: int,
+    report_id: int,
+    phase_name: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Check if a specific phase can be started based on dependencies"""
+    orchestrator = WorkflowOrchestrator(db)
+    dependency_check = await orchestrator.check_phase_dependencies(cycle_id, report_id, phase_name)
+    
+    return {
+        "cycle_id": cycle_id,
+        "report_id": report_id,
+        "phase_name": phase_name,
+        **dependency_check
+    }
+
+
+@router.post("/{cycle_id}/reports/{report_id}/initialize-workflow", response_model=dict)
+async def initialize_cycle_report_workflow(
+    cycle_id: int,
+    report_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Initialize all workflow phases for a report"""
+    # Check if report exists and is assigned to cycle
+    result = await db.execute(
+        select(CycleReport).where(
+            and_(CycleReport.cycle_id == cycle_id, CycleReport.report_id == report_id)
+        )
+    )
+    cycle_report = result.scalar_one_or_none()
+    
+    if not cycle_report:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Report not found in specified cycle"
+        )
+    
+    # Use orchestrator to initialize workflow
+    orchestrator = WorkflowOrchestrator(db)
+    result = await orchestrator.initialize_workflow_phases(cycle_id, report_id)
+    
+    return {
+        "message": "Workflow phases initialized successfully",
+        "cycle_id": cycle_id,
+        "report_id": report_id,
+        **result
+    }
+
+
+@router.put("/{cycle_id}/reports/{report_id}/phases/{phase_name}/dates", response_model=dict)
+async def update_cycle_report_phase_dates(
+    cycle_id: int,
+    report_id: int,
+    phase_name: str,
+    phase_update: WorkflowPhaseUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Update planned start and end dates for a specific phase"""
+    # Check user permissions
+    if not current_user.is_tester and not current_user.is_test_manager:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only testers and test managers can update phase dates"
+        )
+    
+    orchestrator = WorkflowOrchestrator(db)
+    
+    try:
+        result = await orchestrator.update_phase_dates(
+            cycle_id=cycle_id,
+            report_id=report_id,
+            phase_name=phase_name,
+            update_data=phase_update
+        )
+        
+        return {
+            "message": "Phase dates updated successfully",
+            "cycle_id": cycle_id,
+            "report_id": report_id,
+            "phase_name": result.phase_name,
+            "planned_start_date": result.planned_start_date.isoformat() if result.planned_start_date else None,
+            "planned_end_date": result.planned_end_date.isoformat() if result.planned_end_date else None,
+            "actual_start_date": result.actual_start_date.isoformat() if result.actual_start_date else None,
+            "actual_end_date": result.actual_end_date.isoformat() if result.actual_end_date else None,
+            "state": result.state,
+            "schedule_status": result.schedule_status
+        }
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating phase dates: {str(e)}"
+        )
+
+
+@router.post("/{cycle_id}/reports/{report_id}/phases/{phase_name}/start", response_model=dict)
+async def start_cycle_report_phase_with_dates(
+    cycle_id: int,
+    report_id: int,
+    phase_name: str,
+    transition_request: PhaseTransitionRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Start a phase with optional planned dates"""
+    # Check user permissions
+    if not current_user.is_tester and not current_user.is_test_manager:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only testers and test managers can start phases"
+        )
+    
+    orchestrator = WorkflowOrchestrator(db)
+    
+    try:
+        result = await orchestrator.start_phase_with_date_tracking(
+            cycle_id=cycle_id,
+            report_id=report_id,
+            phase_name=phase_name,
+            user_id=current_user.user_id,
+            planned_start_date=transition_request.planned_start_date,
+            planned_end_date=transition_request.planned_end_date
+        )
+        
+        return {
+            "message": f"Phase {phase_name} started successfully",
+            "cycle_id": cycle_id,
+            "report_id": report_id,
+            **result
+        }
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error starting phase: {str(e)}"
+        )
+
+
+@router.post("/{cycle_id}/reports/{report_id}/phases/{phase_name}/complete", response_model=dict)
+async def complete_cycle_report_phase(
+    cycle_id: int,
+    report_id: int,
+    phase_name: str,
+    completion_notes: str = "",
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Complete a phase and trigger automatic transitions"""
+    # Check user permissions
+    if not current_user.is_tester and not current_user.is_test_manager:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only testers and test managers can complete phases"
+        )
+    
+    orchestrator = WorkflowOrchestrator(db)
+    
+    try:
+        result = await orchestrator.complete_phase_and_transition(
+            cycle_id=cycle_id,
+            report_id=report_id,
+            phase_name=phase_name,
+            user_id=current_user.user_id,
+            completion_notes=completion_notes
+        )
+        
+        return {
+            "message": f"Phase {phase_name} completed successfully",
+            "cycle_id": cycle_id,
+            "report_id": report_id,
+            **result
+        }
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error completing phase: {str(e)}"
+        )
+
+
+@router.get("/{cycle_id}/reports/{report_id}/phases/{phase_name}/date-status", response_model=dict)
+async def get_cycle_report_phase_date_status(
+    cycle_id: int,
+    report_id: int,
+    phase_name: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get date-based status for a specific phase"""
+    orchestrator = WorkflowOrchestrator(db)
+    
+    try:
+        result = await orchestrator.get_phase_date_status(cycle_id, report_id, phase_name)
+        
+        return {
+            "cycle_id": cycle_id,
+            "report_id": report_id,
+            **result
+        }
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error getting phase status: {str(e)}"
+        )
+
+
+@router.post("/{cycle_id}/reports/{report_id}/phases/{phase_name}/override", response_model=WorkflowPhaseSchema)
+async def override_cycle_report_phase_status(
+    cycle_id: int,
+    report_id: int,
+    phase_name: str,
+    override_data: WorkflowPhaseOverride,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Override phase state or status"""
+    # Check user permissions
+    if not current_user.is_tester and not current_user.is_test_manager:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only testers and test managers can override phase status"
+        )
+    
+    orchestrator = WorkflowOrchestrator(db)
+    
+    try:
+        result = await orchestrator.override_phase_status(
+            cycle_id=cycle_id,
+            report_id=report_id,
+            phase_name=phase_name,
+            state_override=override_data.state_override,
+            status_override=override_data.status_override,
+            override_reason=override_data.override_reason,
+            user_id=current_user.user_id
+        )
+        
+        return WorkflowPhaseSchema.model_validate(result)
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error overriding phase status: {str(e)}"
+        )
+
+
+@router.delete("/{cycle_id}/reports/{report_id}/phases/{phase_name}/override", response_model=WorkflowPhaseSchema)
+async def clear_cycle_report_phase_overrides(
+    cycle_id: int,
+    report_id: int,
+    phase_name: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Clear phase overrides"""
+    # Check user permissions
+    if not current_user.is_tester and not current_user.is_test_manager:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only testers and test managers can clear phase overrides"
+        )
+    
+    orchestrator = WorkflowOrchestrator(db)
+    
+    try:
+        result = await orchestrator.clear_phase_overrides(
+            cycle_id=cycle_id,
+            report_id=report_id,
+            phase_name=phase_name,
+            user_id=current_user.user_id
+        )
+        
+        return WorkflowPhaseSchema.model_validate(result)
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error clearing phase overrides: {str(e)}"
+        )
+
+
+@router.put("/{cycle_id}/reports/{report_id}/phases/{phase_name}/state", response_model=WorkflowPhaseSchema)
+async def update_cycle_report_phase_state(
+    cycle_id: int,
+    report_id: int,
+    phase_name: str,
+    state_data: dict,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Update phase state with automatic status calculation"""
+    # Check user permissions
+    if not current_user.is_tester and not current_user.is_test_manager:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only testers and test managers can update phase state"
+        )
+    
+    orchestrator = WorkflowOrchestrator(db)
+    
+    try:
+        result = await orchestrator.update_phase_state(
+            cycle_id=cycle_id,
+            report_id=report_id,
+            phase_name=phase_name,
+            new_state=state_data.get('state'),
+            notes=state_data.get('notes'),
+            user_id=current_user.user_id
+        )
+        
+        return WorkflowPhaseSchema.model_validate(result)
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating phase state: {str(e)}"
+        ) 

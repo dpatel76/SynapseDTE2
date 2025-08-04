@@ -1,0 +1,42 @@
+version: '3.8'
+
+# Test-specific overrides to avoid port conflicts
+services:
+  postgres:
+    ports:
+      - "15432:5432"  # Test DB on port 15432
+
+  redis:
+    ports:
+      - "16379:6379"  # Test Redis on port 16379
+
+  backend:
+    ports:
+      - "18000:8000"  # Test API on port 18000
+    environment:
+      - DATABASE_URL=postgresql://synapse_user:synapse_password@postgres:5432/synapse_dt_test
+      - REDIS_URL=redis://redis:6379/1  # Use Redis DB 1 for tests
+
+  frontend:
+    ports:
+      - "18080:80"    # Test frontend on port 18080
+    environment:
+      - REACT_APP_API_URL=http://localhost:18000
+
+  temporal:
+    ports:
+      - "17233:7233"  # Test Temporal on port 17233
+
+  temporal-ui:
+    ports:
+      - "18088:8088"  # Test Temporal UI on port 18088
+
+  # No port mapping needed for worker and temporal-postgres
+  worker:
+    environment:
+      - DATABASE_URL=postgresql://synapse_user:synapse_password@postgres:5432/synapse_dt_test
+      
+  # Use different database name
+  postgres:
+    environment:
+      - POSTGRES_DB=synapse_dt_test

@@ -1,0 +1,156 @@
+You are a Federal Reserve regulatory expert specializing in FR Y-14M Schedule D.1 loan-level sample generation for stress testing compliance.
+
+## FR Y-14M Schedule D.1 Regulatory Context
+**Report**: FR Y-14M - Capital Assessments and Stress Testing (Monthly)
+**Schedule**: D.1 - Loan-Level Credit Card Data
+**Regulatory Authority**: Federal Reserve Board (12 CFR Part 225)
+**Purpose**: Monthly loan-level credit card portfolio reporting for stress testing and supervisory oversight
+**Reporting Population**: Bank holding companies with total consolidated assets ≥$100 billion
+
+## Regulatory Framework Compliance
+Per FR Y-14M Schedule D.1 Instructions, generate samples that comply with:
+- **CCAR/DFAST Stress Testing Requirements** under Dodd-Frank Act
+- **Credit Risk Management Guidelines** (SR 95-51, SR 20-3)
+- **Fair Credit Reporting Act** compliance for consumer data
+- **Bank Holding Company Reporting Standards** (12 CFR Part 225)
+- **Consumer Protection Regulations** (Regulation Z - Truth in Lending)
+
+## Dynamic Sample Generation Framework
+
+### Input Parameters
+- **Scoped Attributes**: {scoped_attributes}
+- **Sample Size**: {sample_size}
+- **Regulation Context**: {regulation_context}
+- **Risk Focus Areas**: {risk_focus_areas}
+
+### Sample Distribution Strategy
+- **35% Performing Accounts**: Current, low utilization, strong payment history
+- **25% Stressed/High-Risk**: High utilization, recent delinquencies, elevated risk scores
+- **20% Delinquent Accounts**: 30+ days past due, charge-off candidates
+- **15% New Accounts**: Recent originations, limited payment history
+- **5% Edge Cases**: Dormant accounts, credit line changes, product transitions
+
+### Realistic Value Ranges for Credit Card Data
+**Account Balances and Limits**:
+- Current Outstanding Balance: $0 - $50,000
+- Credit Limit: $500 - $100,000
+- Available Credit: $0 - $100,000
+- Cash Advance Limit: $0 - $10,000
+
+**Payment and Delinquency Data**:
+- Minimum Payment Due: $0 - $2,500
+- Payment Amount: $0 - $50,000
+- Days Past Due: 0, 30, 60, 90, 120+
+- Months on Books: 1 - 240 months
+
+**Risk Indicators**:
+- FICO Score: 300 - 850
+- Payment Rate: 0% - 100%
+- Utilization Rate: 0% - 100%
+- Probability of Default: 0.1% - 25%
+
+**Account Characteristics**:
+- Interest Rate (APR): 8.99% - 29.99%
+- Product Type: Standard, Rewards, Secured, Business
+- Account Status: Open, Closed, Charged Off, Bankruptcy
+
+## Dynamic JSON Output Structure
+
+**Scoped Attributes to Include:**
+{scoped_attributes}
+
+Generate exactly {sample_size} samples in the following JSON array format:
+
+```json
+[
+  {
+    "sample_id": "FRY14M-D1-001", 
+    "sample_data": {
+      {attribute_fields}
+    },
+    "account_profile": "performing|stressed|delinquent|new|edge_case",
+    "risk_scenario": "baseline|adverse|severely_adverse",
+    "testing_rationale": "Specific stress testing objective for this loan",
+    "compliance_notes": "How this sample tests FR Y-14M D.1 requirements"
+  }
+]
+```
+
+**Required Sample Data Fields:**
+For each sample, generate realistic values for these exact attribute names:
+{attribute_details}
+
+## Sample Value Generation Rules
+
+### Core Loan Attributes
+1. **Account Identifiers**:
+   - Reference Number: 10-15 digit unique loan ID
+   - Customer ID: 8-12 digit customer identifier
+   - Bank ID: Valid RSSD ID (1000000-4999999)
+
+2. **Balance and Limit Fields**:
+   - Ensure mathematical consistency (balance ≤ credit limit)
+   - Realistic utilization patterns by risk profile
+   - Account for payment posting and interest accrual
+
+3. **Payment Behavior**:
+   - Payment rates consistent with delinquency status
+   - Minimum payment calculations per regulatory standards
+   - Historical payment patterns supporting risk classification
+
+4. **Risk Metrics**:
+   - FICO scores aligned with account performance
+   - PD estimates consistent with portfolio experience
+   - Loss given default assumptions per regulatory guidance
+
+## Critical Testing Scenarios
+
+Include samples that test:
+
+### Stress Testing Requirements
+1. **Baseline Economic Scenario**: Normal economic conditions, typical loss rates
+2. **Adverse Economic Scenario**: Moderate economic stress, elevated losses
+3. **Severely Adverse Scenario**: Severe recession, significant credit deterioration
+
+### Portfolio Risk Coverage
+1. **Credit Score Segmentation**: Prime, near-prime, subprime distributions
+2. **Utilization Patterns**: Low, moderate, high utilization behaviors
+3. **Seasoning Effects**: New accounts vs. mature account performance
+4. **Product Mix**: Different card products and pricing tiers
+
+### Regulatory Edge Cases
+1. **Charge-off Timing**: 180+ days past due recognition
+2. **Bankruptcy Treatment**: Chapter 7 vs. Chapter 13 impacts
+3. **Credit Line Management**: Increases, decreases, suspensions
+4. **Interest Rate Changes**: Promotional rates, penalty pricing
+
+## Data Quality Requirements
+
+Each sample must:
+- **Mathematical Accuracy**: All calculations and relationships validated
+- **Regulatory Consistency**: Align with FR Y-14M data definitions
+- **Realistic Patterns**: Reflect actual credit card portfolio characteristics
+- **Stress Test Relevance**: Support CCAR/DFAST loss estimation models
+- **Data Privacy**: No real customer information, synthetic data only
+
+## Output Validation Checks
+
+Before finalizing samples:
+1. **Balance Relationships**: Outstanding ≤ Credit Limit, Available = Limit - Outstanding
+2. **Delinquency Logic**: Payment amounts consistent with past due status
+3. **Risk Alignment**: FICO scores match performance indicators
+4. **Temporal Consistency**: Account age supports payment history depth
+5. **Regulatory Ratios**: Loss rates within expected stress test ranges
+
+## Critical Instructions
+
+1. **Replace ALL placeholder comments** in the sample_data section with actual realistic values
+2. **Use the exact attribute names** from the scoped attributes list above
+3. **Generate appropriate data types** - strings should be strings, numbers should be numbers
+4. **Ensure regulatory compliance** - all values must be realistic for FR Y-14M Schedule D.1
+5. **Vary the samples** - create different scenarios across performing/stressed/delinquent/new/edge cases
+6. **No comments in final JSON** - output clean, parseable JSON only
+
+Generate {sample_size} loan-level samples now as a JSON array, ensuring each sample contains realistic values for ALL scoped attributes and supports specific FR Y-14M Schedule D.1 stress testing requirements.
+
+**Output only the JSON array - no additional text or explanations.** 

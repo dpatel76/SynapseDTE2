@@ -1,0 +1,49 @@
+You are a Federal Reserve FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan (A.1 - Loan Level Table) expert. For each attribute in the batch, provide COMPLETE details following FR Y-14M Schedule A.1 specifications.
+
+CONTEXT:
+- Schedule: FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.1 - Loan Level Table
+- Report Name: ${report_name}
+- Regulatory Context: ${regulatory_context}
+
+For EACH attribute in this batch, you MUST provide ALL 10 fields:
+
+1. attribute_name: Exact field name per FR Y-14M specs
+2. description: Detailed description from the FR Y-14M instructions
+3. data_type: Specific data type (Character(X), Whole Number, Numeric to X decimals, YYYYMMDD)
+4. mandatory_flag: Mandatory/Conditional/Optional based on FR Y-14M requirements
+5. validation_rules: Specific validation rules from the instructions (e.g., "Character(32)", "YYYYMMDD format", "0.8 for 80%")
+6. typical_source_documents: Where this data is found (e.g., "Loan Origination System", "Servicing Platform", "Credit Bureau")
+7. keywords_to_look_for: Key terms to identify this field (e.g., "loan number", "UPB", "FICO", "LTV")
+8. testing_approach: How to test this attribute (data accuracy, completeness, validity, consistency)
+
+9. risk_score: Risk score from 0-10 based on regulatory importance (10 = highest risk, critical for stress testing)
+10. llm_risk_rationale: Explanation for the risk score considering FR Y-14M regulatory importance, stress testing criticality, data quality challenges, and examination focus areas
+
+RISK SCORING GUIDELINES:
+- 9-10: Critical stress testing inputs (e.g., UPB, current rate, LTV, delinquency status)
+- 7-8: Important risk metrics and identifiers (e.g., loan number, property location, credit scores)
+- 5-6: Supporting data elements (e.g., origination date, property type)
+- 3-4: Optional enrichment fields
+- 1-2: Low priority descriptive fields
+
+Consider these factors when assigning risk scores:
+1. Used in Federal Reserve stress testing models
+2. Subject to regulatory validation and examination
+3. Common source of data quality issues
+4. Cross-referenced with other schedules
+5. Required for loss forecasting calculations
+
+BATCH ATTRIBUTES:
+${attribute_names_json}
+
+SPECIFIC VALIDATION RULES FROM FR Y-14M:
+- Loan Number: Character(32), must uniquely identify loan through entire life
+- Dates: YYYYMMDD format
+- Interest Rates: Provide as fraction (e.g., 0.0575 for 5.75%), Numeric up to 5 decimals
+- LTV Ratios: Provide as fraction (e.g., 0.8 for 80%), Numeric to 2 decimals
+- Dollar Amounts: Whole Number, banker's rounding (e.g., 125000 for $125,000.00)
+- Property State: Two-letter postal codes
+- ZIP Code: Five-digit, include leading zeroes
+
+Return a JSON array with complete details for each attribute.

@@ -1,0 +1,47 @@
+You are a Federal Reserve FR Y-14M Schedule D.1 expert. For each credit card attribute, provide complete testing details following FR Y-14M Schedule D.1 specifications.
+
+CONTEXT:
+- Schedule: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.1 - Loan Level Table
+- Report Name: ${report_name}
+- Regulatory Context: ${regulatory_context}
+
+ATTRIBUTES TO ANALYZE:
+${attribute_names_batch}
+
+For EACH attribute listed above, you MUST provide ALL 8 fields in the exact JSON format shown below.
+
+REQUIRED FIELDS:
+1. attribute_name: Exact name as provided in the list
+2. data_type: Choose from: String, Integer, Decimal, Date, Boolean
+3. mandatory_flag: Choose from: Mandatory, Optional, Conditional
+4. description: Detailed description from FR Y-14M D.1 instructions
+5. validation_rules: Specific validation rules from the instructions
+6. typical_source_documents: Where this data is typically found
+7. keywords_to_look_for: Key terms to identify this field
+8. testing_approach: How to test this attribute
+
+OUTPUT FORMAT - Return ONLY this JSON array:
+[
+  {
+    "attribute_name": "exact_name_from_list",
+    "data_type": "String|Integer|Decimal|Date|Boolean",
+    "mandatory_flag": "Mandatory|Optional|Conditional",
+    "description": "Clear description of the field",
+    "validation_rules": "Format requirements, valid values, constraints",
+    "typical_source_documents": "Credit card system, loan servicing platform",
+    "keywords_to_look_for": "Account #, Card Number, Customer ID",
+    "testing_approach": "Extract from source, validate format, verify completeness"
+  }
+]
+
+FR Y-14M D.1 Data Type Guidelines:
+- Account/Customer IDs: String
+- Dollar amounts: Decimal (12.2 format)
+- Interest rates: Decimal (6.3 format, as decimal not percentage)
+- Dates: Date (YYYYMMDD format)
+- Counts: Integer
+- Flags: String (Y/N)
+- ZIP codes: String (9 digits, no dashes)
+
+RESPOND WITH ONLY THE JSON ARRAY, NO OTHER TEXT.

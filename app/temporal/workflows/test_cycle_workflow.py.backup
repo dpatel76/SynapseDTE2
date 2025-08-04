@@ -1,0 +1,190 @@
+"""Test Cycle Workflow - Orchestrates the entire 7-phase testing process"""
+
+from temporalio import workflow
+from temporalio.common import RetryPolicy
+from datetime import timedelta
+from typing import List, Dict, Any
+import logging
+
+from app.temporal.shared import (
+    TestCycleWorkflowInput, WorkflowContext, PhaseResult,
+    WorkflowStatus, PhaseStatus, WORKFLOW_PHASES,
+    DEFAULT_ACTIVITY_TIMEOUT, DEFAULT_RETRY_ATTEMPTS
+)
+from app.temporal.activities.phase_activities import (
+    start_phase_activity, complete_phase_activity,
+    check_phase_dependencies_activity
+)
+from app.temporal.activities.llm_activities import generate_test_attributes_activity
+from app.temporal.activities.test_activities import (
+    create_test_cases_activity, batch_execute_tests_activity,
+    validate_test_results_activity
+)
+from app.temporal.activities.notification_activities import (
+    send_phase_completion_notification_activity
+)
+
+logger = logging.getLogger(__name__)
+
+
+@workflow.defn
+class TestCycleWorkflow:
+    """Main workflow for test cycle execution"""
+    
+    def __init__(self):
+        self.status = WorkflowStatus.PENDING
+        self.completed_phases: List[str] = []
+        self.phase_results: Dict[str, PhaseResult] = {}
+    
+    @workflow.run
+    async def run(self, input_data: TestCycleWorkflowInput) -> Dict[str, Any]:
+        """Execute the test cycle workflow"""
+        
+        # Set workflow status
+        self.status = WorkflowStatus.RUNNING
+        workflow.logger.info(f"Starting test cycle workflow for cycle {input_data.cycle_id}")
+        
+        # Create workflow context
+        context = WorkflowContext(
+            cycle_id=input_data.cycle_id,
+            report_id=0,  # Will be set per report
+            cycle_report_id=0,  # Will be set per report
+            user_id=input_data.initiated_by_user_id,
+            metadata={}
+        )
+        
+        # Define retry policy for activities
+        retry_policy = RetryPolicy(
+            maximum_attempts=DEFAULT_RETRY_ATTEMPTS,
+            initial_interval=timedelta(seconds=1),
+            maximum_interval=timedelta(seconds=30),
+            backoff_coefficient=2
+        )
+        
+        try:
+            # Execute phases sequentially with dependency checking
+            for phase_name in WORKFLOW_PHASES:
+                if input_data.skip_phases and phase_name in input_data.skip_phases:
+                    workflow.logger.info(f"Skipping phase: {phase_name}")
+                    continue
+                
+                # Check phase dependencies
+                can_start = await workflow.execute_activity(
+                    check_phase_dependencies_activity,
+                    args=[context, phase_name],
+                    start_to_close_timeout=timedelta(seconds=DEFAULT_ACTIVITY_TIMEOUT),
+                    retry_policy=retry_policy
+                )
+                
+                if not can_start:
+                    workflow.logger.warning(f"Cannot start phase {phase_name} - dependencies not met")
+                    continue
+                
+                # Execute phase
+                phase_result = await self.execute_phase(
+                    context, phase_name, input_data, retry_policy
+                )
+                
+                self.phase_results[phase_name] = phase_result
+                
+                if phase_result.status == PhaseStatus.COMPLETE:
+                    self.completed_phases.append(phase_name)
+                    
+                    # Send completion notification
+                    await workflow.execute_activity(
+                        send_phase_completion_notification_activity,
+                        args=[context.cycle_report_id, phase_name, context.user_id],
+                        start_to_close_timeout=timedelta(seconds=60),
+                        retry_policy=retry_policy
+                    )
+                elif phase_result.status == PhaseStatus.BLOCKED:
+                    workflow.logger.error(f"Phase {phase_name} blocked: {phase_result.error_message}")
+                    break
+            
+            # Set final status
+            if len(self.completed_phases) == len(WORKFLOW_PHASES):
+                self.status = WorkflowStatus.COMPLETED
+            else:
+                self.status = WorkflowStatus.PAUSED
+            
+            return {
+                "status": self.status,
+                "completed_phases": self.completed_phases,
+                "phase_results": {
+                    name: {
+                        "status": result.status,
+                        "started_at": result.started_at,
+                        "completed_at": result.completed_at,
+                        "error": result.error_message
+                    }
+                    for name, result in self.phase_results.items()
+                }
+            }
+            
+        except Exception as e:
+            workflow.logger.error(f"Test cycle workflow failed: {str(e)}")
+            self.status = WorkflowStatus.FAILED
+            raise
+    
+    async def execute_phase(
+        self,
+        context: WorkflowContext,
+        phase_name: str,
+        input_data: TestCycleWorkflowInput,
+        retry_policy: RetryPolicy
+    ) -> PhaseResult:
+        """Execute a specific workflow phase"""
+        
+        # Start phase
+        start_result = await workflow.execute_activity(
+            start_phase_activity,
+            args=[context, phase_name],
+            start_to_close_timeout=timedelta(seconds=DEFAULT_ACTIVITY_TIMEOUT),
+            retry_policy=retry_policy
+        )
+        
+        if start_result.status != PhaseStatus.IN_PROGRESS:
+            return start_result
+        
+        # Execute phase-specific logic
+        phase_data = {}
+        
+        if phase_name == "Planning" and input_data.auto_generate_attributes:
+            # Generate test attributes using LLM
+            llm_result = await workflow.execute_activity(
+                generate_test_attributes_activity,
+                args=["Regulatory context", "Compliance Report", None],
+                start_to_close_timeout=timedelta(seconds=600),
+                retry_policy=retry_policy
+            )
+            phase_data["attributes_generated"] = llm_result.success
+            phase_data["attribute_count"] = len(llm_result.data.get("attributes", []))
+        
+        elif phase_name == "Test Execution":
+            # Execute tests
+            test_result = await workflow.execute_activity(
+                batch_execute_tests_activity,
+                args=[context.cycle_report_id, [1, 2, 3], [1, 2]],  # Mock IDs
+                start_to_close_timeout=timedelta(seconds=1800),
+                retry_policy=retry_policy
+            )
+            phase_data["test_results"] = test_result.data
+            
+            # Validate results
+            validation_result = await workflow.execute_activity(
+                validate_test_results_activity,
+                args=[context.cycle_report_id, 0.95],
+                start_to_close_timeout=timedelta(seconds=300),
+                retry_policy=retry_policy
+            )
+            phase_data["validation"] = validation_result.data
+        
+        # Complete phase
+        complete_result = await workflow.execute_activity(
+            complete_phase_activity,
+            args=[context, phase_name, phase_data],
+            start_to_close_timeout=timedelta(seconds=DEFAULT_ACTIVITY_TIMEOUT),
+            retry_policy=retry_policy
+        )
+        
+        return complete_result

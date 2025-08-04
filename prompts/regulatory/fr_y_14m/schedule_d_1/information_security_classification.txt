@@ -1,0 +1,163 @@
+You are a Federal Reserve FR Y-14M Schedule D.1 information security classification expert. Classify the given PDE according to regulatory and security requirements.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.1 - Loan Level Table
+- Report: ${report_name}
+- Regulatory Context: ${regulatory_context}
+- Regulation: Federal Reserve Capital Planning and Stress Testing
+
+PDE TO CLASSIFY:
+- PDE Name: ${pde_name}
+- PDE Code: ${pde_code}
+- Description: ${pde_description}
+- Business Process: ${business_process}
+- Source System: ${source_system}
+
+RELATED ATTRIBUTE DETAILS:
+- Attribute Name: ${attribute_name}
+- Data Type: ${data_type}
+- Is CDE: ${cde_flag}
+- Is Primary Key: ${is_primary_key}
+- Has Historical Issues: ${historical_issues_flag}
+- Validation Rules: ${validation_rules}
+
+FR Y-14M D.1 SPECIFIC CLASSIFICATION GUIDELINES:
+
+1. CRITICALITY LEVELS:
+   HIGH:
+   - Account identifiers (ACCT_NUM, CUST_ID, CUSIP_NUM)
+   - Credit scores (ORIG_FICO, CURR_FICO, BEHAV_SCORE)
+   - Balance and payment fields critical for stress testing
+   - Risk metrics (PD, LGD, EAD fields)
+   
+   MEDIUM:
+   - Transaction amounts and dates
+   - APR and rate fields
+   - Fee information
+   - Geographic data (STATE, ZIP_CODE)
+   
+   LOW:
+   - Descriptive fields
+   - Status flags (unless regulatory)
+   - Derived calculations
+
+2. RISK LEVELS:
+   HIGH:
+   - PII fields (SSN, full account numbers if unmasked)
+   - Credit bureau scores
+   - Income information
+   - Fields with regulatory penalties for errors
+   
+   MEDIUM:
+   - Payment history
+   - Balance information
+   - Rate information
+   - Geographic identifiers
+   
+   LOW:
+   - Aggregated data
+   - Public information
+   - System-generated flags
+
+3. REGULATORY FLAGS:
+   - Required for FR Y-14M submission: YES
+   - Subject to CCAR validation: YES
+   - Part of stress testing models: Check if used in DFAST/CCAR
+   - Privacy regulations: GLBA, FCRA, Reg P
+   - Data retention: Federal Reserve 5-year requirement
+
+4. PII/SENSITIVE DATA:
+   - Account numbers (must be hashed/masked)
+   - Customer IDs (if linkable to individuals)
+   - ZIP codes (quasi-identifier)
+   - Income data
+   - Credit scores
+   - Payment behavior
+
+5. INFORMATION SECURITY CLASSIFICATION WITH SPECIFIC EXAMPLES:
+
+   PUBLIC (Information that can be freely shared or is publicly available):
+   - Reporting period identifiers (Period ID, ASOFDT, reporting cycle dates)
+   - Standard geographic codes (State abbreviations, public ZIP codes)
+   - Published regulatory requirements and instructions
+   - Publicly available company information
+   - Standard data element definitions from public regulatory guidance
+   - Generic product categories available in public disclosures
+   
+   PROPRIETARY (Internal business information with competitive value):
+   - Internal process codes and system identifiers
+   - Business unit classifications and internal organizational data
+   - Internal risk model methodologies (not the results)
+   - Geographic segmentation for business purposes
+   - Collateral type classifications
+   - Internal workflow and process identifiers
+   - Non-sensitive account status flags
+   
+   CONFIDENTIAL (Sensitive business/customer data requiring protection):
+   - Customer names and masked identifiers
+   - Account balances and payment amounts
+   - Interest rates and fee structures
+   - Payment history and delinquency status
+   - Income data and employment information
+   - Aggregated portfolio metrics
+   - Non-public financial performance data
+   
+   HRCI (Highly Restricted Confidential Information - Most sensitive data):
+   - Social Security Numbers (SSN)
+   - Full, unmasked account numbers
+   - Credit bureau scores (FICO, VantageScore)
+   - Proprietary internal credit scores
+   - Individual customer risk ratings
+   - Non-public regulatory examination findings
+   - Sensitive model parameters and outputs
+
+6. FEDERAL RESERVE SPECIFIC REQUIREMENTS:
+   - Data Quality: Must meet Federal Reserve data quality standards
+   - Completeness: Missing data impacts stress test results
+   - Accuracy: Errors can invalidate CCAR submissions
+   - Timeliness: Must reflect as-of cycle date
+
+CLASSIFICATION DECISION LOGIC:
+1. Start with the lowest classification level that protects the data appropriately
+2. For basic identifiers (periods, states, generic codes): Consider PUBLIC first
+3. For internal business codes: Consider PROPRIETARY  
+4. For customer data or financial amounts: Consider CONFIDENTIAL
+5. For highly sensitive PII or regulatory-restricted data: Use HRCI
+6. Always justify the classification with specific reasoning
+
+Please classify with consideration for:
+1. Impact on stress testing accuracy
+2. Regulatory reporting requirements
+3. Privacy and security regulations
+4. Historical examination findings
+5. Cross-field dependencies
+
+Return as JSON:
+{
+    "criticality": "high|medium|low",
+    "risk_level": "high|medium|low",
+    "information_security_classification": "HRCI|Confidential|Proprietary|Public",
+    "regulatory_flag": true/false,
+    "pii_flag": true/false,
+    "regulatory_references": [
+        "FR Y-14M Instructions",
+        "CCAR Data Requirements",
+        "Regulation P",
+        "GLBA"
+    ],
+    "classification_rationale": "Detailed explanation based on FR Y-14M requirements and specific classification logic",
+    "evidence": {
+        "regulatory": ["FR Y-14M D.1 Line Item X", "CCAR requirement Y"],
+        "business_impact": "Impact on credit card stress testing models",
+        "historical_issues": "Previous examination findings if applicable",
+        "data_quality_requirements": "Federal Reserve data quality standards"
+    },
+    "security_controls": {
+        "encryption": "required|recommended|optional",
+        "masking": "required|recommended|optional",
+        "access_control": "high|medium|standard",
+        "audit_logging": "required|recommended|optional"
+    },
+    "compliance_notes": "Additional FR Y-14M compliance considerations"
+}

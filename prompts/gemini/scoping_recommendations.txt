@@ -1,0 +1,42 @@
+REGULATORY TESTING SCOPING ANALYSIS
+
+Analyze attributes and recommend which should be tested based on risk and regulatory requirements.
+
+INPUTS:
+- Regulation: ${regulation}
+- Report: ${report_name}
+- Attributes: ${attributes_list}
+- CDE List: ${cde_list}
+- Historical Issues: ${historical_issues}
+
+EVALUATION CRITERIA:
+1. CDE flagged = HIGH PRIORITY (score 9-10)
+2. Historical issues = HIGH PRIORITY (score 8-9)
+3. Multi-report usage = MEDIUM-HIGH (score 7-8)
+4. Mandatory fields = MEDIUM (score 6-7)
+5. Optional/low risk = LOW (score 1-5)
+
+OUTPUT JSON ARRAY:
+[
+  {
+    "attribute_name": "name",
+    "recommendation": "Test|Skip",
+    "recommendation_score": 1-10,
+    "rationale": "why test/skip",
+    "expected_source_documents": ["docs"],
+    "search_keywords": ["keywords"],
+    "other_reports_using": ["reports"],
+    "risk_level": "Low|Medium|High|Critical",
+    "testing_priority": "Low|Medium|High|Critical"
+  }
+]
+
+PRIORITIZATION RULES:
+- CDE attributes → ALWAYS recommend "Test" (score 9-10)
+- Historical issues → HIGH priority "Test" (score 8-9)
+- Mandatory + high risk → "Test" (score 7-8)
+- Optional + low risk → "Skip" (score 1-4)
+
+FOCUS: Risk-based decisions, specific rationale, actionable recommendations.
+
+Analyze now: 

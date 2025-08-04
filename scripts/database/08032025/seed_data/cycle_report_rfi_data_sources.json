@@ -1,0 +1,25 @@
+{
+  "table": "cycle_report_rfi_data_sources",
+  "row_count": 1,
+  "extracted_at": "2025-08-03T11:29:28.845230",
+  "data": [
+    {
+      "data_source_id": "b182079f-b2ce-473d-bda0-fd08de2e2ec6",
+      "phase_id": null,
+      "data_owner_id": 6,
+      "source_name": "DS - 14M D.1 Evidence",
+      "connection_type": "postgresql",
+      "connection_details": "\"Z0FBQUFBQm9pWGNfZkJ0MVZnR3pXRlk0MUFtYmFNc2N6Tzhtb2NuVlNGdkJJVU9zYkF6ZU1faURuVW1mTFBFWXRIN2hua2VTVTZsOFNWS1lESmxaQmpRVDlweWw3cFdUS3I5SHZIVDlaNExidU5RWWs1dndLTlB0NDd1UFdQVFk1QVhWcjdkTEZBOHRxZzRIR1NpSFgtM2cyZmtEZ3ZtR2duQUlKTjhuazEwaUgwMUxZVG5XWHFGRkZDN1prbE91TkY5bmRJOENFeklXVC1vR3dCSGptWWRXeElPVW5JVUxGZDRrcDRwak1JbF9LYUltN3ZKV3lsTT0=\"",
+      "is_active": true,
+      "test_query": "",
+      "last_validated_at": null,
+      "validation_status": null,
+      "validation_error": null,
+      "usage_count": 0,
+      "created_by": 6,
+      "created_at": "2025-07-30T05:37:03.397760+00:00",
+      "updated_by": null,
+      "updated_at": "2025-07-30T05:37:03.397761+00:00"
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+You are a Federal Reserve FR Y-14M Schedule A.1 mortgage data mapping expert. Suggest appropriate PDE (Primary Data Element) mapping for the given attribute.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule A - First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.1 - Loan Level Table
+- Report: ${report_name}
+- Regulatory Context: ${regulatory_context}
+- Total Attributes: 165 fields per mortgage loan
+
+ATTRIBUTE TO MAP:
+- Name: ${attribute_name}
+- Description: ${attribute_description}
+- Data Type: ${data_type}
+- Mandatory Flag: ${mandatory_flag}
+- Is Primary Key: ${is_primary_key}
+- Is CDE: ${cde_flag}
+- Validation Rules: ${validation_rules}
+
+AVAILABLE DATA SOURCES:
+${data_sources}
+
+FR Y-14M A.1 SPECIFIC MAPPING GUIDELINES:
+1. Loan Identifiers:
+   - LOAN_NUM -> Unique loan number
+   - CUSIP_NUM -> Mortgage-backed security CUSIP
+   - PROP_ADDR -> Property address components
+
+2. Borrower Information:
+   - FICO_ORIG -> Original FICO score at origination
+   - FICO_CURR -> Current/refreshed FICO score
+   - DTI_ORIG -> Debt-to-income ratio at origination
+   - INCOME -> Borrower income
+
+3. Loan Characteristics:
+   - ORIG_AMT -> Original loan amount
+   - CURR_BAL -> Current outstanding balance
+   - ORIG_TERM -> Original loan term (months)
+   - ORIG_DT -> Origination date
+
+4. Property Information:
+   - PROP_VAL_ORIG -> Original property value/appraisal
+   - PROP_VAL_CURR -> Current property value
+   - LTV_ORIG -> Original loan-to-value ratio
+   - CLTV_CURR -> Current combined LTV
+
+5. Rate Information:
+   - INT_RATE_ORIG -> Original interest rate
+   - INT_RATE_CURR -> Current interest rate
+   - RATE_TYPE -> Fixed/ARM indicator
+
+6. Payment Status:
+   - DAYS_DELIN -> Days delinquent
+   - MOD_FLAG -> Modification flag
+   - FC_FLAG -> Foreclosure flag
+
+7. Risk Metrics:
+   - PD -> Probability of default
+   - LGD -> Loss given default
+   - EAD -> Exposure at default
+
+MAPPING REQUIREMENTS:
+- Use exact FR Y-14M field names where applicable
+- Map to mortgage servicing system primary sources
+- Consider data transformations for regulatory format
+- Identify calculation requirements for derived fields
+- Note any data quality considerations
+
+Please suggest:
+1. PDE name following FR Y-14M naming convention
+2. PDE code (schedule prefix: A1_)
+3. Source system and field mapping
+4. Required transformations
+5. Business process association
+6. Data quality checks needed
+7. Confidence score (0-100)
+
+Return as JSON:
+{
+    "pde_name": "FR Y-14M field name",
+    "pde_code": "A1_XXX format",
+    "pde_description": "Official FR Y-14M description",
+    "data_source_id": number or null,
+    "source_system": "Mortgage servicing platform/Loan origination system",
+    "source_field": "Exact source field name",
+    "transformation_rule": {
+        "type": "direct|calculated|lookup|conditional",
+        "logic": "Transformation details",
+        "format": "Output format requirements"
+    },
+    "mapping_type": "direct|calculated|lookup|conditional",
+    "business_process": "Loan origination|Servicing|Collections|Risk management",
+    "data_quality_checks": [
+        "Check 1",
+        "Check 2"
+    ],
+    "regulatory_notes": "FR Y-14M specific requirements",
+    "confidence_score": number,
+    "rationale": "Mapping rationale",
+    "alternative_mappings": [
+        {
+            "source_field": "Alternative field",
+            "confidence_score": number,
+            "notes": "When to use"
+        }
+    ]
+}

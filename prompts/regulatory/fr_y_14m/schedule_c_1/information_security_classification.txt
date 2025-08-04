@@ -1,0 +1,117 @@
+You are a Federal Reserve FR Y-14M Schedule C.1 information security classification expert. Classify the given PDE according to regulatory and security requirements.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule C - Commercial and Industrial Loans
+- Sub-schedule: C.1 - Loan Level Table
+- Report: ${report_name}
+- Regulatory Context: ${regulatory_context}
+- Regulation: Federal Reserve Capital Planning and Stress Testing
+
+PDE TO CLASSIFY:
+- PDE Name: ${pde_name}
+- PDE Code: ${pde_code}
+- Description: ${pde_description}
+- Business Process: ${business_process}
+- Source System: ${source_system}
+
+RELATED ATTRIBUTE DETAILS:
+- Attribute Name: ${attribute_name}
+- Data Type: ${data_type}
+- Is CDE: ${cde_flag}
+- Is Primary Key: ${is_primary_key}
+- Has Historical Issues: ${historical_issues_flag}
+- Validation Rules: ${validation_rules}
+
+FR Y-14M C.1 SPECIFIC CLASSIFICATION GUIDELINES:
+
+1. CRITICALITY LEVELS:
+   HIGH:
+   - Obligor identifiers (OBLIG_ID, DUNS_NUM)
+   - Facility identifiers (LOAN_ID, COMMIT_ID)
+   - Financial metrics (REVENUE, EBITDA, DEBT_SVC_COV)
+   - Risk ratings and metrics (PD, LGD, EAD)
+   - Outstanding balances critical for stress testing
+   
+   MEDIUM:
+   - Interest rates and spreads
+   - Collateral values and types
+   - Industry classifications (NAICS)
+   - Commitment amounts
+   
+   LOW:
+   - Descriptive fields
+   - Product codes
+   - System-generated flags
+
+2. RISK LEVELS:
+   HIGH:
+   - Obligor names and identifiers
+   - Financial statements data
+   - Internal risk ratings
+   - Non-public company information
+   
+   MEDIUM:
+   - Loan amounts and terms
+   - Collateral information
+   - Industry codes
+   - Geographic data
+   
+   LOW:
+   - Public company tickers
+   - Product types
+   - Aggregated metrics
+
+3. REGULATORY FLAGS:
+   - Required for FR Y-14M submission: YES
+   - Subject to CCAR validation: YES
+   - Part of C&I stress testing: Check specific field
+   - Privacy regulations: GLBA, Reg P
+   - Data retention: Federal Reserve 5-year requirement
+
+4. PII/SENSITIVE DATA:
+   - Obligor legal names
+   - DUNS numbers
+   - Financial statement details
+   - Internal credit ratings
+   - Non-public financial metrics
+
+5. FEDERAL RESERVE SPECIFIC REQUIREMENTS:
+   - Data Quality: Must meet Federal Reserve commercial loan standards
+   - Completeness: Missing data impacts C&I stress test results
+   - Accuracy: Errors affect wholesale credit risk calculations
+   - Timeliness: Must reflect as-of reporting date
+
+Please classify with consideration for:
+1. Impact on commercial loan stress testing
+2. Confidentiality of business financial information
+3. Basel III capital requirements
+4. Historical examination findings
+5. Cross-field dependencies for ratio calculations
+
+Return as JSON:
+{
+    "criticality": "high|medium|low",
+    "risk_level": "high|medium|low",
+    "regulatory_flag": true/false,
+    "pii_flag": true/false,
+    "regulatory_references": [
+        "FR Y-14M Instructions",
+        "CCAR C&I Requirements",
+        "Basel III",
+        "GLBA"
+    ],
+    "classification_rationale": "Detailed explanation based on FR Y-14M requirements",
+    "evidence": {
+        "regulatory": ["FR Y-14M C.1 Line Item X", "CCAR requirement Y"],
+        "business_impact": "Impact on commercial loan stress testing",
+        "historical_issues": "Previous examination findings if applicable",
+        "data_quality_requirements": "Federal Reserve data quality standards"
+    },
+    "security_controls": {
+        "encryption": "required|recommended|optional",
+        "masking": "required|recommended|optional",
+        "access_control": "high|medium|standard",
+        "audit_logging": "required|recommended|optional"
+    },
+    "compliance_notes": "Additional FR Y-14M compliance considerations"
+}

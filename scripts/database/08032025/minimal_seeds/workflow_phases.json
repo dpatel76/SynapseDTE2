@@ -1,0 +1,63 @@
+{
+  "table": "workflow_phases",
+  "row_count": 7,
+  "extracted_at": "2025-08-03T15:23:44.570867",
+  "data": [
+    {
+      "phase_id": "967f021b-0cbd-4cb6-96a5-a3af06c6faf5",
+      "phase_name": "Planning",
+      "phase_order": 1,
+      "description": "Planning phase for test execution",
+      "is_active": true,
+      "created_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "phase_id": "c27a6cd5-f957-4a3c-a33c-5d2e961a549b",
+      "phase_name": "Data Profiling",
+      "phase_order": 2,
+      "description": "Data profiling and rule generation",
+      "is_active": true,
+      "created_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "phase_id": "0a36cb9e-784a-4988-bb7b-14177e03f9dc",
+      "phase_name": "Scoping",
+      "phase_order": 3,
+      "description": "Attribute scoping and selection",
+      "is_active": true,
+      "created_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "phase_id": "db0a9632-14be-43db-9590-efdf0e110c54",
+      "phase_name": "Sample Selection",
+      "phase_order": 4,
+      "description": "Sample selection for testing",
+      "is_active": true,
+      "created_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "phase_id": "2c1237f9-3163-4226-8352-4bd994458b09",
+      "phase_name": "Request Info",
+      "phase_order": 5,
+      "description": "Request for information",
+      "is_active": true,
+      "created_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "phase_id": "6ad8ea59-5dbb-4398-9124-c19043d13ed5",
+      "phase_name": "Test Execution",
+      "phase_order": 6,
+      "description": "Execute test cases",
+      "is_active": true,
+      "created_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "phase_id": "1ac366b7-42a2-499b-b239-e3899158b2c5",
+      "phase_name": "Observation Management",
+      "phase_order": 7,
+      "description": "Manage test observations",
+      "is_active": true,
+      "created_at": "2025-08-03T15:23:44.570867"
+    }
+  ]
+}

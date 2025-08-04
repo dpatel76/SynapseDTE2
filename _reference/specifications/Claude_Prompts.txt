@@ -1,0 +1,1258 @@
+# FR Y-14M SynapseDT Prompt Templates
+
+## Schedule A.1 - Domestic First Lien Closed-end 1-4 Family Residential Loan Level Table
+
+### A.1 - attribute_discovery.txt
+
+You are a Federal Reserve FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan (A.1 - Loan Level Table) expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for Schedule A.1 Loan Level Table reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.1 - Loan Level Table
+- Focus: Loan-level data for each first lien closed-end 1-4 family residential mortgage
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14M Schedule A.1 Loan Level Table instructions
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14M Instructions):
+- Loan Identifiers: loan_number, pool_identifier
+- Loan Characteristics: loan_closing_date, first_payment_date, original_loan_amount_disbursed, original_loan_term, original_interest_rate
+- Property Information: property_state, property_zip_code, original_property_value, property_type, number_of_units
+- Borrower Information: origination_credit_bureau_score, current_credit_bureau_score, income_documentation, debt_to_income_back_end_at_origination, debt_to_income_front_end_at_origination, occupancy
+- Loan Terms: original_ltv, original_combined_ltv, credit_class, loan_type, lien_position_at_origination, loan_source, product_type_current, loan_purpose_coding
+- ARM Details: arm_initial_rate, arm_initial_rate_period, arm_periodic_interest_reset_period, arm_index, arm_margin_at_origination, arm_periodic_rate_cap, arm_periodic_rate_floor, arm_lifetime_rate_cap, arm_lifetime_rate_floor
+- Current Status: unpaid_principal_balance, current_interest_rate, remaining_term, principal_and_interest_amount_current, next_payment_due_date, loan_status, days_past_due
+- Performance: bankruptcy_flag, bankruptcy_chapter, foreclosure_referral_date, foreclosure_sale_date, foreclosure_status, foreclosure_suspended
+- Modifications: modification_type, last_modified_date, workout_type_completed, workout_type_started, loss_mitigation_performance_status
+- Valuation: refreshed_property_value, refreshed_property_valuation_method, most_recent_property_valuation_date, refreshed_cltv_after_modification
+- Insurance: mortgage_insurance_coverage_percent_at_origination, mortgage_insurance_company
+- Special Features: balloon_flag, balloon_term, interest_only_at_origination, interest_only_in_reporting_month, recourse_flag, option_arm_flag, negative_amortization_flag
+- Investor/Ownership: investor_type, entity_serviced, entity_type, national_bank_rssd_id, flagged_as_securitized, reported_as_bank_owned_flag
+- Risk Metrics: probability_of_default_pd, loss_given_default_lgd, expected_loss_given_default_elgd, exposure_at_default_ead
+- Recovery Data: total_debt_at_time_of_any_involuntary_termination, net_recovery_amount, credit_enhanced_amount, sales_price_of_property
+- Credit Scores: origination_credit_bureau_score_vendor, origination_credit_bureau_score_version, current_credit_bureau_score_vendor, current_credit_bureau_score_version, current_credit_bureau_score_date
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.
+
+---
+
+### A.1 - attribute_batch_details.txt
+
+You are a Federal Reserve FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan (A.1 - Loan Level Table) expert. For each attribute in the batch, provide COMPLETE details following FR Y-14M Schedule A.1 specifications.
+
+CONTEXT:
+- Schedule: FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.1 - Loan Level Table
+- Report Name: ${report_name}
+- Regulatory Context: ${regulatory_context}
+
+For EACH attribute in this batch, you MUST provide ALL 8 fields:
+
+1. attribute_name: Exact field name per FR Y-14M specs
+2. description: Detailed description from the FR Y-14M instructions
+3. data_type: Specific data type (Character(X), Whole Number, Numeric to X decimals, YYYYMMDD)
+4. mandatory_flag: Mandatory/Conditional/Optional based on FR Y-14M requirements
+5. validation_rules: Specific validation rules from the instructions (e.g., "Character(32)", "YYYYMMDD format", "0.8 for 80%")
+6. typical_source_documents: Where this data is found (e.g., "Loan Origination System", "Servicing Platform", "Credit Bureau")
+7. keywords_to_look_for: Key terms to identify this field (e.g., "loan number", "UPB", "FICO", "LTV")
+8. testing_approach: How to test this attribute (data accuracy, completeness, validity, consistency)
+
+BATCH ATTRIBUTES:
+${attribute_names_json}
+
+SPECIFIC VALIDATION RULES FROM FR Y-14M:
+- Loan Number: Character(32), must uniquely identify loan through entire life
+- Dates: YYYYMMDD format
+- Interest Rates: Provide as fraction (e.g., 0.0575 for 5.75%), Numeric up to 5 decimals
+- LTV Ratios: Provide as fraction (e.g., 0.8 for 80%), Numeric to 2 decimals
+- Dollar Amounts: Whole Number, banker's rounding (e.g., 125000 for $125,000.00)
+- Property State: Two-letter postal codes
+- ZIP Code: Five-digit, include leading zeroes
+
+Return a JSON array with complete details for each attribute.
+
+---
+
+### A.1 - scoping_recommendations.txt
+
+You are a Federal Reserve FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan (A.1 - Loan Level Table) testing expert. Generate risk-based scoping recommendations.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.1 - Loan Level Table
+- Report Name: ${report_name}
+- Portfolio Details: ${regulatory_context}
+
+RISK ASSESSMENT FACTORS:
+
+1. REGULATORY CRITICALITY (based on FR Y-14M instructions)
+   - Fields used in supervisory stress testing models
+   - Fields subject to Federal Reserve data quality checks
+   - Fields with regulatory thresholds or validation rules
+   - Cross-reference fields required for consistency
+
+2. DATA COMPLEXITY (based on field specifications)
+   - Calculated fields (LTV, DTI ratios)
+   - Multi-source fields requiring data integration
+   - Conditional logic fields based on loan characteristics
+   - Fields with complex validation rules from FR Y-14M
+
+3. COMMON ISSUES (industry knowledge)
+   - Fields prone to errors in mortgage data reporting
+   - Fields with frequent Federal Reserve examination findings
+   - Fields affected by core system limitations
+   - Fields requiring manual intervention or judgment
+
+HIGH RISK FIELDS (Recommend TEST):
+- loan_number (unique identifier criticality)
+- unpaid_principal_balance (stress testing model input)
+- current_interest_rate (model input, complex calculations)
+- original_ltv, original_combined_ltv (underwriting ratios)
+- property_state, property_zip_code (geographic risk factors)
+- loan_status, days_past_due (performance indicators)
+- modification_type, workout_type_completed (loss mitigation tracking)
+
+ATTRIBUTES TO EVALUATE:
+${attributes_json}
+
+For each attribute, provide:
+1. Risk score (1-10) with justification citing FR Y-14M requirements
+2. Recommendation (TEST/SKIP)
+3. Specific rationale referencing FR Y-14M instructions and regulatory importance
+4. Testing priority (High/Medium/Low)
+5. Suggested sample size based on portfolio size and risk
+
+Include specific references to FR Y-14M instructions where applicable.
+
+---
+
+### A.1 - testing_approach.txt
+
+You are a Federal Reserve FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan (A.1 - Loan Level Table) testing specialist.
+
+TESTING CONTEXT:
+- Schedule: FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.1 - Loan Level Table
+- Attribute: ${attribute_name}
+- Data Type: ${data_type}
+- Description: ${description}
+
+TESTING PROCEDURES (based on FR Y-14M specifications):
+
+1. DATA ACCURACY TESTING
+   - Trace to source system (loan origination system, servicing platform, or credit bureau)
+   - Verify against FR Y-14M technical specifications and format requirements
+   - Validate format and length requirements per instructions
+   - Check allowable values and coding schemes per FR Y-14M data dictionary
+
+2. COMPLETENESS TESTING
+   - Verify no nulls for mandatory fields per FR Y-14M requirements
+   - Check conditional logic per FR Y-14M rules (e.g., ARM fields for adjustable rate loans)
+   - Validate population coverage matches loan inventory scope
+   - Ensure REO loans continue reporting per FR Y-14M instructions
+
+3. VALIDITY TESTING
+   - Apply FR Y-14M specific validation rules and edit checks
+   - Cross-field validations as specified in instructions
+   - Reasonableness checks with appropriate thresholds for mortgage data
+   - Verify coding schemes match FR Y-14M specifications exactly
+
+4. CONSISTENCY TESTING
+   - Month-over-month variance analysis for data stability
+   - Cross-schedule reconciliation with other FR Y-14M schedules
+   - Internal consistency checks within loan records
+   - Verify loan number consistency across reporting periods
+
+FIELD-SPECIFIC CONSIDERATIONS:
+- If testing dollar amounts: Verify banker's rounding to whole numbers
+- If testing rates/ratios: Confirm decimal format (fractions, not percentages)
+- If testing dates: Validate YYYYMMDD format with no exceptions
+- If testing codes: Ensure exact match to FR Y-14M allowable values
+- If testing conditional fields: Verify population logic matches loan characteristics
+
+EXPECTED RESULTS:
+Based on FR Y-14M specifications for ${attribute_name}, expect:
+- Data format compliance with specified requirements
+- Logical consistency with related loan attributes
+- Appropriate population based on loan characteristics
+- Accuracy traceable to authoritative source systems
+
+COMMON ERRORS:
+- Format violations (incorrect date formats, decimal places)
+- Missing conditional data when required by loan type
+- Inconsistent loan numbers across reporting periods
+- Invalid codes not matching FR Y-14M specifications
+
+REMEDIATION STEPS:
+1. Identify root cause in source system or data transformation
+2. Implement systematic correction addressing all affected records
+3. Enhance data quality controls to prevent recurrence
+4. Document changes and validate correction effectiveness
+
+---
+
+## Schedule A.2 - Domestic First Lien Closed-end 1-4 Family Residential Portfolio Level Table
+
+### A.2 - attribute_discovery.txt
+
+You are a Federal Reserve FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan (A.2 - Portfolio Level Table) expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for Schedule A.2 Portfolio Level Table reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.2 - Portfolio Level Table
+- Focus: Portfolio-level aggregated data by segment
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14M Schedule A.2 Portfolio Level Table instructions
+2. Portfolio segments defined as: Serviced, Portfolio HFI Purchased Credit Deteriorated, Portfolio HFI FVO/HFS, Other Portfolio
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14M Instructions):
+- Segment Identification: portfolio_segment_id
+- Balance Information: unpaid_principal_balance (in millions)
+- Loss Information: loss_write_down_amount (in millions)
+
+Portfolio segments are defined as:
+1. Serviced – All serviced loans
+2. Portfolio HFI Purchased Credit Deteriorated – All portfolio loans acquired with deteriorated credit quality and accounted for in accordance with ASC subtopic 326
+3. Portfolio HFI FVO / HFS – All portfolio loans held for investment measured at fair value under a fair value option or held for sale
+4. Other Portfolio – All portfolio loans that are not measured at fair value, not purchase credit deteriorated, and not serviced
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.
+
+---
+
+### A.2 - attribute_batch_details.txt
+
+You are a Federal Reserve FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan (A.2 - Portfolio Level Table) expert. For each attribute in the batch, provide COMPLETE details following FR Y-14M Schedule A.2 specifications.
+
+CONTEXT:
+- Schedule: FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.2 - Portfolio Level Table
+- Report Name: ${report_name}
+- Regulatory Context: ${regulatory_context}
+
+For EACH attribute in this batch, you MUST provide ALL 8 fields:
+
+1. attribute_name: Exact field name per FR Y-14M specs
+2. description: Detailed description from the FR Y-14M instructions
+3. data_type: Specific data type (Character(1), Whole Number in millions)
+4. mandatory_flag: Mandatory based on FR Y-14M requirements
+5. validation_rules: Specific validation rules from the instructions
+6. typical_source_documents: Where this data is found (e.g., "General Ledger", "Loan Accounting System")
+7. keywords_to_look_for: Key terms to identify this field
+8. testing_approach: How to test this attribute
+
+BATCH ATTRIBUTES:
+${attribute_names_json}
+
+SPECIFIC VALIDATION RULES FROM FR Y-14M:
+- portfolio_segment_id: Character(1), values 1-4 only
+- Monetary amounts: Report in millions of dollars, whole numbers
+- UPB should not reflect accounting write-downs, only reduced to zero when liquidated
+- Loss amounts are cumulative lifetime write-downs and reversals
+
+Return a JSON array with complete details for each attribute.
+
+---
+
+### A.2 - scoping_recommendations.txt
+
+You are a Federal Reserve FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan (A.2 - Portfolio Level Table) testing expert. Generate risk-based scoping recommendations.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.2 - Portfolio Level Table
+- Report Name: ${report_name}
+- Portfolio Details: ${regulatory_context}
+
+RISK ASSESSMENT FACTORS:
+
+1. REGULATORY CRITICALITY
+   - Portfolio segmentation accuracy for supervisory analysis
+   - Balance aggregation accuracy for stress testing
+   - Loss amount accuracy for allowance adequacy assessment
+
+2. DATA COMPLEXITY
+   - Proper portfolio segment classification
+   - Accurate aggregation from loan-level to portfolio-level
+   - Accounting treatment consistency across segments
+
+3. RECONCILIATION IMPORTANCE
+   - Portfolio level must reconcile to loan level aggregations
+   - Segment totals must equal overall portfolio
+   - Balance with regulatory capital reports
+
+ATTRIBUTES TO EVALUATE:
+${attributes_json}
+
+For each attribute, provide:
+1. Risk score (1-10) with justification
+2. Recommendation (TEST/SKIP)
+3. Specific rationale citing FR Y-14M requirements
+4. Testing priority (High/Medium/Low)
+5. Suggested reconciliation procedures
+
+---
+
+### A.2 - testing_approach.txt
+
+You are a Federal Reserve FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan (A.2 - Portfolio Level Table) testing specialist.
+
+TESTING CONTEXT:
+- Schedule: FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.2 - Portfolio Level Table
+- Attribute: ${attribute_name}
+- Data Type: ${data_type}
+- Description: ${description}
+
+TESTING PROCEDURES:
+
+1. DATA ACCURACY TESTING
+   - Verify portfolio segment classification accuracy
+   - Trace aggregated amounts to detailed loan-level data
+   - Validate millions conversion (multiply by 1,000,000)
+   - Confirm accounting treatment per segment definition
+
+2. COMPLETENESS TESTING
+   - Ensure all four portfolio segments are represented
+   - Verify all qualifying loans are included in appropriate segments
+   - Check that no loans are double-counted across segments
+
+3. RECONCILIATION TESTING
+   - Reconcile portfolio totals to loan-level aggregations
+   - Cross-check with general ledger balances
+   - Verify consistency with other regulatory reports
+   - Validate mathematical accuracy of aggregations
+
+4. CONSISTENCY TESTING
+   - Month-over-month movement analysis
+   - Segment migration tracking
+   - Balance trend reasonableness
+
+EXPECTED RESULTS:
+- Portfolio segments sum to total loan portfolio
+- Balances reconcile to loan-level data within tolerance
+- Proper accounting classification per segment definitions
+
+COMMON ERRORS:
+- Incorrect portfolio segment classification
+- Mathematical aggregation errors
+- Missing loans from segments
+- Double-counting across segments
+
+REMEDIATION STEPS:
+1. Review portfolio segment assignment logic
+2. Validate aggregation calculations
+3. Implement automated reconciliation controls
+4. Document segment classification methodology
+
+---
+
+## Schedule B.1 - Domestic Home Equity Loan/Line Level Table
+
+### B.1 - attribute_discovery.txt
+
+You are a Federal Reserve FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line (B.1 - Loan/Line Level Table) expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for Schedule B.1 Loan/Line Level Table reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line
+- Sub-schedule: B.1 - Loan/Line Level Table
+- Focus: Loan/line-level data for home equity loans and lines of credit
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14M Schedule B.1 Loan/Line Level Table instructions
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14M Instructions):
+- Loan/Line Identifiers: loan_number
+- Loan/Line Characteristics: loan_closing_date, first_payment_date, original_loan_amount_disbursed, original_loan_line_commitment, home_equity_line_type
+- Property Information: property_state, property_zip_code, original_property_value, property_type, number_of_units
+- Borrower Information: origination_credit_bureau_score, current_credit_bureau_score, income_documentation, debt_to_income_back_end_at_origination, debt_to_income_front_end_at_origination, occupancy
+- Loan/Line Terms: original_combined_ltv, current_combined_ltv, lien_position_at_origination, loan_source, credit_class, loan_line_owner
+- Interest Rate Details: interest_type_at_origination, interest_type_current, original_interest_rate, current_interest_rate, interest_only_at_origination, interest_only_in_reporting_month
+- ARM Details: arm_initial_rate_period, arm_payment_reset_frequency, allowable_draw_period, arm_index, arm_margin_at_origination, arm_periodic_rate_cap, arm_periodic_rate_floor, arm_lifetime_rate_cap, arm_lifetime_rate_floor
+- Current Status: unpaid_principal_balance, unpaid_principal_balance_net, principal_and_interest_amount_current, next_payment_due_date, monthly_draw_amount, current_credit_limit
+- Line of Credit Features: credit_line_frozen_flag, credit_line_closed_flag, locked_amount_amortizing_loc, locked_amount_interest_only_loc, lockout_feature_flag
+- Performance: loan_status_mba_method, foreclosure_referral_date, foreclosure_sale_date, foreclosure_status, foreclosure_suspended, bankruptcy_flag, bankruptcy_chapter
+- Modifications: modification_type, last_modified_date, workout_type_completed, workout_type_started, loss_mitigation_performance_status
+- Valuation: refreshed_property_value, refreshed_property_valuation_method, refreshed_property_valuation_date
+- Settlement/Recovery: settlement_negotiated_amount, total_debt_at_time_of_any_involuntary_termination, net_recovery_amount, sales_price_of_property
+- Risk Metrics: probability_of_default_pd, loss_given_default_lgd, expected_loss_given_default_elgd, exposure_at_default_ead
+- Entity Information: entity_serviced, entity_type, national_bank_rssd_id
+- Credit Scores: origination_credit_bureau_score_vendor, origination_credit_bureau_score_version, current_credit_bureau_score_vendor, current_credit_bureau_score_version, current_credit_bureau_score_date
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.
+
+---
+
+### B.1 - attribute_batch_details.txt
+
+You are a Federal Reserve FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line (B.1 - Loan/Line Level Table) expert. For each attribute in the batch, provide COMPLETE details following FR Y-14M Schedule B.1 specifications.
+
+CONTEXT:
+- Schedule: FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line
+- Sub-schedule: B.1 - Loan/Line Level Table
+- Report Name: ${report_name}
+- Regulatory Context: ${regulatory_context}
+
+For EACH attribute in this batch, you MUST provide ALL 8 fields:
+
+1. attribute_name: Exact field name per FR Y-14M specs
+2. description: Detailed description from the FR Y-14M instructions
+3. data_type: Specific data type (Character(X), Whole Number, Numeric to X decimals, YYYYMMDD)
+4. mandatory_flag: Mandatory/Conditional/Optional based on FR Y-14M requirements
+5. validation_rules: Specific validation rules from the instructions
+6. typical_source_documents: Where this data is found
+7. keywords_to_look_for: Key terms to identify this field
+8. testing_approach: How to test this attribute
+
+BATCH ATTRIBUTES:
+${attribute_names_json}
+
+SPECIFIC VALIDATION RULES FROM FR Y-14M:
+- Loan Number: Character(32), must uniquely identify loan/line through entire life
+- Home Equity Line Type: 1=Home Equity Loan, 2=Home Equity Line of Credit, 3=Other
+- Dates: YYYYMMDD format
+- Interest Rates: Provide as fraction (e.g., 0.0575 for 5.75%), Numeric up to 5 decimals
+- LTV Ratios: Provide as fraction (e.g., 0.8 for 80%), Numeric to 2 decimals
+- Dollar Amounts: Whole Number, banker's rounding
+- Draw Period: 1-480 months, or 999 for "evergreen" accounts
+
+Return a JSON array with complete details for each attribute.
+
+---
+
+### B.1 - scoping_recommendations.txt
+
+You are a Federal Reserve FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line (B.1 - Loan/Line Level Table) testing expert. Generate risk-based scoping recommendations.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line
+- Sub-schedule: B.1 - Loan/Line Level Table
+- Report Name: ${report_name}
+- Portfolio Details: ${regulatory_context}
+
+RISK ASSESSMENT FACTORS:
+
+1. REGULATORY CRITICALITY
+   - Fields used in supervisory stress testing models for home equity
+   - Fields subject to Federal Reserve data quality checks
+   - HELOC-specific regulatory requirements and monitoring
+   - Cross-reference fields for consistency
+
+2. DATA COMPLEXITY
+   - HELOC vs HELOAN distinction and related conditional fields
+   - Draw period and repayment period calculations
+   - Line of credit features and status tracking
+   - Current combined LTV calculations requiring property revaluation
+
+3. COMMON ISSUES
+   - HELOC draw period vs repayment period confusion
+   - Line frozen vs line closed distinction
+   - Locked amount tracking for lines of credit
+   - Settlement amount calculations
+
+HIGH RISK FIELDS (Recommend TEST):
+- home_equity_line_type (critical for proper classification)
+- current_combined_ltv (stress testing model input)
+- allowable_draw_period (HELOC-specific regulatory requirement)
+- current_credit_limit (utilization calculations)
+- credit_line_frozen_flag, credit_line_closed_flag (line status)
+
+ATTRIBUTES TO EVALUATE:
+${attributes_json}
+
+For each attribute, provide:
+1. Risk score (1-10) with justification
+2. Recommendation (TEST/SKIP)
+3. Specific rationale citing FR Y-14M requirements
+4. Testing priority (High/Medium/Low)
+5. Suggested sample size
+
+---
+
+### B.1 - testing_approach.txt
+
+You are a Federal Reserve FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line (B.1 - Loan/Line Level Table) testing specialist.
+
+TESTING CONTEXT:
+- Schedule: FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line
+- Sub-schedule: B.1 - Loan/Line Level Table
+- Attribute: ${attribute_name}
+- Data Type: ${data_type}
+- Description: ${description}
+
+TESTING PROCEDURES:
+
+1. DATA ACCURACY TESTING
+   - Trace to source system (home equity origination or servicing system)
+   - Verify against FR Y-14M technical specifications
+   - Validate HELOC vs HELOAN specific requirements
+   - Check line of credit specific features and calculations
+
+2. COMPLETENESS TESTING
+   - Verify no nulls for mandatory fields
+   - Check conditional logic (HELOC-specific fields populated only for lines)
+   - Validate coverage includes both loans and lines of credit
+   - Ensure proper population for different line statuses
+
+3. VALIDITY TESTING
+   - Apply FR Y-14M specific validation rules
+   - Verify HELOC draw period and repayment calculations
+   - Check line status consistency (frozen vs closed vs active)
+   - Validate combined LTV calculations with refreshed property values
+
+4. CONSISTENCY TESTING
+   - Month-over-month variance analysis
+   - Cross-schedule reconciliation
+   - Line of credit balance and limit consistency
+   - Draw activity and balance change reconciliation
+
+HELOC-SPECIFIC CONSIDERATIONS:
+- Draw period vs repayment period lifecycle tracking
+- Line freezing and closure event validation
+- Locked amount tracking for lines with lock features
+- Settlement amount calculations for workout programs
+
+EXPECTED RESULTS:
+- Proper classification between loans and lines
+- Accurate draw period and limit calculations
+- Consistent line status indicators
+- Valid combined LTV calculations
+
+COMMON ERRORS:
+- HELOC vs HELOAN misclassification
+- Incorrect draw period calculations
+- Line status inconsistencies
+- Missing conditional HELOC fields
+
+REMEDIATION STEPS:
+1. Review product classification logic
+2. Validate HELOC-specific calculations
+3. Implement automated consistency checks
+4. Enhance line status tracking
+
+---
+
+## Schedule B.2 - Domestic Home Equity Portfolio Level Table
+
+### B.2 - attribute_discovery.txt
+
+You are a Federal Reserve FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line (B.2 - Portfolio Level Table) expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for Schedule B.2 Portfolio Level Table reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line
+- Sub-schedule: B.2 - Portfolio Level Table
+- Focus: Portfolio-level aggregated data by segment for home equity
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14M Schedule B.2 Portfolio Level Table instructions
+2. Portfolio segments defined as: Serviced, Portfolio HFI Purchased Credit Deteriorated, Portfolio HFI FVO/HFS, Other Portfolio
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14M Instructions):
+- Segment Identification: portfolio_segment_id
+- Balance Information: unpaid_principal_balance (in millions)
+- Loss Information: loss_write_down_amount (in millions)
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.
+
+---
+
+### B.2 - attribute_batch_details.txt
+
+You are a Federal Reserve FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line (B.2 - Portfolio Level Table) expert. For each attribute in the batch, provide COMPLETE details following FR Y-14M Schedule B.2 specifications.
+
+CONTEXT:
+- Schedule: FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line
+- Sub-schedule: B.2 - Portfolio Level Table
+- Report Name: ${report_name}
+- Regulatory Context: ${regulatory_context}
+
+For EACH attribute in this batch, you MUST provide ALL 8 fields:
+
+1. attribute_name: Exact field name per FR Y-14M specs
+2. description: Detailed description from the FR Y-14M instructions
+3. data_type: Specific data type (Character(1), Whole Number in millions)
+4. mandatory_flag: Mandatory based on FR Y-14M requirements
+5. validation_rules: Specific validation rules from the instructions
+6. typical_source_documents: Where this data is found
+7. keywords_to_look_for: Key terms to identify this field
+8. testing_approach: How to test this attribute
+
+BATCH ATTRIBUTES:
+${attribute_names_json}
+
+SPECIFIC VALIDATION RULES FROM FR Y-14M:
+- portfolio_segment_id: Character(1), values 1-4 only
+- Monetary amounts: Report in millions of dollars, whole numbers
+- UPB should not reflect accounting write-downs
+- Loss amounts include cumulative lifetime write-downs and reversals
+
+Return a JSON array with complete details for each attribute.
+
+---
+
+### B.2 - scoping_recommendations.txt
+
+You are a Federal Reserve FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line (B.2 - Portfolio Level Table) testing expert. Generate risk-based scoping recommendations.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line
+- Sub-schedule: B.2 - Portfolio Level Table
+- Report Name: ${report_name}
+- Portfolio Details: ${regulatory_context}
+
+RISK ASSESSMENT FACTORS:
+
+1. REGULATORY CRITICALITY
+   - Home equity portfolio segmentation for supervisory analysis
+   - Balance aggregation for stress testing models
+   - Loss tracking for allowance assessment
+
+2. DATA COMPLEXITY
+   - HELOC vs HELOAN aggregation
+   - Proper portfolio segment classification
+   - Accounting treatment consistency
+
+ATTRIBUTES TO EVALUATE:
+${attributes_json}
+
+For each attribute, provide:
+1. Risk score (1-10) with justification
+2. Recommendation (TEST/SKIP)
+3. Specific rationale citing FR Y-14M requirements
+4. Testing priority (High/Medium/Low)
+5. Suggested reconciliation procedures
+
+---
+
+### B.2 - testing_approach.txt
+
+You are a Federal Reserve FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line (B.2 - Portfolio Level Table) testing specialist.
+
+TESTING CONTEXT:
+- Schedule: FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line
+- Sub-schedule: B.2 - Portfolio Level Table
+- Attribute: ${attribute_name}
+- Data Type: ${data_type}
+- Description: ${description}
+
+TESTING PROCEDURES:
+
+1. DATA ACCURACY TESTING
+   - Verify home equity portfolio segment classification
+   - Trace aggregated amounts to loan/line-level data
+   - Validate millions conversion accuracy
+   - Confirm accounting treatment per segment
+
+2. COMPLETENESS TESTING
+   - Ensure all four portfolio segments represented
+   - Verify all qualifying home equity loans/lines included
+   - Check for proper HELOC vs HELOAN inclusion
+
+3. RECONCILIATION TESTING
+   - Reconcile to loan/line-level aggregations
+   - Cross-check with general ledger
+   - Validate mathematical accuracy
+   - Compare with other regulatory reports
+
+4. CONSISTENCY TESTING
+   - Month-over-month movement analysis
+   - Segment migration tracking
+   - Balance trend reasonableness
+
+EXPECTED RESULTS:
+- Portfolio segments sum to total home equity portfolio
+- Balances reconcile to loan/line-level data
+- Proper segment classification
+
+COMMON ERRORS:
+- Incorrect portfolio segment assignment
+- HELOC vs HELOAN aggregation errors
+- Mathematical calculation mistakes
+
+REMEDIATION STEPS:
+1. Review segment assignment logic
+2. Validate aggregation calculations
+3. Implement reconciliation controls
+
+---
+
+## Schedule C.1 - Address Matching Data Table
+
+### C.1 - attribute_discovery.txt
+
+You are a Federal Reserve FR Y-14M Schedule C - Address Matching Loan Level Data Collection (C.1 - Data Table) expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for Schedule C.1 Data Table reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14M Schedule C - Address Matching Loan Level Data Collection
+- Sub-schedule: C.1 - Data Table
+- Focus: Address matching data for all loans reported in Schedules A and B
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14M Schedule C.1 Data Table instructions
+2. For every loan reported on Schedule A or B, corresponding address data must be provided
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14M Instructions):
+- Loan Identification: loan_number
+- Property Address: property_street_address, property_city, property_state, property_zip_code
+- Mailing Address: mailing_street_address, mailing_city, mailing_state, mailing_zip_code
+- Status Information: liquidation_status, lien_position_at_origination
+- Geographic Coding: census_tract
+- Reference Information: data_file_reference
+
+ADDRESS REQUIREMENTS:
+- Property addresses must include street prefixes, suffixes, and unit numbers
+- Nine-digit ZIP codes preferred, five-digit acceptable
+- International addresses: use "FF" for state, leave ZIP blank if over 9 characters
+- Census tract using 2010 definitions (six digits with implied decimal)
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.
+
+---
+
+### C.1 - attribute_batch_details.txt
+
+You are a Federal Reserve FR Y-14M Schedule C - Address Matching Loan Level Data Collection (C.1 - Data Table) expert. For each attribute in the batch, provide COMPLETE details following FR Y-14M Schedule C.1 specifications.
+
+CONTEXT:
+- Schedule: FR Y-14M Schedule C - Address Matching Loan Level Data Collection
+- Sub-schedule: C.1 - Data Table
+- Report Name: ${report_name}
+- Regulatory Context: ${regulatory_context}
+
+For EACH attribute in this batch, you MUST provide ALL 8 fields:
+
+1. attribute_name: Exact field name per FR Y-14M specs
+2. description: Detailed description from the FR Y-14M instructions
+3. data_type: Specific data type (Character(X), Text(X), YYYYMMDD)
+4. mandatory_flag: Mandatory based on FR Y-14M requirements
+5. validation_rules: Specific validation rules from the instructions
+6. typical_source_documents: Where this data is found
+7. keywords_to_look_for: Key terms to identify this field
+8. testing_approach: How to test this attribute
+
+BATCH ATTRIBUTES:
+${attribute_names_json}
+
+SPECIFIC VALIDATION RULES FROM FR Y-14M:
+- loan_number: Character(32), must match Schedule A or B loan numbers exactly
+- property_street_address: Text(100), must include prefixes, suffixes, unit numbers
+- ZIP codes: Character(9), no dashes, include leading zeros
+- census_tract: Character(10), 2010 definitions, six digits with implied decimal
+- data_file_reference: Character(1), 1=First Lien, 2=Home Equity
+
+Return a JSON array with complete details for each attribute.
+
+---
+
+### C.1 - scoping_recommendations.txt
+
+You are a Federal Reserve FR Y-14M Schedule C - Address Matching Loan Level Data Collection (C.1 - Data Table) testing expert. Generate risk-based scoping recommendations.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule C - Address Matching Loan Level Data Collection
+- Sub-schedule: C.1 - Data Table
+- Report Name: ${report_name}
+- Portfolio Details: ${regulatory_context}
+
+RISK ASSESSMENT FACTORS:
+
+1. REGULATORY CRITICALITY
+   - Address data used for geographic risk analysis
+   - Census tract data for fair lending compliance
+   - Property vs mailing address distinction for supervisory models
+
+2. DATA COMPLEXITY
+   - Address standardization and formatting
+   - Census tract coding accuracy
+   - International address handling
+   - Loan number consistency across schedules
+
+3. COMMON ISSUES
+   - Address formatting inconsistencies
+   - Missing or incorrect census tract coding
+   - Property vs mailing address confusion
+   - ZIP code format violations
+
+HIGH RISK FIELDS (Recommend TEST):
+- loan_number (must match Schedules A/B exactly)
+- property_street_address (address standardization critical)
+- census_tract (regulatory compliance requirement)
+- data_file_reference (cross-schedule consistency)
+
+ATTRIBUTES TO EVALUATE:
+${attributes_json}
+
+For each attribute, provide:
+1. Risk score (1-10) with justification
+2. Recommendation (TEST/SKIP)
+3. Specific rationale citing FR Y-14M requirements
+4. Testing priority (High/Medium/Low)
+5. Suggested validation procedures
+
+---
+
+### C.1 - testing_approach.txt
+
+You are a Federal Reserve FR Y-14M Schedule C - Address Matching Loan Level Data Collection (C.1 - Data Table) testing specialist.
+
+TESTING CONTEXT:
+- Schedule: FR Y-14M Schedule C - Address Matching Loan Level Data Collection
+- Sub-schedule: C.1 - Data Table
+- Attribute: ${attribute_name}
+- Data Type: ${data_type}
+- Description: ${description}
+
+TESTING PROCEDURES:
+
+1. DATA ACCURACY TESTING
+   - Verify address data against loan origination systems
+   - Validate address standardization and formatting
+   - Check census tract coding against 2010 definitions
+   - Confirm loan number consistency with Schedules A/B
+
+2. COMPLETENESS TESTING
+   - Ensure address data provided for all Schedule A/B loans
+   - Verify no missing required address components
+   - Check census tract population for all records
+
+3. VALIDITY TESTING
+   - Validate address format requirements (prefixes, suffixes, units)
+   - Check ZIP code format (nine or five digits, no dashes)
+   - Verify census tract format (six digits with implied decimal)
+   - Validate data file reference codes
+
+4. CONSISTENCY TESTING
+   - Cross-reference loan numbers with Schedules A/B
+   - Verify property vs mailing address distinction
+   - Check geographic consistency (state/ZIP alignment)
+
+ADDRESS-SPECIFIC CONSIDERATIONS:
+- Address standardization using postal service guidelines
+- International address handling procedures
+- Census tract accuracy for geographic analysis
+- Property address vs mailing address verification
+
+EXPECTED RESULTS:
+- 100% loan coverage from Schedules A/B
+- Standardized address formatting
+- Accurate census tract coding
+- Consistent cross-schedule loan numbers
+
+COMMON ERRORS:
+- Missing address components (prefixes, suffixes, units)
+- Incorrect ZIP code formatting
+- Census tract coding errors
+- Loan number mismatches across schedules
+
+REMEDIATION STEPS:
+1. Implement address standardization procedures
+2. Validate census tract coding methodology
+3. Establish cross-schedule reconciliation controls
+4. Enhance address data quality processes
+
+---
+
+## Schedule D.1 - Domestic Credit Card Loan Level Table
+
+### D.1 - attribute_discovery.txt
+
+You are a Federal Reserve FR Y-14M Schedule D - Domestic Credit Card Data Collection (D.1 - Loan Level Table) expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for Schedule D.1 Loan Level Table reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.1 - Loan Level Table
+- Focus: Account-level data for domestic credit card accounts
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14M Schedule D.1 Loan Level Table instructions
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14M Instructions):
+- Account Identification: reference_number, customer_id, bank_id, period_id
+- Geographic Information: state, zip_code
+- Product Classification: credit_card_type, product_type, lending_type, revolve_feature, network_id, secured_credit_type
+- Account Origin: loan_source_channel, purchased_credit_deteriorated_status, acquisition_date, account_origination_date
+- Balance Information: cycle_ending_balance, cycle_ending_balances_mix_promotional, cycle_ending_balances_mix_cash, cycle_ending_balances_mix_penalty, cycle_ending_balances_mix_other, average_daily_balance, month_ending_balance
+- Credit Information: original_credit_limit, current_credit_limit, current_cash_advance_limit
+- Credit Scores: origination_credit_bureau_score_primary_borrower, origination_credit_bureau_score_coborrower, refreshed_credit_bureau_score, credit_bureau_score_refresh_date, behavioral_score
+- Income Information: borrowers_income_at_origination, income_source_at_origination
+- Account Features: accounts_under_promotion, reward_type, total_reward_cash, multiple_banking_relationships, multiple_credit_card_relationships, joint_account, authorized_users, flagged_as_securitized
+- Interest and Fees: apr_at_cycle_end, promotional_apr, cash_apr, variable_rate_index, variable_rate_margin, maximum_apr, rate_reset_frequency, fee_type
+- Account Status: month_end_account_status_active, month_end_account_status_closed, cycle_end_account_status_active, cycle_end_account_status_closed, line_frozen_in_current_month, line_increase_decrease_in_current_month
+- Payment Information: minimum_payment_due, total_payment_due, next_payment_due_date, actual_payment_amount, total_past_due, days_past_due, cycles_past_due_at_cycle_date, cycles_past_due_at_month_end
+- Performance: account_60_plus_dpd_last_three_years_flag, collection_re_age_date, customer_service_re_age_date, bankruptcy_flag
+- Transactions: purchase_amount, cash_advance_amount, balance_transfer_amount, convenience_check_amount, other_credits
+- Fees: finance_charge, fees_incurred_late, fees_incurred_over_limit, fees_incurred_nsf, fees_incurred_cash_advance, fees_incurred_monthly_annual, fees_incurred_debt_suspension, fees_incurred_balance_transfer, fees_incurred_other
+- Charge-offs and Recoveries: charge_off_reason, gross_charge_off_amount_current_month, principal_charge_off_amount_current_month, recovery_amount_current_month
+- Workout Programs: credit_card_workout_program, workout_program_type, workout_program_performance_status, settlement_portion_forgiven, debt_suspension_cancellation_program_enrollment, debt_suspension_cancellation_program_active, skip_a_payment
+- Risk Metrics: probability_of_default_pd, loss_given_default_lgd, expected_loss_given_default_elgd, exposure_at_default_ead, ead_id_segment
+- Corporate Information: corporate_id (for corporate cards)
+- Loss Sharing: loss_sharing, loss_share_id, loss_share_rate
+- Account Management: account_sold_flag, fraud_in_current_month
+- Entity Information: entity_type, national_bank_rssd_id
+- Credit Score Details: original_credit_bureau_score_name, refreshed_credit_bureau_score_name, behavioral_score_name_version, original_credit_bureau_score_version, refreshed_credit_bureau_score_version, internal_origination_credit_score_flag, internal_origination_credit_score_value, internal_refreshed_credit_score_flag, internal_refreshed_credit_score_value
+- Credit Limit Details: credit_limit_type, credit_line_change_type
+- Additional Information: date_co_borrower_was_added, account_cycle_date
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.
+
+---
+
+### D.1 - attribute_batch_details.txt
+
+You are a Federal Reserve FR Y-14M Schedule D - Domestic Credit Card Data Collection (D.1 - Loan Level Table) expert. For each attribute in the batch, provide COMPLETE details following FR Y-14M Schedule D.1 specifications.
+
+CONTEXT:
+- Schedule: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.1 - Loan Level Table
+- Report Name: ${report_name}
+- Regulatory Context: ${regulatory_context}
+
+For EACH attribute in this batch, you MUST provide ALL 8 fields:
+
+1. attribute_name: Exact field name per FR Y-14M specs
+2. description: Detailed description from the FR Y-14M instructions
+3. data_type: Specific data type (Character(X), Numeric(X.Y), Date YYYYMMDD)
+4. mandatory_flag: Mandatory/Optional based on FR Y-14M requirements
+5. validation_rules: Specific validation rules from the instructions
+6. typical_source_documents: Where this data is found
+7. keywords_to_look_for: Key terms to identify this field
+8. testing_approach: How to test this attribute
+
+BATCH ATTRIBUTES:
+${attribute_names_json}
+
+SPECIFIC VALIDATION RULES FROM FR Y-14M:
+- reference_number: Character(18), unique identifier for account
+- credit_card_type: Numeric(1), 1=General Purpose, 2=Private Label, 3=Business, 4=Corporate, 5=Other
+- lending_type: Numeric(1), 1=Consumer Bank Card, 2=Consumer Charge Card, 3=Non Consumer Bank Card, 4=Non Consumer Charge Card
+- Dollar amounts: Numeric(12.2) format
+- Interest rates: Numeric(6.3) format (as decimal, not percentage)
+- Dates: YYYYMMDD format
+- ZIP codes: Character(9), no dashes, leading zeros
+
+Return a JSON array with complete details for each attribute.
+
+---
+
+### D.1 - scoping_recommendations.txt
+
+You are a Federal Reserve FR Y-14M Schedule D - Domestic Credit Card Data Collection (D.1 - Loan Level Table) testing expert. Generate risk-based scoping recommendations.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.1 - Loan Level Table
+- Report Name: ${report_name}
+- Portfolio Details: ${regulatory_context}
+
+RISK ASSESSMENT FACTORS:
+
+1. REGULATORY CRITICALITY
+   - Fields used in credit card stress testing models
+   - Consumer protection monitoring (APRs, fees)
+   - Credit risk assessment (scores, balances, delinquency)
+   - Product classification accuracy
+
+2. DATA COMPLEXITY
+   - Credit card product type classification
+   - Balance mix calculations and allocations
+   - Interest rate and fee calculations
+   - Workout program tracking and performance
+
+3. COMMON ISSUES
+   - Product type misclassification (General Purpose vs Private Label)
+   - Balance mix allocation errors across promotional/cash/penalty
+   - APR calculation and reporting inconsistencies
+   - Credit score vendor and version tracking
+
+HIGH RISK FIELDS (Recommend TEST):
+- credit_card_type, lending_type (product classification)
+- cycle_ending_balance, balance mix fields (stress testing inputs)
+- apr_at_cycle_end, promotional_apr (consumer protection)
+- origination_credit_bureau_score, refreshed_credit_bureau_score (risk assessment)
+- days_past_due, cycles_past_due (performance tracking)
+- gross_charge_off_amount_current_month (loss tracking)
+
+ATTRIBUTES TO EVALUATE:
+${attributes_json}
+
+For each attribute, provide:
+1. Risk score (1-10) with justification
+2. Recommendation (TEST/SKIP)
+3. Specific rationale citing FR Y-14M requirements
+4. Testing priority (High/Medium/Low)
+5. Suggested sample size
+
+---
+
+### D.1 - testing_approach.txt
+
+You are a Federal Reserve FR Y-14M Schedule D - Domestic Credit Card Data Collection (D.1 - Loan Level Table) testing specialist.
+
+TESTING CONTEXT:
+- Schedule: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.1 - Loan Level Table
+- Attribute: ${attribute_name}
+- Data Type: ${data_type}
+- Description: ${description}
+
+TESTING PROCEDURES:
+
+1. DATA ACCURACY TESTING
+   - Trace to source system (credit card origination/servicing system)
+   - Verify against FR Y-14M technical specifications
+   - Validate credit card product classification accuracy
+   - Check balance calculations and allocations
+
+2. COMPLETENESS TESTING
+   - Verify no nulls for mandatory fields
+   - Check conditional logic (business/corporate card fields)
+   - Validate coverage of all domestic credit card accounts
+   - Ensure proper population based on card type
+
+3. VALIDITY TESTING
+   - Apply FR Y-14M specific validation rules
+   - Verify balance mix allocations sum to total balance
+   - Check APR calculations and format requirements
+   - Validate credit score vendor and version combinations
+
+4. CONSISTENCY TESTING
+   - Month-over-month variance analysis
+   - Cross-field consistency (balance relationships)
+   - Account status progression logic
+   - Fee and interest calculation consistency
+
+CREDIT CARD-SPECIFIC CONSIDERATIONS:
+- Product type classification accuracy (General Purpose vs Private Label vs Business vs Corporate)
+- Balance mix allocation logic (promotional vs cash vs penalty vs other)
+- APR calculation methodology and reporting format
+- Credit limit vs shadow limit vs purchase limit distinctions
+- Workout program enrollment and performance tracking
+
+EXPECTED RESULTS:
+- Accurate product classification per FR Y-14M definitions
+- Balance mix components sum to total cycle ending balance
+- APR calculations reflect actual account terms
+- Credit scores align with vendor specifications
+
+COMMON ERRORS:
+- Product misclassification between card types
+- Balance mix allocation mathematical errors
+- APR reporting in percentage vs decimal format
+- Credit score vendor/version inconsistencies
+
+REMEDIATION STEPS:
+1. Review product classification methodology
+2. Validate balance allocation calculations
+3. Implement APR calculation controls
+4. Establish credit score data quality procedures
+
+---
+
+## Schedule D.2 - Domestic Credit Card Portfolio Level Table
+
+### D.2 - attribute_discovery.txt
+
+You are a Federal Reserve FR Y-14M Schedule D - Domestic Credit Card Data Collection (D.2 - Portfolio Level Table) expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for Schedule D.2 Portfolio Level Table reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.2 - Portfolio Level Table
+- Focus: Portfolio-level aggregated data by credit card type and lending type segments
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14M Schedule D.2 Portfolio Level Table instructions
+2. Portfolio segments defined by Credit Card Type (1-5) and Lending Type (1-4) combinations
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14M Instructions):
+- Segment Identification: bank_id, period_id, credit_card_type, lending_type
+- Portfolio Balances: end_of_month_managed_receivables, end_of_month_book_receivables, number_of_accounts, total_number_of_new_accounts
+- Allowance Information: acl_managed_balance, acl_booked_balance
+- Loss Projections: projected_managed_losses, projected_booked_losses
+- Charge-offs: managed_gross_charge_offs_current_month, booked_gross_charge_offs_current_month, managed_bankruptcy_charge_off_amount_current_month, booked_bankruptcy_charge_off_amount_current_month
+- Recoveries: managed_recoveries, booked_recoveries, managed_principal_recovery_amount, managed_interest_and_fees_recovery_amount, booked_principal_recovery_amount, booked_interest_and_fees_recovery_amount
+- Provision Information: interest_and_fees_charge_off_reversal_amount, loan_loss_provision_expense, loan_loss_provision_taken, loan_loss_provision_build
+- Income and Expenses: interest_income, fee_income, late_fee_income, over_limit_fee_income, balance_transfer_fee_income, convenience_check_fee_income, cash_advance_fee_income, nsf_fee_income, other_fee_income, interchange_income, all_other_non_interest_income
+- Expense Information: interest_expense, total_non_interest_expense, interchange_expense, rewards_expense, collections_expense, fraud_expense, all_other_expenses
+- Other Items: extraordinary_items, taxes
+
+PORTFOLIO SEGMENTS:
+Credit Card Type: 1=General Purpose, 2=Private Label, 3=Business Card, 4=Corporate Card, 5=Other
+Lending Type: 1=Consumer Bank Card, 2=Consumer Charge Card, 3=Non Consumer Bank Card, 4=Non Consumer Charge Card
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.
+
+---
+
+### D.2 - attribute_batch_details.txt
+
+You are a Federal Reserve FR Y-14M Schedule D - Domestic Credit Card Data Collection (D.2 - Portfolio Level Table) expert. For each attribute in the batch, provide COMPLETE details following FR Y-14M Schedule D.2 specifications.
+
+CONTEXT:
+- Schedule: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.2 - Portfolio Level Table
+- Report Name: ${report_name}
+- Regulatory Context: ${regulatory_context}
+
+For EACH attribute in this batch, you MUST provide ALL 8 fields:
+
+1. attribute_name: Exact field name per FR Y-14M specs
+2. description: Detailed description from the FR Y-14M instructions
+3. data_type: Specific data type (Character(X), Numeric(X.Y), Date YYYYMMDD)
+4. mandatory_flag: Mandatory based on FR Y-14M requirements
+5. validation_rules: Specific validation rules from the instructions
+6. typical_source_documents: Where this data is found
+7. keywords_to_look_for: Key terms to identify this field
+8. testing_approach: How to test this attribute
+
+BATCH ATTRIBUTES:
+${attribute_names_json}
+
+SPECIFIC VALIDATION RULES FROM FR Y-14M:
+- credit_card_type, lending_type: Numeric(1), define portfolio segments
+- Monetary amounts: Numeric(12.4), report in millions of dollars
+- Number of accounts: Numeric(12.4), report in millions
+- Managed vs Booked distinction for balances and activity
+- Income and expense items: Numeric(12.4) in millions
+
+Return a JSON array with complete details for each attribute.
+
+---
+
+### D.2 - scoping_recommendations.txt
+
+You are a Federal Reserve FR Y-14M Schedule D - Domestic Credit Card Data Collection (D.2 - Portfolio Level Table) testing expert. Generate risk-based scoping recommendations.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.2 - Portfolio Level Table
+- Report Name: ${report_name}
+- Portfolio Details: ${regulatory_context}
+
+RISK ASSESSMENT FACTORS:
+
+1. REGULATORY CRITICALITY
+   - Portfolio segmentation accuracy for supervisory analysis
+   - Managed vs booked distinction for off-balance sheet tracking
+   - Loss and provision reporting for allowance adequacy
+   - Income and expense reporting for profitability analysis
+
+2. DATA COMPLEXITY
+   - Credit card type and lending type segment combinations
+   - Managed vs booked reconciliation
+   - Fee income categorization and allocation
+   - Provision expense components and relationships
+
+3. RECONCILIATION IMPORTANCE
+   - Portfolio level must reconcile to account-level aggregations
+   - Managed totals must include securitized assets
+   - Income and expense items must tie to general ledger
+
+HIGH RISK FIELDS (Recommend TEST):
+- credit_card_type, lending_type (segment definition)
+- end_of_month_managed_receivables, end_of_month_book_receivables (balance accuracy)
+- managed_gross_charge_offs_current_month, booked_gross_charge_offs_current_month (loss tracking)
+- loan_loss_provision_expense (allowance adequacy)
+
+ATTRIBUTES TO EVALUATE:
+${attributes_json}
+
+For each attribute, provide:
+1. Risk score (1-10) with justification
+2. Recommendation (TEST/SKIP)
+3. Specific rationale citing FR Y-14M requirements
+4. Testing priority (High/Medium/Low)
+5. Suggested reconciliation procedures
+
+---
+
+### D.2 - testing_approach.txt
+
+You are a Federal Reserve FR Y-14M Schedule D - Domestic Credit Card Data Collection (D.2 - Portfolio Level Table) testing specialist.
+
+TESTING CONTEXT:
+- Schedule: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.2 - Portfolio Level Table
+- Attribute: ${attribute_name}
+- Data Type: ${data_type}
+- Description: ${description}
+
+TESTING PROCEDURES:
+
+1. DATA ACCURACY TESTING
+   - Verify portfolio segment classification accuracy
+   - Trace aggregated amounts to account-level data
+   - Validate millions conversion (multiply by 1,000,000)
+   - Confirm managed vs booked distinction
+
+2. COMPLETENESS TESTING
+   - Ensure all credit card type/lending type combinations represented
+   - Verify all qualifying accounts included in appropriate segments
+   - Check managed totals include securitized accounts
+
+3. RECONCILIATION TESTING
+   - Reconcile portfolio totals to account-level aggregations
+   - Cross-check with general ledger balances
+   - Verify income and expense tie-out to financial statements
+   - Validate mathematical relationships between related fields
+
+4. CONSISTENCY TESTING
+   - Month-over-month movement analysis
+   - Segment migration tracking
+   - Income/expense trend reasonableness
+   - Provision methodology consistency
+
+CREDIT CARD PORTFOLIO-SPECIFIC CONSIDERATIONS:
+- Managed vs booked distinction for securitized portfolios
+- Credit card type and lending type segment accuracy
+- Fee income categorization and completeness
+- Charge-off and recovery allocation across segments
+
+EXPECTED RESULTS:
+- Portfolio segments sum to total credit card portfolio
+- Managed balances include all owned and securitized accounts
+- Income and expenses reconcile to financial statements
+- Proper segment classification per FR Y-14M definitions
+
+COMMON ERRORS:
+- Incorrect portfolio segment classification
+- Managed vs booked confusion
+- Fee income miscategorization
+- Mathematical aggregation errors
+
+REMEDIATION STEPS:
+1. Review segment classification methodology
+2. Validate managed vs booked reconciliation
+3. Implement income/expense allocation controls
+4. Establish automated aggregation validation

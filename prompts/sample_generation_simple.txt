@@ -1,0 +1,19 @@
+Generate exactly ${sample_size} test data samples as a JSON array.
+
+Each sample should have these exact fields:
+${attribute_fields}
+
+Return ONLY a JSON array like this:
+[
+  {
+    "primary_key_value": "unique_id_1",
+${attribute_fields}
+  },
+  {
+    "primary_key_value": "unique_id_2",
+${attribute_fields}
+  }
+]
+
+Use realistic test values appropriate for ${regulation_context} regulatory reporting.
+Generate ${sample_size} samples total.

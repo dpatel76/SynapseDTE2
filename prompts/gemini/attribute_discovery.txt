@@ -1,0 +1,37 @@
+ATTRIBUTE DISCOVERY TASK
+
+Generate comprehensive list of ALL attribute names for regulatory testing.
+
+INPUTS:
+- Regulation: ${regulation}
+- Report: ${report_name}
+- Context: ${regulatory_context}
+
+TASK: Identify ALL attribute names for this regulatory schedule/report.
+
+RETURN JSON ARRAY OF STRINGS (names only):
+[
+  "borrower_id",
+  "loan_amount", 
+  "origination_date",
+  "maturity_date"
+]
+
+INCLUDE ALL:
+- Entity identifiers (IDs, account numbers)
+- Financial amounts (balances, limits, payments)
+- Date fields (origination, maturity, reporting dates)
+- Status/classification fields
+- Risk indicators and flags
+- Data quality indicators
+- Calculated/derived fields
+- Cross-reference identifiers
+- Validation fields
+- Regulatory flags
+- Threshold indicators
+
+COVERAGE TARGET: 50-200+ attribute names for comprehensive regulatory schedule.
+
+FOCUS: Complete coverage, all data elements typically found in regulatory schedules.
+
+Generate attribute names now: 

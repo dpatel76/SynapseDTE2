@@ -1,0 +1,13138 @@
+--
+-- SynapseDTE Database Schema
+-- Generated: 2025-07-06 23:25:53
+-- Version: 2.0.0
+--
+-- This file contains the complete database schema for SynapseDTE
+-- Use with: psql -f complete_schema.sql
+--
+
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 14.17 (Homebrew)
+-- Dumped by pg_dump version 14.17 (Homebrew)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+ALTER TABLE IF EXISTS ONLY public.workflow_transitions DROP CONSTRAINT IF EXISTS workflow_transitions_to_step_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_transitions DROP CONSTRAINT IF EXISTS workflow_transitions_from_step_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_transitions DROP CONSTRAINT IF EXISTS workflow_transitions_execution_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_steps DROP CONSTRAINT IF EXISTS workflow_steps_parent_step_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_steps DROP CONSTRAINT IF EXISTS workflow_steps_execution_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_phases DROP CONSTRAINT IF EXISTS workflow_phases_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_phases DROP CONSTRAINT IF EXISTS workflow_phases_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_executions DROP CONSTRAINT IF EXISTS workflow_executions_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_executions DROP CONSTRAINT IF EXISTS workflow_executions_initiated_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_executions DROP CONSTRAINT IF EXISTS workflow_executions_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_alerts DROP CONSTRAINT IF EXISTS workflow_alerts_execution_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_alerts DROP CONSTRAINT IF EXISTS workflow_alerts_acknowledged_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_activity_history DROP CONSTRAINT IF EXISTS workflow_activity_history_changed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_activity_history DROP CONSTRAINT IF EXISTS workflow_activity_history_activity_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_activities DROP CONSTRAINT IF EXISTS workflow_activities_started_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_activities DROP CONSTRAINT IF EXISTS workflow_activities_revision_requested_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_activities DROP CONSTRAINT IF EXISTS workflow_activities_completed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_lob_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.user_roles DROP CONSTRAINT IF EXISTS user_roles_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.user_roles DROP CONSTRAINT IF EXISTS user_roles_role_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.user_roles DROP CONSTRAINT IF EXISTS user_roles_assigned_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.user_permissions DROP CONSTRAINT IF EXISTS user_permissions_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.user_permissions DROP CONSTRAINT IF EXISTS user_permissions_permission_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.user_permissions DROP CONSTRAINT IF EXISTS user_permissions_granted_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.universal_assignments DROP CONSTRAINT IF EXISTS universal_assignments_to_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.universal_assignments DROP CONSTRAINT IF EXISTS universal_assignments_parent_assignment_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.universal_assignments DROP CONSTRAINT IF EXISTS universal_assignments_from_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.universal_assignments DROP CONSTRAINT IF EXISTS universal_assignments_escalated_to_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.universal_assignments DROP CONSTRAINT IF EXISTS universal_assignments_delegated_to_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.universal_assignments DROP CONSTRAINT IF EXISTS universal_assignments_completed_by_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.universal_assignments DROP CONSTRAINT IF EXISTS universal_assignments_approved_by_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.universal_assignment_history DROP CONSTRAINT IF EXISTS universal_assignment_history_changed_by_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.universal_assignment_history DROP CONSTRAINT IF EXISTS universal_assignment_history_assignment_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_test_executions DROP CONSTRAINT IF EXISTS testing_test_executions_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_test_executions DROP CONSTRAINT IF EXISTS testing_test_executions_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_test_executions DROP CONSTRAINT IF EXISTS testing_test_executions_document_analysis_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_test_executions DROP CONSTRAINT IF EXISTS testing_test_executions_database_test_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_test_executions DROP CONSTRAINT IF EXISTS testing_test_executions_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_test_executions DROP CONSTRAINT IF EXISTS testing_test_executions_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_test_executions DROP CONSTRAINT IF EXISTS testing_test_executions_assigned_tester_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_execution_phases DROP CONSTRAINT IF EXISTS testing_execution_phases_started_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_execution_phases DROP CONSTRAINT IF EXISTS testing_execution_phases_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_execution_phases DROP CONSTRAINT IF EXISTS testing_execution_phases_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_execution_phases DROP CONSTRAINT IF EXISTS testing_execution_phases_completed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_execution_audit_logs DROP CONSTRAINT IF EXISTS testing_execution_audit_logs_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_execution_audit_logs DROP CONSTRAINT IF EXISTS testing_execution_audit_logs_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_execution_audit_logs DROP CONSTRAINT IF EXISTS testing_execution_audit_logs_performed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.testing_execution_audit_logs DROP CONSTRAINT IF EXISTS testing_execution_audit_logs_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.tester_scoping_decisions DROP CONSTRAINT IF EXISTS tester_scoping_decisions_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.tester_scoping_decisions DROP CONSTRAINT IF EXISTS tester_scoping_decisions_recommendation_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.tester_scoping_decisions DROP CONSTRAINT IF EXISTS tester_scoping_decisions_decided_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.tester_scoping_decisions DROP CONSTRAINT IF EXISTS tester_scoping_decisions_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.tester_scoping_decisions DROP CONSTRAINT IF EXISTS tester_scoping_decisions_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_result_reviews DROP CONSTRAINT IF EXISTS test_result_reviews_reviewer_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_result_reviews DROP CONSTRAINT IF EXISTS test_result_reviews_execution_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_report_sections DROP CONSTRAINT IF EXISTS test_report_sections_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_report_phases DROP CONSTRAINT IF EXISTS test_report_phases_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_report_phases DROP CONSTRAINT IF EXISTS test_report_phases_final_report_document_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_report_phases DROP CONSTRAINT IF EXISTS test_report_phases_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_executions DROP CONSTRAINT IF EXISTS test_executions_sample_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_executions DROP CONSTRAINT IF EXISTS test_executions_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_executions DROP CONSTRAINT IF EXISTS test_executions_executed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_executions DROP CONSTRAINT IF EXISTS test_executions_document_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_executions DROP CONSTRAINT IF EXISTS test_executions_data_source_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_executions DROP CONSTRAINT IF EXISTS test_executions_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_executions DROP CONSTRAINT IF EXISTS test_executions_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_versions DROP CONSTRAINT IF EXISTS test_execution_versions_sample_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_versions DROP CONSTRAINT IF EXISTS test_execution_versions_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_versions DROP CONSTRAINT IF EXISTS test_execution_versions_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_versions DROP CONSTRAINT IF EXISTS test_execution_versions_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_phases DROP CONSTRAINT IF EXISTS test_execution_phases_started_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_phases DROP CONSTRAINT IF EXISTS test_execution_phases_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_phases DROP CONSTRAINT IF EXISTS test_execution_phases_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_phases DROP CONSTRAINT IF EXISTS test_execution_phases_completed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_audit_logs DROP CONSTRAINT IF EXISTS test_execution_audit_logs_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_audit_logs DROP CONSTRAINT IF EXISTS test_execution_audit_logs_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_audit_logs DROP CONSTRAINT IF EXISTS test_execution_audit_logs_performed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_audit_logs DROP CONSTRAINT IF EXISTS test_execution_audit_logs_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_cycles DROP CONSTRAINT IF EXISTS test_cycles_test_manager_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_comparisons DROP CONSTRAINT IF EXISTS test_comparisons_compared_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_cases DROP CONSTRAINT IF EXISTS test_cases_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_cases DROP CONSTRAINT IF EXISTS test_cases_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_cases DROP CONSTRAINT IF EXISTS test_cases_data_provider_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_cases DROP CONSTRAINT IF EXISTS test_cases_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_cases DROP CONSTRAINT IF EXISTS test_cases_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.test_cases DROP CONSTRAINT IF EXISTS test_cases_assigned_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.submission_validations DROP CONSTRAINT IF EXISTS submission_validations_submission_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.submission_reminders DROP CONSTRAINT IF EXISTS submission_reminders_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.submission_reminders DROP CONSTRAINT IF EXISTS submission_reminders_data_provider_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.submission_documents DROP CONSTRAINT IF EXISTS submission_documents_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.submission_documents DROP CONSTRAINT IF EXISTS submission_documents_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.submission_documents DROP CONSTRAINT IF EXISTS submission_documents_data_provider_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.submission_documents DROP CONSTRAINT IF EXISTS submission_documents_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sla_violation_tracking DROP CONSTRAINT IF EXISTS sla_violation_tracking_sla_config_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sla_violation_tracking DROP CONSTRAINT IF EXISTS sla_violation_tracking_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sla_violation_tracking DROP CONSTRAINT IF EXISTS sla_violation_tracking_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sla_escalation_rules DROP CONSTRAINT IF EXISTS sla_escalation_rules_sla_config_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sla_escalation_rules DROP CONSTRAINT IF EXISTS sla_escalation_rules_escalate_to_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.scoping_submissions DROP CONSTRAINT IF EXISTS scoping_submissions_submitted_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.scoping_submissions DROP CONSTRAINT IF EXISTS scoping_submissions_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.scoping_submissions DROP CONSTRAINT IF EXISTS scoping_submissions_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.scoping_decision_versions DROP CONSTRAINT IF EXISTS scoping_decision_versions_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.scoping_decision_versions DROP CONSTRAINT IF EXISTS scoping_decision_versions_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.scoping_decision_versions DROP CONSTRAINT IF EXISTS scoping_decision_versions_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.scoping_audit_log DROP CONSTRAINT IF EXISTS scoping_audit_log_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.scoping_audit_log DROP CONSTRAINT IF EXISTS scoping_audit_log_performed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.scoping_audit_log DROP CONSTRAINT IF EXISTS scoping_audit_log_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.samples DROP CONSTRAINT IF EXISTS samples_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.samples DROP CONSTRAINT IF EXISTS samples_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_validation_results DROP CONSTRAINT IF EXISTS sample_validation_results_validated_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_validation_results DROP CONSTRAINT IF EXISTS sample_validation_results_set_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_validation_issues DROP CONSTRAINT IF EXISTS sample_validation_issues_validation_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_validation_issues DROP CONSTRAINT IF EXISTS sample_validation_issues_resolved_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_validation_issues DROP CONSTRAINT IF EXISTS sample_validation_issues_record_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_upload_history DROP CONSTRAINT IF EXISTS sample_upload_history_uploaded_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_upload_history DROP CONSTRAINT IF EXISTS sample_upload_history_set_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_submissions DROP CONSTRAINT IF EXISTS sample_submissions_submitted_by_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_submissions DROP CONSTRAINT IF EXISTS sample_submissions_reviewed_by_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_submissions DROP CONSTRAINT IF EXISTS sample_submissions_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_submissions DROP CONSTRAINT IF EXISTS sample_submissions_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_submission_items DROP CONSTRAINT IF EXISTS sample_submission_items_submission_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_submission_items DROP CONSTRAINT IF EXISTS sample_submission_items_sample_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_sets DROP CONSTRAINT IF EXISTS sample_sets_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_sets DROP CONSTRAINT IF EXISTS sample_sets_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_sets DROP CONSTRAINT IF EXISTS sample_sets_created_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_sets DROP CONSTRAINT IF EXISTS sample_sets_approved_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_selection_phases DROP CONSTRAINT IF EXISTS sample_selection_phases_updated_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_selection_phases DROP CONSTRAINT IF EXISTS sample_selection_phases_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_selection_phases DROP CONSTRAINT IF EXISTS sample_selection_phases_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_selection_phases DROP CONSTRAINT IF EXISTS sample_selection_phases_created_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_selection_audit_log DROP CONSTRAINT IF EXISTS sample_selection_audit_log_set_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_selection_audit_log DROP CONSTRAINT IF EXISTS sample_selection_audit_log_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_selection_audit_log DROP CONSTRAINT IF EXISTS sample_selection_audit_log_performed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_selection_audit_log DROP CONSTRAINT IF EXISTS sample_selection_audit_log_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_records DROP CONSTRAINT IF EXISTS sample_records_set_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_feedback DROP CONSTRAINT IF EXISTS sample_feedback_submission_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_feedback DROP CONSTRAINT IF EXISTS sample_feedback_sample_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_feedback DROP CONSTRAINT IF EXISTS sample_feedback_resolved_by_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_feedback DROP CONSTRAINT IF EXISTS sample_feedback_created_by_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_audit_logs DROP CONSTRAINT IF EXISTS sample_audit_logs_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_audit_logs DROP CONSTRAINT IF EXISTS sample_audit_logs_submission_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_audit_logs DROP CONSTRAINT IF EXISTS sample_audit_logs_sample_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_approval_history DROP CONSTRAINT IF EXISTS sample_approval_history_set_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.sample_approval_history DROP CONSTRAINT IF EXISTS sample_approval_history_approved_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.role_permissions DROP CONSTRAINT IF EXISTS role_permissions_role_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.role_permissions DROP CONSTRAINT IF EXISTS role_permissions_permission_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.role_permissions DROP CONSTRAINT IF EXISTS role_permissions_granted_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.role_hierarchy DROP CONSTRAINT IF EXISTS role_hierarchy_parent_role_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.role_hierarchy DROP CONSTRAINT IF EXISTS role_hierarchy_child_role_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.resources DROP CONSTRAINT IF EXISTS resources_parent_resource_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.resource_permissions DROP CONSTRAINT IF EXISTS resource_permissions_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.resource_permissions DROP CONSTRAINT IF EXISTS resource_permissions_permission_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.resource_permissions DROP CONSTRAINT IF EXISTS resource_permissions_granted_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_phases DROP CONSTRAINT IF EXISTS request_info_phases_started_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_phases DROP CONSTRAINT IF EXISTS request_info_phases_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_phases DROP CONSTRAINT IF EXISTS request_info_phases_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_phases DROP CONSTRAINT IF EXISTS request_info_phases_completed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_audit_logs DROP CONSTRAINT IF EXISTS request_info_audit_logs_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_audit_logs DROP CONSTRAINT IF EXISTS request_info_audit_logs_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_audit_logs DROP CONSTRAINT IF EXISTS request_info_audit_logs_performed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_audit_logs DROP CONSTRAINT IF EXISTS request_info_audit_logs_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_audit_log DROP CONSTRAINT IF EXISTS request_info_audit_log_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_audit_log DROP CONSTRAINT IF EXISTS request_info_audit_log_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_audit_log DROP CONSTRAINT IF EXISTS request_info_audit_log_performed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_audit_log DROP CONSTRAINT IF EXISTS request_info_audit_log_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.reports DROP CONSTRAINT IF EXISTS reports_report_owner_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.reports DROP CONSTRAINT IF EXISTS reports_lob_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_scoping_reviews DROP CONSTRAINT IF EXISTS report_owner_scoping_reviews_submission_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_scoping_reviews DROP CONSTRAINT IF EXISTS report_owner_scoping_reviews_reviewed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_scoping_reviews DROP CONSTRAINT IF EXISTS report_owner_scoping_reviews_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_scoping_reviews DROP CONSTRAINT IF EXISTS report_owner_scoping_reviews_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_executives DROP CONSTRAINT IF EXISTS report_owner_executives_report_owner_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_executives DROP CONSTRAINT IF EXISTS report_owner_executives_executive_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_assignments DROP CONSTRAINT IF EXISTS report_owner_assignments_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_assignments DROP CONSTRAINT IF EXISTS report_owner_assignments_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_assignments DROP CONSTRAINT IF EXISTS report_owner_assignments_completed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_assignments DROP CONSTRAINT IF EXISTS report_owner_assignments_assigned_to_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_assignments DROP CONSTRAINT IF EXISTS report_owner_assignments_assigned_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_assignment_history DROP CONSTRAINT IF EXISTS report_owner_assignment_history_changed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_assignment_history DROP CONSTRAINT IF EXISTS report_owner_assignment_history_assignment_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_attributes DROP CONSTRAINT IF EXISTS report_attributes_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.report_attributes DROP CONSTRAINT IF EXISTS report_attributes_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.profiling_rules DROP CONSTRAINT IF EXISTS profiling_rules_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.profiling_rules DROP CONSTRAINT IF EXISTS profiling_rules_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.profiling_rules DROP CONSTRAINT IF EXISTS profiling_rules_approved_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.profiling_results DROP CONSTRAINT IF EXISTS profiling_results_rule_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.profiling_results DROP CONSTRAINT IF EXISTS profiling_results_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.profiling_results DROP CONSTRAINT IF EXISTS profiling_results_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.profiling_results DROP CONSTRAINT IF EXISTS profiling_results_anomaly_marked_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.metrics_phases DROP CONSTRAINT IF EXISTS metrics_phases_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.metrics_phases DROP CONSTRAINT IF EXISTS metrics_phases_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.permission_audit_log DROP CONSTRAINT IF EXISTS permission_audit_log_role_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.permission_audit_log DROP CONSTRAINT IF EXISTS permission_audit_log_permission_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.permission_audit_log DROP CONSTRAINT IF EXISTS permission_audit_log_performed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.observations DROP CONSTRAINT IF EXISTS observations_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observations DROP CONSTRAINT IF EXISTS observations_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observations DROP CONSTRAINT IF EXISTS observations_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_versions DROP CONSTRAINT IF EXISTS observation_versions_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_versions DROP CONSTRAINT IF EXISTS observation_versions_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_resolutions DROP CONSTRAINT IF EXISTS observation_resolutions_validated_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_resolutions DROP CONSTRAINT IF EXISTS observation_resolutions_resolution_owner_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_resolutions DROP CONSTRAINT IF EXISTS observation_resolutions_observation_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_resolutions DROP CONSTRAINT IF EXISTS observation_resolutions_created_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_records DROP CONSTRAINT IF EXISTS observation_records_source_test_execution_id_fkey1;
+ALTER TABLE IF EXISTS ONLY public.observation_records_backup DROP CONSTRAINT IF EXISTS observation_records_source_test_execution_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_records DROP CONSTRAINT IF EXISTS observation_records_source_attribute_id_fkey1;
+ALTER TABLE IF EXISTS ONLY public.observation_records_backup DROP CONSTRAINT IF EXISTS observation_records_source_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_records DROP CONSTRAINT IF EXISTS observation_records_report_id_fkey1;
+ALTER TABLE IF EXISTS ONLY public.observation_records_backup DROP CONSTRAINT IF EXISTS observation_records_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_records DROP CONSTRAINT IF EXISTS observation_records_phase_id_fkey1;
+ALTER TABLE IF EXISTS ONLY public.observation_records_backup DROP CONSTRAINT IF EXISTS observation_records_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_records DROP CONSTRAINT IF EXISTS observation_records_detected_by_fkey1;
+ALTER TABLE IF EXISTS ONLY public.observation_records_backup DROP CONSTRAINT IF EXISTS observation_records_detected_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_records DROP CONSTRAINT IF EXISTS observation_records_cycle_id_fkey1;
+ALTER TABLE IF EXISTS ONLY public.observation_records_backup DROP CONSTRAINT IF EXISTS observation_records_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_records DROP CONSTRAINT IF EXISTS observation_records_assigned_to_fkey1;
+ALTER TABLE IF EXISTS ONLY public.observation_records_backup DROP CONSTRAINT IF EXISTS observation_records_assigned_to_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_management_phases DROP CONSTRAINT IF EXISTS observation_management_phases_started_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_management_phases DROP CONSTRAINT IF EXISTS observation_management_phases_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_management_phases DROP CONSTRAINT IF EXISTS observation_management_phases_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_management_phases DROP CONSTRAINT IF EXISTS observation_management_phases_completed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_management_audit_logs DROP CONSTRAINT IF EXISTS observation_management_audit_logs_source_test_execution_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_management_audit_logs DROP CONSTRAINT IF EXISTS observation_management_audit_logs_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_management_audit_logs DROP CONSTRAINT IF EXISTS observation_management_audit_logs_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_management_audit_logs DROP CONSTRAINT IF EXISTS observation_management_audit_logs_performed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_management_audit_logs DROP CONSTRAINT IF EXISTS observation_management_audit_logs_observation_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_management_audit_logs DROP CONSTRAINT IF EXISTS observation_management_audit_logs_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_impact_assessments DROP CONSTRAINT IF EXISTS observation_impact_assessments_reviewed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_impact_assessments DROP CONSTRAINT IF EXISTS observation_impact_assessments_observation_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_impact_assessments DROP CONSTRAINT IF EXISTS observation_impact_assessments_assessed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_groups DROP CONSTRAINT IF EXISTS observation_groups_report_owner_approved_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_groups DROP CONSTRAINT IF EXISTS observation_groups_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_groups DROP CONSTRAINT IF EXISTS observation_groups_finalized_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_groups DROP CONSTRAINT IF EXISTS observation_groups_data_executive_approved_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_groups DROP CONSTRAINT IF EXISTS observation_groups_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_groups DROP CONSTRAINT IF EXISTS observation_groups_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_clarifications DROP CONSTRAINT IF EXISTS observation_clarifications_responded_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_clarifications DROP CONSTRAINT IF EXISTS observation_clarifications_requested_by_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_clarifications DROP CONSTRAINT IF EXISTS observation_clarifications_group_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_approvals DROP CONSTRAINT IF EXISTS observation_approvals_observation_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_approvals DROP CONSTRAINT IF EXISTS observation_approvals_escalated_to_fkey;
+ALTER TABLE IF EXISTS ONLY public.observation_approvals DROP CONSTRAINT IF EXISTS observation_approvals_approved_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.llm_sample_generations DROP CONSTRAINT IF EXISTS llm_sample_generations_set_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.llm_sample_generations DROP CONSTRAINT IF EXISTS llm_sample_generations_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.llm_sample_generations DROP CONSTRAINT IF EXISTS llm_sample_generations_generated_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.llm_sample_generations DROP CONSTRAINT IF EXISTS llm_sample_generations_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.llm_audit_log DROP CONSTRAINT IF EXISTS llm_audit_log_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.llm_audit_log DROP CONSTRAINT IF EXISTS llm_audit_log_executed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.llm_audit_log DROP CONSTRAINT IF EXISTS llm_audit_log_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.individual_samples DROP CONSTRAINT IF EXISTS individual_samples_tester_decision_by_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.individual_samples DROP CONSTRAINT IF EXISTS individual_samples_submission_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.individual_samples DROP CONSTRAINT IF EXISTS individual_samples_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.individual_samples DROP CONSTRAINT IF EXISTS individual_samples_generated_by_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.individual_samples DROP CONSTRAINT IF EXISTS individual_samples_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.historical_data_provider_assignments DROP CONSTRAINT IF EXISTS historical_data_provider_assignments_data_provider_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.historical_data_provider_assignments DROP CONSTRAINT IF EXISTS historical_data_provider_assignments_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.historical_data_provider_assignments DROP CONSTRAINT IF EXISTS historical_data_provider_assignments_assigned_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.historical_data_owner_assignments DROP CONSTRAINT IF EXISTS historical_data_owner_assignments_data_owner_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.historical_data_owner_assignments DROP CONSTRAINT IF EXISTS historical_data_owner_assignments_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.historical_data_owner_assignments DROP CONSTRAINT IF EXISTS historical_data_owner_assignments_assigned_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_phases DROP CONSTRAINT IF EXISTS fk_workflow_phases_started_by;
+ALTER TABLE IF EXISTS ONLY public.workflow_phases DROP CONSTRAINT IF EXISTS fk_workflow_phases_override_by;
+ALTER TABLE IF EXISTS ONLY public.workflow_phases DROP CONSTRAINT IF EXISTS fk_workflow_phases_completed_by;
+ALTER TABLE IF EXISTS ONLY public.testing_test_executions DROP CONSTRAINT IF EXISTS fk_testing_test_executions_sample;
+ALTER TABLE IF EXISTS ONLY public.testing_test_executions DROP CONSTRAINT IF EXISTS fk_testing_test_executions_executed_by;
+ALTER TABLE IF EXISTS ONLY public.testing_test_executions DROP CONSTRAINT IF EXISTS fk_testing_test_executions_data_source;
+ALTER TABLE IF EXISTS ONLY public.scoping_submissions DROP CONSTRAINT IF EXISTS fk_scoping_submissions_previous_version;
+ALTER TABLE IF EXISTS ONLY public.sample_records DROP CONSTRAINT IF EXISTS fk_sample_records_approved_by;
+ALTER TABLE IF EXISTS ONLY public.report_attributes DROP CONSTRAINT IF EXISTS fk_report_attributes_version_created_by;
+ALTER TABLE IF EXISTS ONLY public.report_attributes DROP CONSTRAINT IF EXISTS fk_report_attributes_replaced_attribute;
+ALTER TABLE IF EXISTS ONLY public.report_attributes DROP CONSTRAINT IF EXISTS fk_report_attributes_master_attribute;
+ALTER TABLE IF EXISTS ONLY public.report_attributes DROP CONSTRAINT IF EXISTS fk_report_attributes_archived_by;
+ALTER TABLE IF EXISTS ONLY public.report_attributes DROP CONSTRAINT IF EXISTS fk_report_attributes_approved_by;
+ALTER TABLE IF EXISTS ONLY public.document_submissions DROP CONSTRAINT IF EXISTS fk_document_submissions_parent;
+ALTER TABLE IF EXISTS ONLY public.document_submissions DROP CONSTRAINT IF EXISTS fk_document_submissions_data_owner_id;
+ALTER TABLE IF EXISTS ONLY public.metrics_execution DROP CONSTRAINT IF EXISTS metrics_execution_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.metrics_execution DROP CONSTRAINT IF EXISTS metrics_execution_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.escalation_email_logs DROP CONSTRAINT IF EXISTS escalation_email_logs_sla_violation_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.escalation_email_logs DROP CONSTRAINT IF EXISTS escalation_email_logs_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.escalation_email_logs DROP CONSTRAINT IF EXISTS escalation_email_logs_escalation_rule_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.documents DROP CONSTRAINT IF EXISTS documents_uploaded_by_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.documents DROP CONSTRAINT IF EXISTS documents_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.documents DROP CONSTRAINT IF EXISTS documents_parent_document_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.documents DROP CONSTRAINT IF EXISTS documents_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_submissions DROP CONSTRAINT IF EXISTS document_submissions_validated_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_submissions DROP CONSTRAINT IF EXISTS document_submissions_test_case_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_submissions DROP CONSTRAINT IF EXISTS document_submissions_data_provider_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_revisions DROP CONSTRAINT IF EXISTS document_revisions_uploaded_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_revisions DROP CONSTRAINT IF EXISTS document_revisions_test_case_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_revisions DROP CONSTRAINT IF EXISTS document_revisions_reviewed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_revisions DROP CONSTRAINT IF EXISTS document_revisions_requested_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_revisions DROP CONSTRAINT IF EXISTS document_revisions_previous_document_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_revisions DROP CONSTRAINT IF EXISTS document_revisions_document_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_extractions DROP CONSTRAINT IF EXISTS document_extractions_validated_by_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_extractions DROP CONSTRAINT IF EXISTS document_extractions_document_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_analyses DROP CONSTRAINT IF EXISTS document_analyses_submission_document_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_analyses DROP CONSTRAINT IF EXISTS document_analyses_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_analyses DROP CONSTRAINT IF EXISTS document_analyses_analyzed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_access_logs DROP CONSTRAINT IF EXISTS document_access_logs_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.document_access_logs DROP CONSTRAINT IF EXISTS document_access_logs_document_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.database_tests DROP CONSTRAINT IF EXISTS database_tests_tested_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.database_tests DROP CONSTRAINT IF EXISTS database_tests_database_submission_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.database_tests DROP CONSTRAINT IF EXISTS database_tests_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.database_submissions DROP CONSTRAINT IF EXISTS database_submissions_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.database_submissions DROP CONSTRAINT IF EXISTS database_submissions_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.database_submissions DROP CONSTRAINT IF EXISTS database_submissions_data_provider_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.database_submissions DROP CONSTRAINT IF EXISTS database_submissions_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.database_submissions DROP CONSTRAINT IF EXISTS database_submissions_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_submissions DROP CONSTRAINT IF EXISTS data_provider_submissions_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_submissions DROP CONSTRAINT IF EXISTS data_provider_submissions_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_submissions DROP CONSTRAINT IF EXISTS data_provider_submissions_database_submission_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_submissions DROP CONSTRAINT IF EXISTS data_provider_submissions_data_provider_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_submissions DROP CONSTRAINT IF EXISTS data_provider_submissions_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_submissions DROP CONSTRAINT IF EXISTS data_provider_submissions_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_sla_violations DROP CONSTRAINT IF EXISTS data_provider_sla_violations_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_sla_violations DROP CONSTRAINT IF EXISTS data_provider_sla_violations_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_sla_violations DROP CONSTRAINT IF EXISTS data_provider_sla_violations_cdo_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_sla_violations DROP CONSTRAINT IF EXISTS data_provider_sla_violations_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_sla_violations DROP CONSTRAINT IF EXISTS data_provider_sla_violations_assignment_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_phase_audit_log DROP CONSTRAINT IF EXISTS data_provider_phase_audit_log_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_phase_audit_log DROP CONSTRAINT IF EXISTS data_provider_phase_audit_log_performed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_phase_audit_log DROP CONSTRAINT IF EXISTS data_provider_phase_audit_log_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_notifications DROP CONSTRAINT IF EXISTS data_provider_notifications_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_notifications DROP CONSTRAINT IF EXISTS data_provider_notifications_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_notifications DROP CONSTRAINT IF EXISTS data_provider_notifications_data_provider_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_notifications DROP CONSTRAINT IF EXISTS data_provider_notifications_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_escalation_log DROP CONSTRAINT IF EXISTS data_provider_escalation_log_sent_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_escalation_log DROP CONSTRAINT IF EXISTS data_provider_escalation_log_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_escalation_log DROP CONSTRAINT IF EXISTS data_provider_escalation_log_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_assignments DROP CONSTRAINT IF EXISTS data_provider_assignments_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_assignments DROP CONSTRAINT IF EXISTS data_provider_assignments_lob_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_assignments DROP CONSTRAINT IF EXISTS data_provider_assignments_data_provider_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_assignments DROP CONSTRAINT IF EXISTS data_provider_assignments_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_assignments DROP CONSTRAINT IF EXISTS data_provider_assignments_cdo_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_assignments DROP CONSTRAINT IF EXISTS data_provider_assignments_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_assignments DROP CONSTRAINT IF EXISTS data_provider_assignments_assigned_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_profiling_rule_versions DROP CONSTRAINT IF EXISTS data_profiling_rule_versions_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_profiling_rule_versions DROP CONSTRAINT IF EXISTS data_profiling_rule_versions_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_profiling_rule_versions DROP CONSTRAINT IF EXISTS data_profiling_rule_versions_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_profiling_phases DROP CONSTRAINT IF EXISTS data_profiling_phases_started_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_profiling_phases DROP CONSTRAINT IF EXISTS data_profiling_phases_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_profiling_phases DROP CONSTRAINT IF EXISTS data_profiling_phases_data_requested_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_profiling_phases DROP CONSTRAINT IF EXISTS data_profiling_phases_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_profiling_phases DROP CONSTRAINT IF EXISTS data_profiling_phases_completed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_profiling_files DROP CONSTRAINT IF EXISTS data_profiling_files_uploaded_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_profiling_files DROP CONSTRAINT IF EXISTS data_profiling_files_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_sla_violations DROP CONSTRAINT IF EXISTS data_owner_sla_violations_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_sla_violations DROP CONSTRAINT IF EXISTS data_owner_sla_violations_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_sla_violations DROP CONSTRAINT IF EXISTS data_owner_sla_violations_cdo_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_sla_violations DROP CONSTRAINT IF EXISTS data_owner_sla_violations_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_sla_violations DROP CONSTRAINT IF EXISTS data_owner_sla_violations_assignment_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_phase_audit_log DROP CONSTRAINT IF EXISTS data_owner_phase_audit_log_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_phase_audit_log DROP CONSTRAINT IF EXISTS data_owner_phase_audit_log_performed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_phase_audit_log DROP CONSTRAINT IF EXISTS data_owner_phase_audit_log_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_notifications DROP CONSTRAINT IF EXISTS data_owner_notifications_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_notifications DROP CONSTRAINT IF EXISTS data_owner_notifications_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_notifications DROP CONSTRAINT IF EXISTS data_owner_notifications_data_owner_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_notifications DROP CONSTRAINT IF EXISTS data_owner_notifications_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_escalation_log DROP CONSTRAINT IF EXISTS data_owner_escalation_log_sent_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_escalation_log DROP CONSTRAINT IF EXISTS data_owner_escalation_log_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_escalation_log DROP CONSTRAINT IF EXISTS data_owner_escalation_log_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_assignments DROP CONSTRAINT IF EXISTS data_owner_assignments_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_assignments DROP CONSTRAINT IF EXISTS data_owner_assignments_lob_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_assignments DROP CONSTRAINT IF EXISTS data_owner_assignments_data_owner_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_assignments DROP CONSTRAINT IF EXISTS data_owner_assignments_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_assignments DROP CONSTRAINT IF EXISTS data_owner_assignments_cdo_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_assignments DROP CONSTRAINT IF EXISTS data_owner_assignments_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_assignments DROP CONSTRAINT IF EXISTS data_owner_assignments_assigned_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.cycle_reports DROP CONSTRAINT IF EXISTS cycle_reports_tester_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.cycle_reports DROP CONSTRAINT IF EXISTS cycle_reports_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.cycle_reports DROP CONSTRAINT IF EXISTS cycle_reports_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.cdo_notifications DROP CONSTRAINT IF EXISTS cdo_notifications_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.cdo_notifications DROP CONSTRAINT IF EXISTS cdo_notifications_lob_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.cdo_notifications DROP CONSTRAINT IF EXISTS cdo_notifications_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.cdo_notifications DROP CONSTRAINT IF EXISTS cdo_notifications_cdo_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.bulk_test_executions DROP CONSTRAINT IF EXISTS bulk_test_executions_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.bulk_test_executions DROP CONSTRAINT IF EXISTS bulk_test_executions_initiated_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.audit_log DROP CONSTRAINT IF EXISTS audit_log_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_version_comparisons DROP CONSTRAINT IF EXISTS attribute_version_comparisons_version_b_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_version_comparisons DROP CONSTRAINT IF EXISTS attribute_version_comparisons_version_a_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_version_comparisons DROP CONSTRAINT IF EXISTS attribute_version_comparisons_compared_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_version_change_logs DROP CONSTRAINT IF EXISTS attribute_version_change_logs_changed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_version_change_logs DROP CONSTRAINT IF EXISTS attribute_version_change_logs_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_scoping_recommendations DROP CONSTRAINT IF EXISTS attribute_scoping_recommendations_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_scoping_recommendations DROP CONSTRAINT IF EXISTS attribute_scoping_recommendations_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_scoping_recommendations DROP CONSTRAINT IF EXISTS attribute_scoping_recommendations_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_scoping_recommendation_versions DROP CONSTRAINT IF EXISTS attribute_scoping_recommendation_versions_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_scoping_recommendation_versions DROP CONSTRAINT IF EXISTS attribute_scoping_recommendation_versions_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_scoping_recommendation_versions DROP CONSTRAINT IF EXISTS attribute_scoping_recommendation_versions_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_profiling_scores DROP CONSTRAINT IF EXISTS attribute_profiling_scores_phase_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_profiling_scores DROP CONSTRAINT IF EXISTS attribute_profiling_scores_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_lob_assignments DROP CONSTRAINT IF EXISTS attribute_lob_assignments_report_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_lob_assignments DROP CONSTRAINT IF EXISTS attribute_lob_assignments_lob_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_lob_assignments DROP CONSTRAINT IF EXISTS attribute_lob_assignments_cycle_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_lob_assignments DROP CONSTRAINT IF EXISTS attribute_lob_assignments_attribute_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_lob_assignments DROP CONSTRAINT IF EXISTS attribute_lob_assignments_assigned_by_fkey;
+DROP INDEX IF EXISTS public.ix_workflow_phases_phase_id;
+DROP INDEX IF EXISTS public.ix_workflow_activities_status;
+DROP INDEX IF EXISTS public.ix_workflow_activities_phase;
+DROP INDEX IF EXISTS public.ix_workflow_activities_cycle_report;
+DROP INDEX IF EXISTS public.ix_users_user_id;
+DROP INDEX IF EXISTS public.ix_users_role;
+DROP INDEX IF EXISTS public.ix_users_email;
+DROP INDEX IF EXISTS public.ix_user_roles_user_id;
+DROP INDEX IF EXISTS public.ix_user_roles_expires_at;
+DROP INDEX IF EXISTS public.ix_user_permissions_user_id;
+DROP INDEX IF EXISTS public.ix_user_permissions_expires_at;
+DROP INDEX IF EXISTS public.ix_universal_assignments_to_role;
+DROP INDEX IF EXISTS public.ix_universal_assignments_status;
+DROP INDEX IF EXISTS public.ix_universal_assignments_from_role;
+DROP INDEX IF EXISTS public.ix_universal_assignments_due_date;
+DROP INDEX IF EXISTS public.ix_universal_assignments_context_type;
+DROP INDEX IF EXISTS public.ix_universal_assignments_assignment_type;
+DROP INDEX IF EXISTS public.ix_universal_assignments_assignment_id;
+DROP INDEX IF EXISTS public.ix_universal_assignment_history_history_id;
+DROP INDEX IF EXISTS public.ix_testing_test_executions_execution_id;
+DROP INDEX IF EXISTS public.ix_testing_execution_phases_phase_id;
+DROP INDEX IF EXISTS public.ix_testing_execution_audit_logs_log_id;
+DROP INDEX IF EXISTS public.ix_tester_scoping_decisions_decision_id;
+DROP INDEX IF EXISTS public.ix_test_result_reviews_review_id;
+DROP INDEX IF EXISTS public.ix_test_report_sections_section_id;
+DROP INDEX IF EXISTS public.ix_test_executions_execution_id;
+DROP INDEX IF EXISTS public.ix_test_execution_phases_phase_id;
+DROP INDEX IF EXISTS public.ix_test_execution_audit_logs_log_id;
+DROP INDEX IF EXISTS public.ix_test_cycles_workflow_id;
+DROP INDEX IF EXISTS public.ix_test_cycles_cycle_workflow;
+DROP INDEX IF EXISTS public.ix_test_cycles_cycle_name;
+DROP INDEX IF EXISTS public.ix_test_cycles_cycle_id;
+DROP INDEX IF EXISTS public.ix_test_comparisons_comparison_id;
+DROP INDEX IF EXISTS public.ix_test_cases_test_case_id;
+DROP INDEX IF EXISTS public.ix_submission_validations_validation_id;
+DROP INDEX IF EXISTS public.ix_submission_reminders_reminder_id;
+DROP INDEX IF EXISTS public.ix_submission_documents_document_id;
+DROP INDEX IF EXISTS public.ix_sla_violation_tracking_violation_id;
+DROP INDEX IF EXISTS public.ix_sla_escalation_rules_escalation_rule_id;
+DROP INDEX IF EXISTS public.ix_sla_configurations_sla_type;
+DROP INDEX IF EXISTS public.ix_sla_configurations_sla_config_id;
+DROP INDEX IF EXISTS public.ix_scoping_submissions_submission_id;
+DROP INDEX IF EXISTS public.ix_scoping_audit_log_audit_id;
+DROP INDEX IF EXISTS public.ix_samples_sample_id;
+DROP INDEX IF EXISTS public.ix_sample_validation_results_validation_id;
+DROP INDEX IF EXISTS public.ix_sample_validation_issues_issue_id;
+DROP INDEX IF EXISTS public.ix_sample_upload_history_upload_id;
+DROP INDEX IF EXISTS public.ix_sample_submissions_submission_id;
+DROP INDEX IF EXISTS public.ix_sample_submissions_id;
+DROP INDEX IF EXISTS public.ix_sample_submissions_cycle_report;
+DROP INDEX IF EXISTS public.ix_sample_submission_items_id;
+DROP INDEX IF EXISTS public.ix_sample_sets_set_name;
+DROP INDEX IF EXISTS public.ix_sample_sets_set_id;
+DROP INDEX IF EXISTS public.ix_sample_selection_phases_id;
+DROP INDEX IF EXISTS public.ix_sample_selection_audit_log_audit_id;
+DROP INDEX IF EXISTS public.ix_sample_selection_audit_log_action;
+DROP INDEX IF EXISTS public.ix_sample_records_sample_identifier;
+DROP INDEX IF EXISTS public.ix_sample_records_record_id;
+DROP INDEX IF EXISTS public.ix_sample_feedback_sample_submission;
+DROP INDEX IF EXISTS public.ix_sample_feedback_id;
+DROP INDEX IF EXISTS public.ix_sample_audit_logs_sample;
+DROP INDEX IF EXISTS public.ix_sample_audit_logs_id;
+DROP INDEX IF EXISTS public.ix_sample_approval_history_approval_id;
+DROP INDEX IF EXISTS public.ix_roles_role_name;
+DROP INDEX IF EXISTS public.ix_roles_role_id;
+DROP INDEX IF EXISTS public.ix_resources_resource_type;
+DROP INDEX IF EXISTS public.ix_resources_resource_name;
+DROP INDEX IF EXISTS public.ix_resources_resource_id;
+DROP INDEX IF EXISTS public.ix_resource_permissions_user_id;
+DROP INDEX IF EXISTS public.ix_resource_permissions_resource_type;
+DROP INDEX IF EXISTS public.ix_resource_permissions_resource_permission_id;
+DROP INDEX IF EXISTS public.ix_resource_permissions_resource_id;
+DROP INDEX IF EXISTS public.ix_request_info_phases_phase_id;
+DROP INDEX IF EXISTS public.ix_request_info_audit_logs_log_id;
+DROP INDEX IF EXISTS public.ix_request_info_audit_log_audit_id;
+DROP INDEX IF EXISTS public.ix_request_info_audit_log_action;
+DROP INDEX IF EXISTS public.ix_reports_report_name;
+DROP INDEX IF EXISTS public.ix_reports_report_id;
+DROP INDEX IF EXISTS public.ix_report_owner_scoping_reviews_review_id;
+DROP INDEX IF EXISTS public.ix_report_owner_assignments_phase_name;
+DROP INDEX IF EXISTS public.ix_report_owner_assignments_assignment_id;
+DROP INDEX IF EXISTS public.ix_report_owner_assignment_history_history_id;
+DROP INDEX IF EXISTS public.ix_report_attributes_master_attribute_id;
+DROP INDEX IF EXISTS public.ix_report_attributes_attribute_name;
+DROP INDEX IF EXISTS public.ix_report_attributes_attribute_id;
+DROP INDEX IF EXISTS public.ix_regulatory_data_dictionary_schedule_name;
+DROP INDEX IF EXISTS public.ix_regulatory_data_dictionary_report_name;
+DROP INDEX IF EXISTS public.ix_regulatory_data_dictionary_mandatory_or_optional;
+DROP INDEX IF EXISTS public.ix_regulatory_data_dictionary_line_item_name;
+DROP INDEX IF EXISTS public.ix_rdd_report_schedule;
+DROP INDEX IF EXISTS public.ix_rdd_mandatory_search;
+DROP INDEX IF EXISTS public.ix_rdd_item_name_search;
+DROP INDEX IF EXISTS public.ix_profiling_rules_version_number;
+DROP INDEX IF EXISTS public.ix_profiling_rules_rule_id;
+DROP INDEX IF EXISTS public.ix_profiling_rules_current_version;
+DROP INDEX IF EXISTS public.ix_profiling_rules_business_key;
+DROP INDEX IF EXISTS public.ix_profiling_results_result_id;
+DROP INDEX IF EXISTS public.ix_permissions_resource;
+DROP INDEX IF EXISTS public.ix_permissions_permission_id;
+DROP INDEX IF EXISTS public.ix_permissions_action;
+DROP INDEX IF EXISTS public.ix_permission_audit_log_target_type;
+DROP INDEX IF EXISTS public.ix_permission_audit_log_target_id;
+DROP INDEX IF EXISTS public.ix_permission_audit_log_performed_at;
+DROP INDEX IF EXISTS public.ix_permission_audit_log_audit_id;
+DROP INDEX IF EXISTS public.ix_observations_observation_id;
+DROP INDEX IF EXISTS public.ix_lobs_lob_name;
+DROP INDEX IF EXISTS public.ix_lobs_lob_id;
+DROP INDEX IF EXISTS public.ix_llm_sample_generations_generation_id;
+DROP INDEX IF EXISTS public.ix_llm_audit_log_log_id;
+DROP INDEX IF EXISTS public.ix_llm_audit_log_llm_provider;
+DROP INDEX IF EXISTS public.ix_individual_samples_sample_id;
+DROP INDEX IF EXISTS public.ix_individual_samples_id;
+DROP INDEX IF EXISTS public.ix_individual_samples_cycle_report;
+DROP INDEX IF EXISTS public.ix_historical_data_provider_assignments_report_name;
+DROP INDEX IF EXISTS public.ix_historical_data_provider_assignments_history_id;
+DROP INDEX IF EXISTS public.ix_historical_data_provider_assignments_attribute_name;
+DROP INDEX IF EXISTS public.ix_historical_data_owner_assignments_report_name;
+DROP INDEX IF EXISTS public.ix_historical_data_owner_assignments_history_id;
+DROP INDEX IF EXISTS public.ix_historical_data_owner_assignments_attribute_name;
+DROP INDEX IF EXISTS public.ix_escalation_email_logs_log_id;
+DROP INDEX IF EXISTS public.ix_documents_file_hash;
+DROP INDEX IF EXISTS public.ix_documents_document_type;
+DROP INDEX IF EXISTS public.ix_documents_document_name;
+DROP INDEX IF EXISTS public.ix_documents_document_id;
+DROP INDEX IF EXISTS public.ix_document_submissions_submission_id;
+DROP INDEX IF EXISTS public.ix_document_submissions_data_owner_id;
+DROP INDEX IF EXISTS public.ix_document_extractions_extraction_id;
+DROP INDEX IF EXISTS public.ix_document_extractions_attribute_name;
+DROP INDEX IF EXISTS public.ix_document_analyses_analysis_id;
+DROP INDEX IF EXISTS public.ix_document_access_logs_log_id;
+DROP INDEX IF EXISTS public.ix_database_tests_test_id;
+DROP INDEX IF EXISTS public.ix_database_submissions_db_submission_id;
+DROP INDEX IF EXISTS public.ix_data_sources_data_source_name;
+DROP INDEX IF EXISTS public.ix_data_sources_data_source_id;
+DROP INDEX IF EXISTS public.ix_data_provider_submissions_submission_id;
+DROP INDEX IF EXISTS public.ix_data_provider_sla_violations_violation_id;
+DROP INDEX IF EXISTS public.ix_data_provider_phase_audit_log_audit_id;
+DROP INDEX IF EXISTS public.ix_data_provider_phase_audit_log_action;
+DROP INDEX IF EXISTS public.ix_data_provider_notifications_notification_id;
+DROP INDEX IF EXISTS public.ix_data_provider_escalation_log_email_id;
+DROP INDEX IF EXISTS public.ix_data_provider_assignments_assignment_id;
+DROP INDEX IF EXISTS public.ix_data_profiling_phases_phase_id;
+DROP INDEX IF EXISTS public.ix_data_profiling_files_file_id;
+DROP INDEX IF EXISTS public.ix_data_owner_sla_violations_violation_id;
+DROP INDEX IF EXISTS public.ix_data_owner_phase_audit_log_audit_id;
+DROP INDEX IF EXISTS public.ix_data_owner_phase_audit_log_action;
+DROP INDEX IF EXISTS public.ix_data_owner_notifications_notification_id;
+DROP INDEX IF EXISTS public.ix_data_owner_escalation_log_email_id;
+DROP INDEX IF EXISTS public.ix_data_owner_assignments_assignment_id;
+DROP INDEX IF EXISTS public.ix_cdo_notifications_notification_id;
+DROP INDEX IF EXISTS public.ix_bulk_test_executions_bulk_execution_id;
+DROP INDEX IF EXISTS public.ix_audit_log_audit_id;
+DROP INDEX IF EXISTS public.ix_audit_log_action;
+DROP INDEX IF EXISTS public.ix_attribute_version_comparisons_comparison_id;
+DROP INDEX IF EXISTS public.ix_attribute_version_change_logs_log_id;
+DROP INDEX IF EXISTS public.ix_attribute_scoping_recommendations_recommendation_id;
+DROP INDEX IF EXISTS public.ix_attribute_profiling_scores_score_id;
+DROP INDEX IF EXISTS public.ix_attribute_lob_assignments_assignment_id;
+DROP INDEX IF EXISTS public.ix_assignment_templates_template_id;
+DROP INDEX IF EXISTS public.idx_workflow_transitions_timing;
+DROP INDEX IF EXISTS public.idx_workflow_transitions_execution;
+DROP INDEX IF EXISTS public.idx_workflow_steps_status;
+DROP INDEX IF EXISTS public.idx_workflow_steps_phase;
+DROP INDEX IF EXISTS public.idx_workflow_steps_execution;
+DROP INDEX IF EXISTS public.idx_workflow_metrics_type_period;
+DROP INDEX IF EXISTS public.idx_workflow_metrics_phase_period;
+DROP INDEX IF EXISTS public.idx_workflow_executions_status;
+DROP INDEX IF EXISTS public.idx_workflow_executions_started;
+DROP INDEX IF EXISTS public.idx_workflow_executions_cycle;
+DROP INDEX IF EXISTS public.idx_workflow_alerts_unresolved;
+DROP INDEX IF EXISTS public.idx_workflow_alerts_severity;
+DROP INDEX IF EXISTS public.idx_validation_issues_severity;
+DROP INDEX IF EXISTS public.idx_validation_issues_resolved;
+DROP INDEX IF EXISTS public.idx_upload_history_uploaded_at;
+DROP INDEX IF EXISTS public.idx_upload_history_method;
+DROP INDEX IF EXISTS public.idx_sample_sets_status;
+DROP INDEX IF EXISTS public.idx_sample_sets_cycle_report;
+DROP INDEX IF EXISTS public.idx_sample_sets_created_at;
+DROP INDEX IF EXISTS public.idx_sample_records_validation_status;
+DROP INDEX IF EXISTS public.idx_sample_records_set_id;
+DROP INDEX IF EXISTS public.idx_sample_records_identifier;
+DROP INDEX IF EXISTS public.idx_sample_audit_performed_at;
+DROP INDEX IF EXISTS public.idx_sample_audit_entity;
+DROP INDEX IF EXISTS public.idx_sample_audit_cycle_report;
+DROP INDEX IF EXISTS public.idx_sample_audit_action;
+DROP INDEX IF EXISTS public.idx_ro_assignments_status;
+DROP INDEX IF EXISTS public.idx_ro_assignments_phase;
+DROP INDEX IF EXISTS public.idx_ro_assignments_due_date;
+DROP INDEX IF EXISTS public.idx_ro_assignments_cycle_report;
+DROP INDEX IF EXISTS public.idx_ro_assignments_created_at;
+DROP INDEX IF EXISTS public.idx_ro_assignments_assigned_to;
+DROP INDEX IF EXISTS public.idx_ro_assignment_history_changed_at;
+DROP INDEX IF EXISTS public.idx_ro_assignment_history_assignment;
+DROP INDEX IF EXISTS public.idx_metrics_phases_report_id;
+DROP INDEX IF EXISTS public.idx_metrics_phases_phase_name;
+DROP INDEX IF EXISTS public.idx_metrics_phases_cycle_id;
+DROP INDEX IF EXISTS public.idx_llm_generations_generated_at;
+DROP INDEX IF EXISTS public.idx_llm_generations_cycle_report;
+DROP INDEX IF EXISTS public.idx_metrics_execution_report_id;
+DROP INDEX IF EXISTS public.idx_metrics_execution_cycle_id;
+DROP INDEX IF EXISTS public.idx_document_submissions_parent;
+DROP INDEX IF EXISTS public.idx_document_submissions_current;
+DROP INDEX IF EXISTS public.idx_cycle_reports_workflow_id;
+DROP INDEX IF EXISTS public.idx_approval_history_set_id;
+DROP INDEX IF EXISTS public.idx_approval_history_decision;
+DROP INDEX IF EXISTS public.idx_approval_history_approved_at;
+ALTER TABLE IF EXISTS ONLY public.workflow_transitions DROP CONSTRAINT IF EXISTS workflow_transitions_pkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_steps DROP CONSTRAINT IF EXISTS workflow_steps_pkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_phases DROP CONSTRAINT IF EXISTS workflow_phases_pkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_metrics DROP CONSTRAINT IF EXISTS workflow_metrics_workflow_type_phase_name_activity_name_ste_key;
+ALTER TABLE IF EXISTS ONLY public.workflow_metrics DROP CONSTRAINT IF EXISTS workflow_metrics_pkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_executions DROP CONSTRAINT IF EXISTS workflow_executions_pkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_alerts DROP CONSTRAINT IF EXISTS workflow_alerts_pkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_activity_templates DROP CONSTRAINT IF EXISTS workflow_activity_templates_pkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_activity_history DROP CONSTRAINT IF EXISTS workflow_activity_history_pkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_activity_dependencies DROP CONSTRAINT IF EXISTS workflow_activity_dependencies_pkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_activities DROP CONSTRAINT IF EXISTS workflow_activities_pkey;
+ALTER TABLE IF EXISTS ONLY public.version_history DROP CONSTRAINT IF EXISTS version_history_pkey;
+ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_pkey;
+ALTER TABLE IF EXISTS ONLY public.user_roles DROP CONSTRAINT IF EXISTS user_roles_pkey;
+ALTER TABLE IF EXISTS ONLY public.user_permissions DROP CONSTRAINT IF EXISTS user_permissions_pkey;
+ALTER TABLE IF EXISTS ONLY public.workflow_activities DROP CONSTRAINT IF EXISTS uq_workflow_activities_unique_activity;
+ALTER TABLE IF EXISTS ONLY public.resource_permissions DROP CONSTRAINT IF EXISTS uq_user_resource_permission;
+ALTER TABLE IF EXISTS ONLY public.permissions DROP CONSTRAINT IF EXISTS uq_resource_action;
+ALTER TABLE IF EXISTS ONLY public.workflow_activity_templates DROP CONSTRAINT IF EXISTS uq_activity_templates_unique;
+ALTER TABLE IF EXISTS ONLY public.workflow_activity_dependencies DROP CONSTRAINT IF EXISTS uq_activity_dependencies_unique;
+ALTER TABLE IF EXISTS ONLY public.universal_assignments DROP CONSTRAINT IF EXISTS universal_assignments_pkey;
+ALTER TABLE IF EXISTS ONLY public.universal_assignment_history DROP CONSTRAINT IF EXISTS universal_assignment_history_pkey;
+ALTER TABLE IF EXISTS ONLY public.testing_test_executions DROP CONSTRAINT IF EXISTS testing_test_executions_pkey;
+ALTER TABLE IF EXISTS ONLY public.testing_execution_phases DROP CONSTRAINT IF EXISTS testing_execution_phases_pkey;
+ALTER TABLE IF EXISTS ONLY public.testing_execution_audit_logs DROP CONSTRAINT IF EXISTS testing_execution_audit_logs_pkey;
+ALTER TABLE IF EXISTS ONLY public.tester_scoping_decisions DROP CONSTRAINT IF EXISTS tester_scoping_decisions_pkey;
+ALTER TABLE IF EXISTS ONLY public.test_result_reviews DROP CONSTRAINT IF EXISTS test_result_reviews_pkey;
+ALTER TABLE IF EXISTS ONLY public.test_report_sections DROP CONSTRAINT IF EXISTS test_report_sections_pkey;
+ALTER TABLE IF EXISTS ONLY public.test_report_phases DROP CONSTRAINT IF EXISTS test_report_phases_pkey;
+ALTER TABLE IF EXISTS ONLY public.test_executions DROP CONSTRAINT IF EXISTS test_executions_pkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_versions DROP CONSTRAINT IF EXISTS test_execution_versions_pkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_phases DROP CONSTRAINT IF EXISTS test_execution_phases_pkey;
+ALTER TABLE IF EXISTS ONLY public.test_execution_audit_logs DROP CONSTRAINT IF EXISTS test_execution_audit_logs_pkey;
+ALTER TABLE IF EXISTS ONLY public.test_cycles DROP CONSTRAINT IF EXISTS test_cycles_pkey;
+ALTER TABLE IF EXISTS ONLY public.test_comparisons DROP CONSTRAINT IF EXISTS test_comparisons_pkey;
+ALTER TABLE IF EXISTS ONLY public.test_cases DROP CONSTRAINT IF EXISTS test_cases_pkey;
+ALTER TABLE IF EXISTS ONLY public.submission_validations DROP CONSTRAINT IF EXISTS submission_validations_pkey;
+ALTER TABLE IF EXISTS ONLY public.submission_reminders DROP CONSTRAINT IF EXISTS submission_reminders_pkey;
+ALTER TABLE IF EXISTS ONLY public.submission_documents DROP CONSTRAINT IF EXISTS submission_documents_pkey;
+ALTER TABLE IF EXISTS ONLY public.sla_violation_tracking DROP CONSTRAINT IF EXISTS sla_violation_tracking_pkey;
+ALTER TABLE IF EXISTS ONLY public.sla_escalation_rules DROP CONSTRAINT IF EXISTS sla_escalation_rules_pkey;
+ALTER TABLE IF EXISTS ONLY public.sla_configurations DROP CONSTRAINT IF EXISTS sla_configurations_pkey;
+ALTER TABLE IF EXISTS ONLY public.scoping_submissions DROP CONSTRAINT IF EXISTS scoping_submissions_pkey;
+ALTER TABLE IF EXISTS ONLY public.scoping_decision_versions DROP CONSTRAINT IF EXISTS scoping_decision_versions_pkey;
+ALTER TABLE IF EXISTS ONLY public.scoping_audit_log DROP CONSTRAINT IF EXISTS scoping_audit_log_pkey;
+ALTER TABLE IF EXISTS ONLY public.samples DROP CONSTRAINT IF EXISTS samples_pkey;
+ALTER TABLE IF EXISTS ONLY public.sample_validation_results DROP CONSTRAINT IF EXISTS sample_validation_results_pkey;
+ALTER TABLE IF EXISTS ONLY public.sample_validation_issues DROP CONSTRAINT IF EXISTS sample_validation_issues_pkey;
+ALTER TABLE IF EXISTS ONLY public.sample_upload_history DROP CONSTRAINT IF EXISTS sample_upload_history_pkey;
+ALTER TABLE IF EXISTS ONLY public.sample_submissions DROP CONSTRAINT IF EXISTS sample_submissions_pkey;
+ALTER TABLE IF EXISTS ONLY public.sample_submission_items DROP CONSTRAINT IF EXISTS sample_submission_items_pkey;
+ALTER TABLE IF EXISTS ONLY public.sample_sets DROP CONSTRAINT IF EXISTS sample_sets_pkey;
+ALTER TABLE IF EXISTS ONLY public.sample_selection_phases DROP CONSTRAINT IF EXISTS sample_selection_phases_pkey;
+ALTER TABLE IF EXISTS ONLY public.sample_selection_audit_log DROP CONSTRAINT IF EXISTS sample_selection_audit_log_pkey;
+ALTER TABLE IF EXISTS ONLY public.sample_records DROP CONSTRAINT IF EXISTS sample_records_pkey;
+ALTER TABLE IF EXISTS ONLY public.sample_feedback DROP CONSTRAINT IF EXISTS sample_feedback_pkey;
+ALTER TABLE IF EXISTS ONLY public.sample_audit_logs DROP CONSTRAINT IF EXISTS sample_audit_logs_pkey;
+ALTER TABLE IF EXISTS ONLY public.sample_approval_history DROP CONSTRAINT IF EXISTS sample_approval_history_pkey;
+ALTER TABLE IF EXISTS ONLY public.roles DROP CONSTRAINT IF EXISTS roles_pkey;
+ALTER TABLE IF EXISTS ONLY public.role_permissions DROP CONSTRAINT IF EXISTS role_permissions_pkey;
+ALTER TABLE IF EXISTS ONLY public.role_hierarchy DROP CONSTRAINT IF EXISTS role_hierarchy_pkey;
+ALTER TABLE IF EXISTS ONLY public.resources DROP CONSTRAINT IF EXISTS resources_pkey;
+ALTER TABLE IF EXISTS ONLY public.resource_permissions DROP CONSTRAINT IF EXISTS resource_permissions_pkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_phases DROP CONSTRAINT IF EXISTS request_info_phases_pkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_audit_logs DROP CONSTRAINT IF EXISTS request_info_audit_logs_pkey;
+ALTER TABLE IF EXISTS ONLY public.request_info_audit_log DROP CONSTRAINT IF EXISTS request_info_audit_log_pkey;
+ALTER TABLE IF EXISTS ONLY public.reports DROP CONSTRAINT IF EXISTS reports_pkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_scoping_reviews DROP CONSTRAINT IF EXISTS report_owner_scoping_reviews_pkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_executives DROP CONSTRAINT IF EXISTS report_owner_executives_pkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_assignments DROP CONSTRAINT IF EXISTS report_owner_assignments_pkey;
+ALTER TABLE IF EXISTS ONLY public.report_owner_assignment_history DROP CONSTRAINT IF EXISTS report_owner_assignment_history_pkey;
+ALTER TABLE IF EXISTS ONLY public.report_attributes DROP CONSTRAINT IF EXISTS report_attributes_pkey;
+ALTER TABLE IF EXISTS ONLY public.regulatory_data_dictionary DROP CONSTRAINT IF EXISTS regulatory_data_dictionary_pkey;
+ALTER TABLE IF EXISTS ONLY public.profiling_rules DROP CONSTRAINT IF EXISTS profiling_rules_pkey;
+ALTER TABLE IF EXISTS ONLY public.profiling_results DROP CONSTRAINT IF EXISTS profiling_results_pkey;
+ALTER TABLE IF EXISTS ONLY public.metrics_phases DROP CONSTRAINT IF EXISTS metrics_phases_pkey;
+ALTER TABLE IF EXISTS ONLY public.permissions DROP CONSTRAINT IF EXISTS permissions_pkey;
+ALTER TABLE IF EXISTS ONLY public.permission_audit_log DROP CONSTRAINT IF EXISTS permission_audit_log_pkey;
+ALTER TABLE IF EXISTS ONLY public.observations DROP CONSTRAINT IF EXISTS observations_pkey;
+ALTER TABLE IF EXISTS ONLY public.observation_versions DROP CONSTRAINT IF EXISTS observation_versions_pkey;
+ALTER TABLE IF EXISTS ONLY public.observation_resolutions DROP CONSTRAINT IF EXISTS observation_resolutions_pkey;
+ALTER TABLE IF EXISTS ONLY public.observation_records DROP CONSTRAINT IF EXISTS observation_records_pkey1;
+ALTER TABLE IF EXISTS ONLY public.observation_records_backup DROP CONSTRAINT IF EXISTS observation_records_pkey;
+ALTER TABLE IF EXISTS ONLY public.observation_management_phases DROP CONSTRAINT IF EXISTS observation_management_phases_pkey;
+ALTER TABLE IF EXISTS ONLY public.observation_management_audit_logs DROP CONSTRAINT IF EXISTS observation_management_audit_logs_pkey;
+ALTER TABLE IF EXISTS ONLY public.observation_impact_assessments DROP CONSTRAINT IF EXISTS observation_impact_assessments_pkey;
+ALTER TABLE IF EXISTS ONLY public.observation_groups DROP CONSTRAINT IF EXISTS observation_groups_pkey;
+ALTER TABLE IF EXISTS ONLY public.observation_clarifications DROP CONSTRAINT IF EXISTS observation_clarifications_pkey;
+ALTER TABLE IF EXISTS ONLY public.observation_approvals DROP CONSTRAINT IF EXISTS observation_approvals_pkey;
+ALTER TABLE IF EXISTS ONLY public.lobs DROP CONSTRAINT IF EXISTS lobs_pkey;
+ALTER TABLE IF EXISTS ONLY public.llm_sample_generations DROP CONSTRAINT IF EXISTS llm_sample_generations_pkey;
+ALTER TABLE IF EXISTS ONLY public.llm_audit_log DROP CONSTRAINT IF EXISTS llm_audit_log_pkey;
+ALTER TABLE IF EXISTS ONLY public.individual_samples DROP CONSTRAINT IF EXISTS individual_samples_pkey;
+ALTER TABLE IF EXISTS ONLY public.historical_data_provider_assignments DROP CONSTRAINT IF EXISTS historical_data_provider_assignments_pkey;
+ALTER TABLE IF EXISTS ONLY public.historical_data_owner_assignments DROP CONSTRAINT IF EXISTS historical_data_owner_assignments_pkey;
+ALTER TABLE IF EXISTS ONLY public.metrics_execution DROP CONSTRAINT IF EXISTS metrics_execution_pkey;
+ALTER TABLE IF EXISTS ONLY public.escalation_email_logs DROP CONSTRAINT IF EXISTS escalation_email_logs_pkey;
+ALTER TABLE IF EXISTS ONLY public.documents DROP CONSTRAINT IF EXISTS documents_pkey;
+ALTER TABLE IF EXISTS ONLY public.document_submissions DROP CONSTRAINT IF EXISTS document_submissions_pkey;
+ALTER TABLE IF EXISTS ONLY public.document_revisions DROP CONSTRAINT IF EXISTS document_revisions_pkey;
+ALTER TABLE IF EXISTS ONLY public.document_extractions DROP CONSTRAINT IF EXISTS document_extractions_pkey;
+ALTER TABLE IF EXISTS ONLY public.document_analyses DROP CONSTRAINT IF EXISTS document_analyses_pkey;
+ALTER TABLE IF EXISTS ONLY public.document_access_logs DROP CONSTRAINT IF EXISTS document_access_logs_pkey;
+ALTER TABLE IF EXISTS ONLY public.database_tests DROP CONSTRAINT IF EXISTS database_tests_pkey;
+ALTER TABLE IF EXISTS ONLY public.database_submissions DROP CONSTRAINT IF EXISTS database_submissions_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_sources DROP CONSTRAINT IF EXISTS data_sources_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_submissions DROP CONSTRAINT IF EXISTS data_provider_submissions_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_sla_violations DROP CONSTRAINT IF EXISTS data_provider_sla_violations_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_phase_audit_log DROP CONSTRAINT IF EXISTS data_provider_phase_audit_log_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_notifications DROP CONSTRAINT IF EXISTS data_provider_notifications_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_escalation_log DROP CONSTRAINT IF EXISTS data_provider_escalation_log_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_provider_assignments DROP CONSTRAINT IF EXISTS data_provider_assignments_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_profiling_rule_versions DROP CONSTRAINT IF EXISTS data_profiling_rule_versions_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_profiling_phases DROP CONSTRAINT IF EXISTS data_profiling_phases_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_profiling_files DROP CONSTRAINT IF EXISTS data_profiling_files_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_sla_violations DROP CONSTRAINT IF EXISTS data_owner_sla_violations_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_phase_audit_log DROP CONSTRAINT IF EXISTS data_owner_phase_audit_log_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_notifications DROP CONSTRAINT IF EXISTS data_owner_notifications_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_escalation_log DROP CONSTRAINT IF EXISTS data_owner_escalation_log_pkey;
+ALTER TABLE IF EXISTS ONLY public.data_owner_assignments DROP CONSTRAINT IF EXISTS data_owner_assignments_pkey;
+ALTER TABLE IF EXISTS ONLY public.cycle_reports DROP CONSTRAINT IF EXISTS cycle_reports_pkey;
+ALTER TABLE IF EXISTS ONLY public.cdo_notifications DROP CONSTRAINT IF EXISTS cdo_notifications_pkey;
+ALTER TABLE IF EXISTS ONLY public.bulk_test_executions DROP CONSTRAINT IF EXISTS bulk_test_executions_pkey;
+ALTER TABLE IF EXISTS ONLY public.audit_log DROP CONSTRAINT IF EXISTS audit_log_pkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_version_comparisons DROP CONSTRAINT IF EXISTS attribute_version_comparisons_pkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_version_change_logs DROP CONSTRAINT IF EXISTS attribute_version_change_logs_pkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_scoping_recommendations DROP CONSTRAINT IF EXISTS attribute_scoping_recommendations_pkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_scoping_recommendation_versions DROP CONSTRAINT IF EXISTS attribute_scoping_recommendation_versions_pkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_profiling_scores DROP CONSTRAINT IF EXISTS attribute_profiling_scores_pkey;
+ALTER TABLE IF EXISTS ONLY public.attribute_lob_assignments DROP CONSTRAINT IF EXISTS attribute_lob_assignments_pkey;
+ALTER TABLE IF EXISTS ONLY public.assignment_templates DROP CONSTRAINT IF EXISTS assignment_templates_pkey;
+ALTER TABLE IF EXISTS ONLY public.alembic_version DROP CONSTRAINT IF EXISTS alembic_version_pkc;
+ALTER TABLE IF EXISTS ONLY public.observation_groups DROP CONSTRAINT IF EXISTS _observation_group_uc;
+ALTER TABLE IF EXISTS public.workflow_phases ALTER COLUMN phase_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.workflow_metrics ALTER COLUMN metric_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.workflow_alerts ALTER COLUMN alert_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.workflow_activity_templates ALTER COLUMN template_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.workflow_activity_history ALTER COLUMN history_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.workflow_activity_dependencies ALTER COLUMN dependency_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.workflow_activities ALTER COLUMN activity_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.users ALTER COLUMN user_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.universal_assignment_history ALTER COLUMN history_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.testing_test_executions ALTER COLUMN execution_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.testing_execution_audit_logs ALTER COLUMN log_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.tester_scoping_decisions ALTER COLUMN decision_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.test_result_reviews ALTER COLUMN review_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.test_report_sections ALTER COLUMN section_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.test_executions ALTER COLUMN execution_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.test_execution_audit_logs ALTER COLUMN log_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.test_cycles ALTER COLUMN cycle_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.test_comparisons ALTER COLUMN comparison_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.submission_documents ALTER COLUMN document_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.sla_violation_tracking ALTER COLUMN violation_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.sla_escalation_rules ALTER COLUMN escalation_rule_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.sla_configurations ALTER COLUMN sla_config_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.scoping_submissions ALTER COLUMN submission_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.scoping_audit_log ALTER COLUMN audit_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.samples ALTER COLUMN sample_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.sample_submissions ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.sample_submission_items ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.sample_selection_phases ALTER COLUMN phase_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.sample_feedback ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.sample_audit_logs ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.roles ALTER COLUMN role_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.resources ALTER COLUMN resource_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.resource_permissions ALTER COLUMN resource_permission_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.request_info_audit_logs ALTER COLUMN log_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.reports ALTER COLUMN report_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.report_owner_scoping_reviews ALTER COLUMN review_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.report_owner_assignments ALTER COLUMN assignment_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.report_owner_assignment_history ALTER COLUMN history_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.report_attributes ALTER COLUMN attribute_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.regulatory_data_dictionary ALTER COLUMN dict_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.profiling_rules ALTER COLUMN rule_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.profiling_results ALTER COLUMN result_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.permissions ALTER COLUMN permission_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.permission_audit_log ALTER COLUMN audit_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.observations ALTER COLUMN observation_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.observation_resolutions ALTER COLUMN resolution_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.observation_records_backup ALTER COLUMN observation_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.observation_records ALTER COLUMN observation_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.observation_management_audit_logs ALTER COLUMN log_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.observation_impact_assessments ALTER COLUMN assessment_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.observation_groups ALTER COLUMN group_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.observation_clarifications ALTER COLUMN clarification_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.observation_approvals ALTER COLUMN approval_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.lobs ALTER COLUMN lob_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.llm_audit_log ALTER COLUMN log_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.individual_samples ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.historical_data_provider_assignments ALTER COLUMN history_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.historical_data_owner_assignments ALTER COLUMN history_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.escalation_email_logs ALTER COLUMN log_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.documents ALTER COLUMN document_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.document_revisions ALTER COLUMN revision_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.document_extractions ALTER COLUMN extraction_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.document_analyses ALTER COLUMN analysis_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.document_access_logs ALTER COLUMN log_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.database_tests ALTER COLUMN test_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.data_sources ALTER COLUMN data_source_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.data_provider_submissions ALTER COLUMN submission_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.data_provider_sla_violations ALTER COLUMN violation_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.data_provider_phase_audit_log ALTER COLUMN audit_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.data_provider_escalation_log ALTER COLUMN email_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.data_provider_assignments ALTER COLUMN assignment_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.data_profiling_phases ALTER COLUMN phase_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.data_profiling_files ALTER COLUMN file_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.data_owner_sla_violations ALTER COLUMN violation_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.data_owner_phase_audit_log ALTER COLUMN audit_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.data_owner_escalation_log ALTER COLUMN email_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.data_owner_assignments ALTER COLUMN assignment_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.cdo_notifications ALTER COLUMN notification_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.bulk_test_executions ALTER COLUMN bulk_execution_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.audit_log ALTER COLUMN audit_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.attribute_version_comparisons ALTER COLUMN comparison_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.attribute_version_change_logs ALTER COLUMN log_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.attribute_scoping_recommendations ALTER COLUMN recommendation_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.attribute_profiling_scores ALTER COLUMN score_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.attribute_lob_assignments ALTER COLUMN assignment_id DROP DEFAULT;
+DROP TABLE IF EXISTS public.workflow_transitions;
+DROP TABLE IF EXISTS public.workflow_steps;
+DROP SEQUENCE IF EXISTS public.workflow_phases_phase_id_seq;
+DROP TABLE IF EXISTS public.workflow_phases;
+DROP SEQUENCE IF EXISTS public.workflow_metrics_metric_id_seq;
+DROP TABLE IF EXISTS public.workflow_metrics;
+DROP TABLE IF EXISTS public.workflow_executions;
+DROP SEQUENCE IF EXISTS public.workflow_alerts_alert_id_seq;
+DROP TABLE IF EXISTS public.workflow_alerts;
+DROP SEQUENCE IF EXISTS public.workflow_activity_templates_template_id_seq;
+DROP TABLE IF EXISTS public.workflow_activity_templates;
+DROP SEQUENCE IF EXISTS public.workflow_activity_history_history_id_seq;
+DROP TABLE IF EXISTS public.workflow_activity_history;
+DROP SEQUENCE IF EXISTS public.workflow_activity_dependencies_dependency_id_seq;
+DROP TABLE IF EXISTS public.workflow_activity_dependencies;
+DROP SEQUENCE IF EXISTS public.workflow_activities_activity_id_seq;
+DROP TABLE IF EXISTS public.workflow_activities;
+DROP TABLE IF EXISTS public.version_history;
+DROP SEQUENCE IF EXISTS public.users_user_id_seq;
+DROP TABLE IF EXISTS public.users;
+DROP TABLE IF EXISTS public.user_roles;
+DROP TABLE IF EXISTS public.user_permissions;
+DROP TABLE IF EXISTS public.universal_assignments;
+DROP SEQUENCE IF EXISTS public.universal_assignment_history_history_id_seq;
+DROP TABLE IF EXISTS public.universal_assignment_history;
+DROP SEQUENCE IF EXISTS public.testing_test_executions_execution_id_seq;
+DROP TABLE IF EXISTS public.testing_test_executions;
+DROP TABLE IF EXISTS public.testing_execution_phases;
+DROP SEQUENCE IF EXISTS public.testing_execution_audit_logs_log_id_seq;
+DROP TABLE IF EXISTS public.testing_execution_audit_logs;
+DROP SEQUENCE IF EXISTS public.tester_scoping_decisions_decision_id_seq;
+DROP TABLE IF EXISTS public.tester_scoping_decisions;
+DROP SEQUENCE IF EXISTS public.test_result_reviews_review_id_seq;
+DROP TABLE IF EXISTS public.test_result_reviews;
+DROP SEQUENCE IF EXISTS public.test_report_sections_section_id_seq;
+DROP TABLE IF EXISTS public.test_report_sections;
+DROP TABLE IF EXISTS public.test_report_phases;
+DROP SEQUENCE IF EXISTS public.test_executions_execution_id_seq;
+DROP TABLE IF EXISTS public.test_executions;
+DROP TABLE IF EXISTS public.test_execution_versions;
+DROP TABLE IF EXISTS public.test_execution_phases;
+DROP SEQUENCE IF EXISTS public.test_execution_audit_logs_log_id_seq;
+DROP TABLE IF EXISTS public.test_execution_audit_logs;
+DROP SEQUENCE IF EXISTS public.test_cycles_cycle_id_seq;
+DROP TABLE IF EXISTS public.test_cycles;
+DROP SEQUENCE IF EXISTS public.test_comparisons_comparison_id_seq;
+DROP TABLE IF EXISTS public.test_comparisons;
+DROP TABLE IF EXISTS public.test_cases;
+DROP TABLE IF EXISTS public.submission_validations;
+DROP TABLE IF EXISTS public.submission_reminders;
+DROP SEQUENCE IF EXISTS public.submission_documents_document_id_seq;
+DROP TABLE IF EXISTS public.submission_documents;
+DROP SEQUENCE IF EXISTS public.sla_violation_tracking_violation_id_seq;
+DROP TABLE IF EXISTS public.sla_violation_tracking;
+DROP SEQUENCE IF EXISTS public.sla_escalation_rules_escalation_rule_id_seq;
+DROP TABLE IF EXISTS public.sla_escalation_rules;
+DROP SEQUENCE IF EXISTS public.sla_configurations_sla_config_id_seq;
+DROP TABLE IF EXISTS public.sla_configurations;
+DROP SEQUENCE IF EXISTS public.scoping_submissions_submission_id_seq;
+DROP TABLE IF EXISTS public.scoping_submissions;
+DROP TABLE IF EXISTS public.scoping_decision_versions;
+DROP SEQUENCE IF EXISTS public.scoping_audit_log_audit_id_seq;
+DROP TABLE IF EXISTS public.scoping_audit_log;
+DROP SEQUENCE IF EXISTS public.samples_sample_id_seq;
+DROP TABLE IF EXISTS public.samples;
+DROP TABLE IF EXISTS public.sample_validation_results;
+DROP TABLE IF EXISTS public.sample_validation_issues;
+DROP TABLE IF EXISTS public.sample_upload_history;
+DROP SEQUENCE IF EXISTS public.sample_submissions_id_seq;
+DROP TABLE IF EXISTS public.sample_submissions;
+DROP SEQUENCE IF EXISTS public.sample_submission_items_id_seq;
+DROP TABLE IF EXISTS public.sample_submission_items;
+DROP TABLE IF EXISTS public.sample_sets;
+DROP SEQUENCE IF EXISTS public.sample_selection_phases_phase_id_seq;
+DROP TABLE IF EXISTS public.sample_selection_phases;
+DROP TABLE IF EXISTS public.sample_selection_audit_log;
+DROP TABLE IF EXISTS public.sample_records;
+DROP SEQUENCE IF EXISTS public.sample_feedback_id_seq;
+DROP TABLE IF EXISTS public.sample_feedback;
+DROP SEQUENCE IF EXISTS public.sample_audit_logs_id_seq;
+DROP TABLE IF EXISTS public.sample_audit_logs;
+DROP TABLE IF EXISTS public.sample_approval_history;
+DROP SEQUENCE IF EXISTS public.roles_role_id_seq;
+DROP TABLE IF EXISTS public.roles;
+DROP TABLE IF EXISTS public.role_permissions;
+DROP TABLE IF EXISTS public.role_hierarchy;
+DROP SEQUENCE IF EXISTS public.resources_resource_id_seq;
+DROP TABLE IF EXISTS public.resources;
+DROP SEQUENCE IF EXISTS public.resource_permissions_resource_permission_id_seq;
+DROP TABLE IF EXISTS public.resource_permissions;
+DROP TABLE IF EXISTS public.request_info_phases;
+DROP SEQUENCE IF EXISTS public.request_info_audit_logs_log_id_seq;
+DROP TABLE IF EXISTS public.request_info_audit_logs;
+DROP TABLE IF EXISTS public.request_info_audit_log;
+DROP SEQUENCE IF EXISTS public.reports_report_id_seq;
+DROP TABLE IF EXISTS public.reports;
+DROP SEQUENCE IF EXISTS public.report_owner_scoping_reviews_review_id_seq;
+DROP TABLE IF EXISTS public.report_owner_scoping_reviews;
+DROP TABLE IF EXISTS public.report_owner_executives;
+DROP SEQUENCE IF EXISTS public.report_owner_assignments_assignment_id_seq;
+DROP TABLE IF EXISTS public.report_owner_assignments;
+DROP SEQUENCE IF EXISTS public.report_owner_assignment_history_history_id_seq;
+DROP TABLE IF EXISTS public.report_owner_assignment_history;
+DROP SEQUENCE IF EXISTS public.report_attributes_attribute_id_seq;
+DROP TABLE IF EXISTS public.report_attributes;
+DROP SEQUENCE IF EXISTS public.regulatory_data_dictionary_dict_id_seq;
+DROP TABLE IF EXISTS public.regulatory_data_dictionary;
+DROP SEQUENCE IF EXISTS public.profiling_rules_rule_id_seq;
+DROP TABLE IF EXISTS public.profiling_rules;
+DROP SEQUENCE IF EXISTS public.profiling_results_result_id_seq;
+DROP TABLE IF EXISTS public.profiling_results;
+DROP TABLE IF EXISTS public.metrics_phases;
+DROP SEQUENCE IF EXISTS public.permissions_permission_id_seq;
+DROP TABLE IF EXISTS public.permissions;
+DROP SEQUENCE IF EXISTS public.permission_audit_log_audit_id_seq;
+DROP TABLE IF EXISTS public.permission_audit_log;
+DROP SEQUENCE IF EXISTS public.observations_observation_id_seq;
+DROP TABLE IF EXISTS public.observations;
+DROP TABLE IF EXISTS public.observation_versions;
+DROP SEQUENCE IF EXISTS public.observation_resolutions_resolution_id_seq;
+DROP TABLE IF EXISTS public.observation_resolutions;
+DROP SEQUENCE IF EXISTS public.observation_records_observation_id_seq1;
+DROP SEQUENCE IF EXISTS public.observation_records_observation_id_seq;
+DROP TABLE IF EXISTS public.observation_records_backup;
+DROP TABLE IF EXISTS public.observation_records;
+DROP TABLE IF EXISTS public.observation_management_phases;
+DROP SEQUENCE IF EXISTS public.observation_management_audit_logs_log_id_seq;
+DROP TABLE IF EXISTS public.observation_management_audit_logs;
+DROP SEQUENCE IF EXISTS public.observation_impact_assessments_assessment_id_seq;
+DROP TABLE IF EXISTS public.observation_impact_assessments;
+DROP SEQUENCE IF EXISTS public.observation_groups_group_id_seq;
+DROP TABLE IF EXISTS public.observation_groups;
+DROP SEQUENCE IF EXISTS public.observation_clarifications_clarification_id_seq;
+DROP TABLE IF EXISTS public.observation_clarifications;
+DROP SEQUENCE IF EXISTS public.observation_approvals_approval_id_seq;
+DROP TABLE IF EXISTS public.observation_approvals;
+DROP SEQUENCE IF EXISTS public.lobs_lob_id_seq;
+DROP TABLE IF EXISTS public.lobs;
+DROP TABLE IF EXISTS public.llm_sample_generations;
+DROP SEQUENCE IF EXISTS public.llm_audit_log_log_id_seq;
+DROP TABLE IF EXISTS public.llm_audit_log;
+DROP SEQUENCE IF EXISTS public.individual_samples_id_seq;
+DROP TABLE IF EXISTS public.individual_samples;
+DROP SEQUENCE IF EXISTS public.historical_data_provider_assignments_history_id_seq;
+DROP TABLE IF EXISTS public.historical_data_provider_assignments;
+DROP SEQUENCE IF EXISTS public.historical_data_owner_assignments_history_id_seq;
+DROP TABLE IF EXISTS public.historical_data_owner_assignments;
+DROP TABLE IF EXISTS public.metrics_execution;
+DROP SEQUENCE IF EXISTS public.escalation_email_logs_log_id_seq;
+DROP TABLE IF EXISTS public.escalation_email_logs;
+DROP SEQUENCE IF EXISTS public.documents_document_id_seq;
+DROP TABLE IF EXISTS public.documents;
+DROP TABLE IF EXISTS public.document_submissions;
+DROP SEQUENCE IF EXISTS public.document_revisions_revision_id_seq;
+DROP TABLE IF EXISTS public.document_revisions;
+DROP SEQUENCE IF EXISTS public.document_extractions_extraction_id_seq;
+DROP TABLE IF EXISTS public.document_extractions;
+DROP SEQUENCE IF EXISTS public.document_analyses_analysis_id_seq;
+DROP TABLE IF EXISTS public.document_analyses;
+DROP SEQUENCE IF EXISTS public.document_access_logs_log_id_seq;
+DROP TABLE IF EXISTS public.document_access_logs;
+DROP SEQUENCE IF EXISTS public.database_tests_test_id_seq;
+DROP TABLE IF EXISTS public.database_tests;
+DROP TABLE IF EXISTS public.database_submissions;
+DROP SEQUENCE IF EXISTS public.data_sources_data_source_id_seq;
+DROP TABLE IF EXISTS public.data_sources;
+DROP SEQUENCE IF EXISTS public.data_provider_submissions_submission_id_seq;
+DROP TABLE IF EXISTS public.data_provider_submissions;
+DROP SEQUENCE IF EXISTS public.data_provider_sla_violations_violation_id_seq;
+DROP TABLE IF EXISTS public.data_provider_sla_violations;
+DROP SEQUENCE IF EXISTS public.data_provider_phase_audit_log_audit_id_seq;
+DROP TABLE IF EXISTS public.data_provider_phase_audit_log;
+DROP TABLE IF EXISTS public.data_provider_notifications;
+DROP SEQUENCE IF EXISTS public.data_provider_escalation_log_email_id_seq;
+DROP TABLE IF EXISTS public.data_provider_escalation_log;
+DROP SEQUENCE IF EXISTS public.data_provider_assignments_assignment_id_seq;
+DROP TABLE IF EXISTS public.data_provider_assignments;
+DROP TABLE IF EXISTS public.data_profiling_rule_versions;
+DROP SEQUENCE IF EXISTS public.data_profiling_phases_phase_id_seq;
+DROP TABLE IF EXISTS public.data_profiling_phases;
+DROP SEQUENCE IF EXISTS public.data_profiling_files_file_id_seq;
+DROP TABLE IF EXISTS public.data_profiling_files;
+DROP SEQUENCE IF EXISTS public.data_owner_sla_violations_violation_id_seq;
+DROP TABLE IF EXISTS public.data_owner_sla_violations;
+DROP SEQUENCE IF EXISTS public.data_owner_phase_audit_log_audit_id_seq;
+DROP TABLE IF EXISTS public.data_owner_phase_audit_log;
+DROP TABLE IF EXISTS public.data_owner_notifications;
+DROP SEQUENCE IF EXISTS public.data_owner_escalation_log_email_id_seq;
+DROP TABLE IF EXISTS public.data_owner_escalation_log;
+DROP SEQUENCE IF EXISTS public.data_owner_assignments_assignment_id_seq;
+DROP TABLE IF EXISTS public.data_owner_assignments;
+DROP TABLE IF EXISTS public.cycle_reports;
+DROP SEQUENCE IF EXISTS public.cdo_notifications_notification_id_seq;
+DROP TABLE IF EXISTS public.cdo_notifications;
+DROP SEQUENCE IF EXISTS public.bulk_test_executions_bulk_execution_id_seq;
+DROP TABLE IF EXISTS public.bulk_test_executions;
+DROP SEQUENCE IF EXISTS public.audit_log_audit_id_seq;
+DROP TABLE IF EXISTS public.audit_log;
+DROP SEQUENCE IF EXISTS public.attribute_version_comparisons_comparison_id_seq;
+DROP TABLE IF EXISTS public.attribute_version_comparisons;
+DROP SEQUENCE IF EXISTS public.attribute_version_change_logs_log_id_seq;
+DROP TABLE IF EXISTS public.attribute_version_change_logs;
+DROP SEQUENCE IF EXISTS public.attribute_scoping_recommendations_recommendation_id_seq;
+DROP TABLE IF EXISTS public.attribute_scoping_recommendations;
+DROP TABLE IF EXISTS public.attribute_scoping_recommendation_versions;
+DROP SEQUENCE IF EXISTS public.attribute_profiling_scores_score_id_seq;
+DROP TABLE IF EXISTS public.attribute_profiling_scores;
+DROP SEQUENCE IF EXISTS public.attribute_lob_assignments_assignment_id_seq;
+DROP TABLE IF EXISTS public.attribute_lob_assignments;
+DROP TABLE IF EXISTS public.assignment_templates;
+DROP TABLE IF EXISTS public.alembic_version;
+DROP TYPE IF EXISTS public.workflowexecutionstatus;
+DROP TYPE IF EXISTS public.workflow_phase_status_enum;
+DROP TYPE IF EXISTS public.workflow_phase_state_enum;
+DROP TYPE IF EXISTS public.workflow_phase_enum;
+DROP TYPE IF EXISTS public.version_change_type_enum;
+DROP TYPE IF EXISTS public.validation_status_enum;
+DROP TYPE IF EXISTS public.user_role_enum;
+DROP TYPE IF EXISTS public.universal_context_type_enum;
+DROP TYPE IF EXISTS public.universal_assignment_type_enum;
+DROP TYPE IF EXISTS public.universal_assignment_status_enum;
+DROP TYPE IF EXISTS public.universal_assignment_priority_enum;
+DROP TYPE IF EXISTS public.testerdecision;
+DROP TYPE IF EXISTS public.test_type_enum;
+DROP TYPE IF EXISTS public.test_status_enum;
+DROP TYPE IF EXISTS public.test_result_enum;
+DROP TYPE IF EXISTS public.test_case_status_enum;
+DROP TYPE IF EXISTS public.submissionstatus;
+DROP TYPE IF EXISTS public.submission_type_enum;
+DROP TYPE IF EXISTS public.submission_status_enum;
+DROP TYPE IF EXISTS public.steptype;
+DROP TYPE IF EXISTS public.slatype;
+DROP TYPE IF EXISTS public.scoping_recommendation_enum;
+DROP TYPE IF EXISTS public.scoping_decision_enum;
+DROP TYPE IF EXISTS public.sample_validation_status_enum;
+DROP TYPE IF EXISTS public.sample_type_enum;
+DROP TYPE IF EXISTS public.sample_status_enum;
+DROP TYPE IF EXISTS public.sample_generation_method_enum;
+DROP TYPE IF EXISTS public.sample_approval_status_enum;
+DROP TYPE IF EXISTS public.review_status_enum;
+DROP TYPE IF EXISTS public.resolutionstatusenum;
+DROP TYPE IF EXISTS public.request_info_phase_status_enum;
+DROP TYPE IF EXISTS public.reportownerdecision;
+DROP TYPE IF EXISTS public.profilingruletype;
+DROP TYPE IF EXISTS public.profilingrulestatus;
+DROP TYPE IF EXISTS public.phase_status_enum;
+DROP TYPE IF EXISTS public.observationtypeenum;
+DROP TYPE IF EXISTS public.observationstatusenum;
+DROP TYPE IF EXISTS public.observationseverityenum;
+DROP TYPE IF EXISTS public.observationratingenum;
+DROP TYPE IF EXISTS public.observationapprovalstatusenum;
+DROP TYPE IF EXISTS public.observation_type_enum;
+DROP TYPE IF EXISTS public.observation_status_enum;
+DROP TYPE IF EXISTS public.mandatory_flag_enum;
+DROP TYPE IF EXISTS public.impactcategoryenum;
+DROP TYPE IF EXISTS public.impact_level_enum;
+DROP TYPE IF EXISTS public.escalationlevel;
+DROP TYPE IF EXISTS public.escalation_level_enum;
+DROP TYPE IF EXISTS public.document_type_enum;
+DROP TYPE IF EXISTS public.data_type_enum;
+DROP TYPE IF EXISTS public.data_source_type_enum;
+DROP TYPE IF EXISTS public.cycle_report_status_enum;
+DROP TYPE IF EXISTS public.assignment_type_enum;
+DROP TYPE IF EXISTS public.assignment_status_enum;
+DROP TYPE IF EXISTS public.assignment_priority_enum;
+DROP TYPE IF EXISTS public.approval_status_enum;
+DROP TYPE IF EXISTS public.analysis_method_enum;
+DROP TYPE IF EXISTS public.activitytype;
+DROP TYPE IF EXISTS public.activitystatus;
+DROP TYPE IF EXISTS public.activity_type_enum;
+DROP TYPE IF EXISTS public.activity_status_enum;
+--
+-- Name: activity_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.activity_status_enum AS ENUM (
+    'NOT_STARTED',
+    'IN_PROGRESS',
+    'COMPLETED',
+    'REVISION_REQUESTED',
+    'BLOCKED',
+    'SKIPPED'
+);
+
+
+--
+-- Name: activity_type_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.activity_type_enum AS ENUM (
+    'START',
+    'TASK',
+    'REVIEW',
+    'APPROVAL',
+    'COMPLETE',
+    'CUSTOM'
+);
+
+
+--
+-- Name: activitystatus; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.activitystatus AS ENUM (
+    'NOT_STARTED',
+    'IN_PROGRESS',
+    'COMPLETED',
+    'REVISION_REQUESTED',
+    'BLOCKED',
+    'SKIPPED'
+);
+
+
+--
+-- Name: activitytype; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.activitytype AS ENUM (
+    'START',
+    'TASK',
+    'REVIEW',
+    'APPROVAL',
+    'COMPLETE',
+    'CUSTOM'
+);
+
+
+--
+-- Name: analysis_method_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.analysis_method_enum AS ENUM (
+    'LLM Analysis',
+    'Database Query',
+    'Manual Review',
+    'Automated Comparison'
+);
+
+
+--
+-- Name: approval_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.approval_status_enum AS ENUM (
+    'Pending',
+    'Approved',
+    'Declined',
+    'Needs Revision'
+);
+
+
+--
+-- Name: assignment_priority_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.assignment_priority_enum AS ENUM (
+    'Low',
+    'Medium',
+    'High',
+    'Critical'
+);
+
+
+--
+-- Name: assignment_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.assignment_status_enum AS ENUM (
+    'Assigned',
+    'In Progress',
+    'Completed',
+    'Overdue'
+);
+
+
+--
+-- Name: assignment_type_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.assignment_type_enum AS ENUM (
+    'Data Upload Request',
+    'File Review',
+    'Documentation Review',
+    'Approval Required',
+    'Information Request',
+    'Phase Review'
+);
+
+
+--
+-- Name: cycle_report_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.cycle_report_status_enum AS ENUM (
+    'Not Started',
+    'In Progress',
+    'Complete'
+);
+
+
+--
+-- Name: data_source_type_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.data_source_type_enum AS ENUM (
+    'Document',
+    'Database'
+);
+
+
+--
+-- Name: data_type_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.data_type_enum AS ENUM (
+    'String',
+    'Integer',
+    'Decimal',
+    'Date',
+    'DateTime',
+    'Boolean',
+    'JSON'
+);
+
+
+--
+-- Name: document_type_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.document_type_enum AS ENUM (
+    'Source Document',
+    'Supporting Evidence',
+    'Data Extract',
+    'Query Result',
+    'Other'
+);
+
+
+--
+-- Name: escalation_level_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.escalation_level_enum AS ENUM (
+    'None',
+    'Level 1',
+    'Level 2',
+    'Level 3'
+);
+
+
+--
+-- Name: escalationlevel; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.escalationlevel AS ENUM (
+    'LEVEL_1',
+    'LEVEL_2',
+    'LEVEL_3',
+    'LEVEL_4'
+);
+
+
+--
+-- Name: impact_level_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.impact_level_enum AS ENUM (
+    'Low',
+    'Medium',
+    'High',
+    'Critical'
+);
+
+
+--
+-- Name: impactcategoryenum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.impactcategoryenum AS ENUM (
+    'FINANCIAL',
+    'REGULATORY',
+    'OPERATIONAL',
+    'REPUTATIONAL',
+    'STRATEGIC',
+    'CUSTOMER'
+);
+
+
+--
+-- Name: mandatory_flag_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.mandatory_flag_enum AS ENUM (
+    'Mandatory',
+    'Conditional',
+    'Optional'
+);
+
+
+--
+-- Name: observation_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.observation_status_enum AS ENUM (
+    'Open',
+    'In Review',
+    'Approved',
+    'Rejected',
+    'Resolved'
+);
+
+
+--
+-- Name: observation_type_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.observation_type_enum AS ENUM (
+    'Data Quality',
+    'Documentation'
+);
+
+
+--
+-- Name: observationapprovalstatusenum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.observationapprovalstatusenum AS ENUM (
+    'PENDING_REVIEW',
+    'PENDING_REPORT_OWNER_APPROVAL',
+    'PENDING_DATA_EXECUTIVE_APPROVAL',
+    'APPROVED_BY_REPORT_OWNER',
+    'APPROVED_BY_DATA_EXECUTIVE',
+    'FULLY_APPROVED',
+    'REJECTED_BY_REPORT_OWNER',
+    'REJECTED_BY_DATA_EXECUTIVE',
+    'NEEDS_CLARIFICATION',
+    'FINALIZED'
+);
+
+
+--
+-- Name: observationratingenum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.observationratingenum AS ENUM (
+    'HIGH',
+    'MEDIUM',
+    'LOW'
+);
+
+
+--
+-- Name: observationseverityenum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.observationseverityenum AS ENUM (
+    'CRITICAL',
+    'HIGH',
+    'MEDIUM',
+    'LOW',
+    'INFORMATIONAL'
+);
+
+
+--
+-- Name: observationstatusenum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.observationstatusenum AS ENUM (
+    'DETECTED',
+    'UNDER_REVIEW',
+    'CONFIRMED',
+    'DISPUTED',
+    'APPROVED',
+    'REJECTED',
+    'IN_REMEDIATION',
+    'RESOLVED',
+    'CLOSED'
+);
+
+
+--
+-- Name: observationtypeenum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.observationtypeenum AS ENUM (
+    'DATA_QUALITY',
+    'PROCESS_CONTROL',
+    'REGULATORY_COMPLIANCE',
+    'SYSTEM_CONTROL',
+    'DOCUMENTATION',
+    'CALCULATION_ERROR',
+    'TIMING_ISSUE',
+    'ACCESS_CONTROL'
+);
+
+
+--
+-- Name: phase_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.phase_status_enum AS ENUM (
+    'Not Started',
+    'In Progress',
+    'Pending Approval',
+    'Complete'
+);
+
+
+--
+-- Name: profilingrulestatus; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.profilingrulestatus AS ENUM (
+    'PENDING',
+    'APPROVED',
+    'REJECTED',
+    'draft',
+    'under_review',
+    'needs_revision',
+    'resubmitted'
+);
+
+
+--
+-- Name: profilingruletype; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.profilingruletype AS ENUM (
+    'COMPLETENESS',
+    'VALIDITY',
+    'ACCURACY',
+    'CONSISTENCY',
+    'UNIQUENESS',
+    'TIMELINESS',
+    'REGULATORY'
+);
+
+
+--
+-- Name: reportownerdecision; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.reportownerdecision AS ENUM (
+    'APPROVED',
+    'REJECTED',
+    'REVISION_REQUIRED'
+);
+
+
+--
+-- Name: request_info_phase_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.request_info_phase_status_enum AS ENUM (
+    'Not Started',
+    'In Progress',
+    'Complete'
+);
+
+
+--
+-- Name: resolutionstatusenum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.resolutionstatusenum AS ENUM (
+    'NOT_STARTED',
+    'IN_PROGRESS',
+    'PENDING_VALIDATION',
+    'COMPLETED',
+    'FAILED',
+    'CANCELLED'
+);
+
+
+--
+-- Name: review_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.review_status_enum AS ENUM (
+    'Pending',
+    'In Review',
+    'Approved',
+    'Rejected',
+    'Requires Revision'
+);
+
+
+--
+-- Name: sample_approval_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.sample_approval_status_enum AS ENUM (
+    'Pending',
+    'Approved',
+    'Rejected',
+    'Needs Changes'
+);
+
+
+--
+-- Name: sample_generation_method_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.sample_generation_method_enum AS ENUM (
+    'LLM Generated',
+    'Manual Upload',
+    'Hybrid'
+);
+
+
+--
+-- Name: sample_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.sample_status_enum AS ENUM (
+    'Draft',
+    'Pending Approval',
+    'Approved',
+    'Rejected',
+    'Revision Required'
+);
+
+
+--
+-- Name: sample_type_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.sample_type_enum AS ENUM (
+    'Population Sample',
+    'Targeted Sample',
+    'Exception Sample',
+    'Control Sample'
+);
+
+
+--
+-- Name: sample_validation_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.sample_validation_status_enum AS ENUM (
+    'Valid',
+    'Invalid',
+    'Warning',
+    'Needs Review'
+);
+
+
+--
+-- Name: scoping_decision_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.scoping_decision_enum AS ENUM (
+    'Accept',
+    'Decline',
+    'Override'
+);
+
+
+--
+-- Name: scoping_recommendation_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.scoping_recommendation_enum AS ENUM (
+    'Test',
+    'Skip'
+);
+
+
+--
+-- Name: slatype; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.slatype AS ENUM (
+    'DATA_PROVIDER_IDENTIFICATION',
+    'DATA_PROVIDER_RESPONSE',
+    'DOCUMENT_SUBMISSION',
+    'TESTING_COMPLETION',
+    'OBSERVATION_RESPONSE',
+    'ISSUE_RESOLUTION'
+);
+
+
+--
+-- Name: steptype; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.steptype AS ENUM (
+    'PHASE',
+    'ACTIVITY',
+    'TRANSITION',
+    'DECISION',
+    'PARALLEL_BRANCH',
+    'SUB_WORKFLOW'
+);
+
+
+--
+-- Name: submission_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.submission_status_enum AS ENUM (
+    'Pending',
+    'In Progress',
+    'Evidence Uploaded',
+    'In Testing',
+    'Submitted',
+    'Validated',
+    'Requires Revision',
+    'Overdue'
+);
+
+
+--
+-- Name: submission_type_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.submission_type_enum AS ENUM (
+    'Document',
+    'Database',
+    'Mixed'
+);
+
+
+--
+-- Name: submissionstatus; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.submissionstatus AS ENUM (
+    'DRAFT',
+    'PENDING_APPROVAL',
+    'APPROVED',
+    'REJECTED',
+    'REVISION_REQUIRED'
+);
+
+
+--
+-- Name: test_case_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.test_case_status_enum AS ENUM (
+    'Pending',
+    'Submitted',
+    'Overdue'
+);
+
+
+--
+-- Name: test_result_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.test_result_enum AS ENUM (
+    'Pass',
+    'Fail',
+    'Exception',
+    'Inconclusive',
+    'Pending Review'
+);
+
+
+--
+-- Name: test_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.test_status_enum AS ENUM (
+    'Pending',
+    'Running',
+    'Completed',
+    'Failed',
+    'Cancelled',
+    'Requires Review'
+);
+
+
+--
+-- Name: test_type_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.test_type_enum AS ENUM (
+    'Document Based',
+    'Database Based',
+    'Hybrid'
+);
+
+
+--
+-- Name: testerdecision; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.testerdecision AS ENUM (
+    'INCLUDE',
+    'EXCLUDE',
+    'REVIEW_REQUIRED'
+);
+
+
+--
+-- Name: universal_assignment_priority_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.universal_assignment_priority_enum AS ENUM (
+    'Low',
+    'Medium',
+    'High',
+    'Critical',
+    'Urgent'
+);
+
+
+--
+-- Name: universal_assignment_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.universal_assignment_status_enum AS ENUM (
+    'Assigned',
+    'Acknowledged',
+    'In Progress',
+    'Completed',
+    'Approved',
+    'Rejected',
+    'Cancelled',
+    'Overdue',
+    'Escalated',
+    'On Hold',
+    'Delegated'
+);
+
+
+--
+-- Name: universal_assignment_type_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.universal_assignment_type_enum AS ENUM (
+    'Data Upload Request',
+    'File Review',
+    'File Approval',
+    'Document Review',
+    'Data Validation',
+    'Scoping Approval',
+    'Sample Selection Approval',
+    'Rule Approval',
+    'Observation Approval',
+    'Report Approval',
+    'Version Approval',
+    'Phase Review',
+    'Phase Approval',
+    'Phase Completion',
+    'Workflow Progression',
+    'LOB Assignment',
+    'Test Execution Review',
+    'Quality Review',
+    'Compliance Review',
+    'Risk Assessment',
+    'Information Request',
+    'Clarification Required',
+    'Additional Data Required',
+    'Role Assignment',
+    'Permission Grant',
+    'System Configuration'
+);
+
+
+--
+-- Name: universal_context_type_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.universal_context_type_enum AS ENUM (
+    'Test Cycle',
+    'Report',
+    'Phase',
+    'Attribute',
+    'Sample',
+    'Rule',
+    'Observation',
+    'File',
+    'System',
+    'User'
+);
+
+
+--
+-- Name: user_role_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.user_role_enum AS ENUM (
+    'Tester',
+    'Test Manager',
+    'Report Owner',
+    'Report Owner Executive',
+    'Data Provider',
+    'CDO',
+    'Admin',
+    'Data Executive',
+    'Test Executive',
+    'Data Owner'
+);
+
+
+--
+-- Name: validation_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.validation_status_enum AS ENUM (
+    'Pending',
+    'Passed',
+    'Failed',
+    'Warning'
+);
+
+
+--
+-- Name: version_change_type_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.version_change_type_enum AS ENUM (
+    'created',
+    'updated',
+    'approved',
+    'rejected',
+    'archived',
+    'restored'
+);
+
+
+--
+-- Name: workflow_phase_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.workflow_phase_enum AS ENUM (
+    'Planning',
+    'Data Profiling',
+    'Scoping',
+    'Data Provider ID',
+    'Sampling',
+    'Request Info',
+    'Testing',
+    'Observations',
+    'Sample Selection',
+    'Data Owner ID',
+    'Test Execution',
+    'Preparing Test Report',
+    'Finalize Test Report'
+);
+
+
+--
+-- Name: workflow_phase_state_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.workflow_phase_state_enum AS ENUM (
+    'Not Started',
+    'In Progress',
+    'Complete'
+);
+
+
+--
+-- Name: workflow_phase_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.workflow_phase_status_enum AS ENUM (
+    'On Track',
+    'At Risk',
+    'Past Due'
+);
+
+
+--
+-- Name: workflowexecutionstatus; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.workflowexecutionstatus AS ENUM (
+    'PENDING',
+    'RUNNING',
+    'COMPLETED',
+    'FAILED',
+    'CANCELLED',
+    'TIMED_OUT'
+);
+
+
+SET default_table_access_method = heap;
+
+--
+-- Name: alembic_version; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.alembic_version (
+    version_num character varying(255) NOT NULL
+);
+
+
+--
+-- Name: assignment_templates; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.assignment_templates (
+    template_id character varying(36) NOT NULL,
+    template_name character varying(255) NOT NULL,
+    assignment_type public.universal_assignment_type_enum NOT NULL,
+    from_role character varying(50) NOT NULL,
+    to_role character varying(50) NOT NULL,
+    title_template character varying(255) NOT NULL,
+    description_template text,
+    task_instructions_template text,
+    default_priority public.universal_assignment_priority_enum NOT NULL,
+    default_due_days integer,
+    requires_approval boolean NOT NULL,
+    approval_role character varying(50),
+    context_type public.universal_context_type_enum NOT NULL,
+    workflow_step character varying(100),
+    is_active boolean NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: attribute_lob_assignments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.attribute_lob_assignments (
+    assignment_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    lob_id integer NOT NULL,
+    assigned_by integer NOT NULL,
+    assigned_at timestamp with time zone NOT NULL,
+    assignment_rationale text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: attribute_lob_assignments_assignment_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.attribute_lob_assignments_assignment_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: attribute_lob_assignments_assignment_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.attribute_lob_assignments_assignment_id_seq OWNED BY public.attribute_lob_assignments.assignment_id;
+
+
+--
+-- Name: attribute_profiling_scores; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.attribute_profiling_scores (
+    score_id integer NOT NULL,
+    phase_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    overall_quality_score double precision,
+    completeness_score double precision,
+    validity_score double precision,
+    accuracy_score double precision,
+    consistency_score double precision,
+    uniqueness_score double precision,
+    total_rules_executed integer,
+    rules_passed integer,
+    rules_failed integer,
+    total_values integer,
+    null_count integer,
+    unique_count integer,
+    data_type_detected character varying(50),
+    pattern_detected character varying(255),
+    distribution_type character varying(50),
+    has_anomalies boolean,
+    anomaly_count integer,
+    anomaly_types json,
+    testing_recommendation text,
+    risk_assessment text,
+    calculated_at timestamp without time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: attribute_profiling_scores_score_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.attribute_profiling_scores_score_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: attribute_profiling_scores_score_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.attribute_profiling_scores_score_id_seq OWNED BY public.attribute_profiling_scores.score_id;
+
+
+--
+-- Name: attribute_scoping_recommendation_versions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.attribute_scoping_recommendation_versions (
+    recommendation_version_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    recommendation_id uuid NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    llm_recommendation boolean NOT NULL,
+    llm_confidence_score double precision,
+    llm_reasoning text,
+    llm_provider character varying(50),
+    tester_decision boolean,
+    tester_reasoning text,
+    decision_timestamp timestamp with time zone,
+    is_override boolean,
+    override_justification text,
+    risk_indicators jsonb,
+    testing_complexity character varying(20),
+    estimated_effort_hours double precision,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    version_number integer NOT NULL,
+    is_latest_version boolean NOT NULL,
+    version_created_at timestamp with time zone,
+    version_created_by character varying(255),
+    version_notes text,
+    change_reason character varying(500),
+    parent_version_id uuid,
+    version_status character varying(50),
+    approved_version_id uuid,
+    approved_at timestamp with time zone,
+    approved_by character varying(255)
+);
+
+
+--
+-- Name: attribute_scoping_recommendations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.attribute_scoping_recommendations (
+    recommendation_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    recommendation_score double precision NOT NULL,
+    recommendation public.scoping_recommendation_enum NOT NULL,
+    rationale text NOT NULL,
+    expected_source_documents json NOT NULL,
+    search_keywords json NOT NULL,
+    other_reports_using json,
+    risk_factors json,
+    priority_level character varying(20) NOT NULL,
+    llm_provider character varying(50) NOT NULL,
+    processing_time_ms integer NOT NULL,
+    llm_request_payload json,
+    llm_response_payload json,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: attribute_scoping_recommendations_recommendation_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.attribute_scoping_recommendations_recommendation_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: attribute_scoping_recommendations_recommendation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.attribute_scoping_recommendations_recommendation_id_seq OWNED BY public.attribute_scoping_recommendations.recommendation_id;
+
+
+--
+-- Name: attribute_version_change_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.attribute_version_change_logs (
+    log_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    change_type public.version_change_type_enum NOT NULL,
+    version_number integer NOT NULL,
+    change_notes text,
+    changed_at timestamp without time zone NOT NULL,
+    changed_by integer NOT NULL,
+    field_changes text,
+    impact_assessment text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: attribute_version_change_logs_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.attribute_version_change_logs_log_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: attribute_version_change_logs_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.attribute_version_change_logs_log_id_seq OWNED BY public.attribute_version_change_logs.log_id;
+
+
+--
+-- Name: attribute_version_comparisons; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.attribute_version_comparisons (
+    comparison_id integer NOT NULL,
+    version_a_id integer NOT NULL,
+    version_b_id integer NOT NULL,
+    differences_found integer NOT NULL,
+    comparison_summary text,
+    impact_score double precision,
+    compared_at timestamp without time zone NOT NULL,
+    compared_by integer NOT NULL,
+    comparison_notes text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: attribute_version_comparisons_comparison_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.attribute_version_comparisons_comparison_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: attribute_version_comparisons_comparison_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.attribute_version_comparisons_comparison_id_seq OWNED BY public.attribute_version_comparisons.comparison_id;
+
+
+--
+-- Name: audit_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.audit_log (
+    audit_id integer NOT NULL,
+    user_id integer,
+    action character varying(100) NOT NULL,
+    table_name character varying(100),
+    record_id integer,
+    old_values jsonb,
+    new_values jsonb,
+    "timestamp" timestamp with time zone NOT NULL,
+    session_id character varying(255),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: audit_log_audit_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.audit_log_audit_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: audit_log_audit_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.audit_log_audit_id_seq OWNED BY public.audit_log.audit_id;
+
+
+--
+-- Name: bulk_test_executions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bulk_test_executions (
+    bulk_execution_id integer NOT NULL,
+    phase_id character varying(36) NOT NULL,
+    execution_mode character varying(20) NOT NULL,
+    max_concurrent_tests integer NOT NULL,
+    total_tests integer NOT NULL,
+    tests_started integer NOT NULL,
+    tests_completed integer NOT NULL,
+    tests_failed integer NOT NULL,
+    execution_ids jsonb NOT NULL,
+    status character varying(50) NOT NULL,
+    started_at timestamp with time zone,
+    completed_at timestamp with time zone,
+    processing_time_ms integer,
+    initiated_by integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: bulk_test_executions_bulk_execution_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.bulk_test_executions_bulk_execution_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: bulk_test_executions_bulk_execution_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.bulk_test_executions_bulk_execution_id_seq OWNED BY public.bulk_test_executions.bulk_execution_id;
+
+
+--
+-- Name: cdo_notifications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cdo_notifications (
+    notification_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    cdo_id integer NOT NULL,
+    lob_id integer NOT NULL,
+    notification_sent_at timestamp with time zone NOT NULL,
+    assignment_deadline timestamp with time zone NOT NULL,
+    sla_hours integer NOT NULL,
+    notification_data jsonb,
+    responded_at timestamp with time zone,
+    is_complete boolean NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: cdo_notifications_notification_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.cdo_notifications_notification_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: cdo_notifications_notification_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.cdo_notifications_notification_id_seq OWNED BY public.cdo_notifications.notification_id;
+
+
+--
+-- Name: cycle_reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.cycle_reports (
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    tester_id integer,
+    status public.cycle_report_status_enum NOT NULL,
+    started_at timestamp with time zone,
+    completed_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    workflow_id character varying(255)
+);
+
+
+--
+-- Name: data_owner_assignments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_owner_assignments (
+    assignment_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_id integer,
+    lob_id integer,
+    cdo_id integer,
+    data_owner_id integer,
+    assigned_by integer NOT NULL,
+    assigned_at timestamp with time zone NOT NULL,
+    status public.assignment_status_enum NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: data_owner_assignments_assignment_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_owner_assignments_assignment_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_owner_assignments_assignment_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_owner_assignments_assignment_id_seq OWNED BY public.data_owner_assignments.assignment_id;
+
+
+--
+-- Name: data_owner_escalation_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_owner_escalation_log (
+    email_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    violation_ids jsonb NOT NULL,
+    escalation_level public.escalation_level_enum NOT NULL,
+    sent_by integer NOT NULL,
+    sent_to jsonb NOT NULL,
+    cc_recipients jsonb,
+    email_subject character varying(255) NOT NULL,
+    email_body text NOT NULL,
+    sent_at timestamp with time zone NOT NULL,
+    delivery_status character varying(50) NOT NULL,
+    custom_message text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: data_owner_escalation_log_email_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_owner_escalation_log_email_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_owner_escalation_log_email_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_owner_escalation_log_email_id_seq OWNED BY public.data_owner_escalation_log.email_id;
+
+
+--
+-- Name: data_owner_notifications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_owner_notifications (
+    notification_id character varying(36) NOT NULL,
+    phase_id character varying(36) NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    data_owner_id integer NOT NULL,
+    assigned_attributes jsonb NOT NULL,
+    sample_count integer NOT NULL,
+    submission_deadline timestamp with time zone NOT NULL,
+    portal_access_url character varying(500) NOT NULL,
+    custom_instructions text,
+    notification_sent_at timestamp with time zone,
+    first_access_at timestamp with time zone,
+    last_access_at timestamp with time zone,
+    access_count integer NOT NULL,
+    is_acknowledged boolean NOT NULL,
+    acknowledged_at timestamp with time zone,
+    status public.submission_status_enum NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: data_owner_phase_audit_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_owner_phase_audit_log (
+    audit_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    action character varying(100) NOT NULL,
+    entity_type character varying(50) NOT NULL,
+    entity_id integer,
+    performed_by integer NOT NULL,
+    performed_at timestamp with time zone NOT NULL,
+    old_values jsonb,
+    new_values jsonb,
+    notes text,
+    ip_address character varying(45),
+    user_agent text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: data_owner_phase_audit_log_audit_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_owner_phase_audit_log_audit_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_owner_phase_audit_log_audit_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_owner_phase_audit_log_audit_id_seq OWNED BY public.data_owner_phase_audit_log.audit_id;
+
+
+--
+-- Name: data_owner_sla_violations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_owner_sla_violations (
+    violation_id integer NOT NULL,
+    assignment_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    cdo_id integer NOT NULL,
+    violation_detected_at timestamp with time zone NOT NULL,
+    original_deadline timestamp with time zone NOT NULL,
+    hours_overdue double precision NOT NULL,
+    escalation_level public.escalation_level_enum NOT NULL,
+    last_escalation_at timestamp with time zone,
+    is_resolved boolean NOT NULL,
+    resolved_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: data_owner_sla_violations_violation_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_owner_sla_violations_violation_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_owner_sla_violations_violation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_owner_sla_violations_violation_id_seq OWNED BY public.data_owner_sla_violations.violation_id;
+
+
+--
+-- Name: data_profiling_files; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_profiling_files (
+    file_id integer NOT NULL,
+    phase_id integer NOT NULL,
+    file_name character varying(255) NOT NULL,
+    file_path text NOT NULL,
+    file_size integer NOT NULL,
+    file_format character varying(50) NOT NULL,
+    delimiter character varying(10),
+    row_count integer,
+    column_count integer,
+    columns_metadata json,
+    is_validated boolean,
+    validation_errors json,
+    missing_attributes json,
+    uploaded_by integer NOT NULL,
+    uploaded_at timestamp without time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: data_profiling_files_file_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_profiling_files_file_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_profiling_files_file_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_profiling_files_file_id_seq OWNED BY public.data_profiling_files.file_id;
+
+
+--
+-- Name: data_profiling_phases; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_profiling_phases (
+    phase_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    status character varying(50) NOT NULL,
+    data_requested_at timestamp without time zone,
+    data_received_at timestamp without time zone,
+    rules_generated_at timestamp without time zone,
+    profiling_executed_at timestamp without time zone,
+    phase_completed_at timestamp without time zone,
+    started_by integer,
+    data_requested_by integer,
+    completed_by integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: data_profiling_phases_phase_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_profiling_phases_phase_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_profiling_phases_phase_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_profiling_phases_phase_id_seq OWNED BY public.data_profiling_phases.phase_id;
+
+
+--
+-- Name: data_profiling_rule_versions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_profiling_rule_versions (
+    rule_version_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    rule_id uuid NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    rule_type character varying(50) NOT NULL,
+    rule_definition jsonb NOT NULL,
+    rule_description text,
+    threshold_value double precision,
+    threshold_type character varying(20),
+    execution_status character varying(50),
+    execution_results jsonb,
+    issues_found integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    version_number integer NOT NULL,
+    is_latest_version boolean NOT NULL,
+    version_created_at timestamp with time zone,
+    version_created_by character varying(255),
+    version_notes text,
+    change_reason character varying(500),
+    parent_version_id uuid,
+    version_status character varying(50),
+    approved_version_id uuid,
+    approved_at timestamp with time zone,
+    approved_by character varying(255)
+);
+
+
+--
+-- Name: data_provider_assignments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_provider_assignments (
+    assignment_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_id integer,
+    lob_id integer,
+    data_provider_id integer,
+    assigned_by integer NOT NULL,
+    assigned_at timestamp with time zone NOT NULL,
+    status public.assignment_status_enum NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    cdo_id integer
+);
+
+
+--
+-- Name: data_provider_assignments_assignment_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_provider_assignments_assignment_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_provider_assignments_assignment_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_provider_assignments_assignment_id_seq OWNED BY public.data_provider_assignments.assignment_id;
+
+
+--
+-- Name: data_provider_escalation_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_provider_escalation_log (
+    email_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    violation_ids jsonb NOT NULL,
+    escalation_level public.escalation_level_enum NOT NULL,
+    sent_by integer NOT NULL,
+    sent_to jsonb NOT NULL,
+    cc_recipients jsonb,
+    email_subject character varying(255) NOT NULL,
+    email_body text NOT NULL,
+    sent_at timestamp with time zone NOT NULL,
+    delivery_status character varying(50) NOT NULL,
+    custom_message text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: data_provider_escalation_log_email_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_provider_escalation_log_email_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_provider_escalation_log_email_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_provider_escalation_log_email_id_seq OWNED BY public.data_provider_escalation_log.email_id;
+
+
+--
+-- Name: data_provider_notifications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_provider_notifications (
+    notification_id character varying(36) NOT NULL,
+    phase_id character varying(36) NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    data_provider_id integer NOT NULL,
+    assigned_attributes jsonb NOT NULL,
+    sample_count integer NOT NULL,
+    submission_deadline timestamp with time zone NOT NULL,
+    portal_access_url character varying(500) NOT NULL,
+    custom_instructions text,
+    notification_sent_at timestamp with time zone,
+    first_access_at timestamp with time zone,
+    last_access_at timestamp with time zone,
+    access_count integer NOT NULL,
+    is_acknowledged boolean NOT NULL,
+    acknowledged_at timestamp with time zone,
+    status public.submission_status_enum NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: data_provider_phase_audit_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_provider_phase_audit_log (
+    audit_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    action character varying(100) NOT NULL,
+    entity_type character varying(50) NOT NULL,
+    entity_id integer,
+    performed_by integer NOT NULL,
+    performed_at timestamp with time zone NOT NULL,
+    old_values jsonb,
+    new_values jsonb,
+    notes text,
+    ip_address character varying(45),
+    user_agent text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: data_provider_phase_audit_log_audit_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_provider_phase_audit_log_audit_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_provider_phase_audit_log_audit_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_provider_phase_audit_log_audit_id_seq OWNED BY public.data_provider_phase_audit_log.audit_id;
+
+
+--
+-- Name: data_provider_sla_violations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_provider_sla_violations (
+    violation_id integer NOT NULL,
+    assignment_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    cdo_id integer NOT NULL,
+    violation_detected_at timestamp with time zone NOT NULL,
+    original_deadline timestamp with time zone NOT NULL,
+    hours_overdue double precision NOT NULL,
+    escalation_level public.escalation_level_enum NOT NULL,
+    last_escalation_at timestamp with time zone,
+    is_resolved boolean NOT NULL,
+    resolved_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: data_provider_sla_violations_violation_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_provider_sla_violations_violation_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_provider_sla_violations_violation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_provider_sla_violations_violation_id_seq OWNED BY public.data_provider_sla_violations.violation_id;
+
+
+--
+-- Name: data_provider_submissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_provider_submissions (
+    submission_id integer NOT NULL,
+    phase_id character varying(36) NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    data_provider_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    sample_record_id character varying(100) NOT NULL,
+    submission_type public.submission_type_enum NOT NULL,
+    status public.submission_status_enum NOT NULL,
+    document_ids jsonb,
+    database_submission_id character varying(36),
+    expected_value character varying(500),
+    confidence_level character varying(20),
+    notes text,
+    validation_status public.validation_status_enum NOT NULL,
+    validation_messages jsonb,
+    validation_score double precision,
+    submitted_at timestamp with time zone,
+    validated_at timestamp with time zone,
+    last_updated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: data_provider_submissions_submission_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_provider_submissions_submission_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_provider_submissions_submission_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_provider_submissions_submission_id_seq OWNED BY public.data_provider_submissions.submission_id;
+
+
+--
+-- Name: data_sources; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_sources (
+    data_source_id integer NOT NULL,
+    data_source_name character varying(255) NOT NULL,
+    database_type character varying(50) NOT NULL,
+    database_url text NOT NULL,
+    database_user character varying(255) NOT NULL,
+    database_password_encrypted text NOT NULL,
+    is_active boolean NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    description text
+);
+
+
+--
+-- Name: data_sources_data_source_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_sources_data_source_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_sources_data_source_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_sources_data_source_id_seq OWNED BY public.data_sources.data_source_id;
+
+
+--
+-- Name: database_submissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.database_submissions (
+    db_submission_id character varying(36) NOT NULL,
+    phase_id character varying(36) NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    data_provider_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    sample_record_id character varying(100) NOT NULL,
+    database_name character varying(255) NOT NULL,
+    table_name character varying(255) NOT NULL,
+    column_name character varying(255) NOT NULL,
+    primary_key_column character varying(255) NOT NULL,
+    primary_key_value character varying(255) NOT NULL,
+    query_filter text,
+    connection_details jsonb,
+    expected_value character varying(500),
+    confidence_level character varying(20),
+    notes text,
+    validation_status public.validation_status_enum NOT NULL,
+    validation_messages jsonb,
+    connectivity_test_passed boolean,
+    connectivity_test_at timestamp with time zone,
+    submitted_at timestamp with time zone NOT NULL,
+    validated_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: database_tests; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.database_tests (
+    test_id integer NOT NULL,
+    database_submission_id character varying(36) NOT NULL,
+    sample_record_id character varying(100) NOT NULL,
+    attribute_id integer NOT NULL,
+    test_query text,
+    connection_timeout integer NOT NULL,
+    query_timeout integer NOT NULL,
+    connection_successful boolean NOT NULL,
+    query_successful boolean NOT NULL,
+    retrieved_value text,
+    record_count integer,
+    execution_time_ms integer NOT NULL,
+    error_message text,
+    connection_string_hash character varying(64),
+    database_version character varying(100),
+    actual_query_executed text,
+    query_plan text,
+    tested_at timestamp with time zone NOT NULL,
+    tested_by integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: database_tests_test_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.database_tests_test_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: database_tests_test_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.database_tests_test_id_seq OWNED BY public.database_tests.test_id;
+
+
+--
+-- Name: document_access_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.document_access_logs (
+    log_id integer NOT NULL,
+    document_id integer NOT NULL,
+    user_id integer NOT NULL,
+    access_type character varying(20) NOT NULL,
+    accessed_at timestamp without time zone NOT NULL,
+    ip_address character varying(45),
+    user_agent text,
+    session_id character varying(100),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: document_access_logs_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.document_access_logs_log_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: document_access_logs_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.document_access_logs_log_id_seq OWNED BY public.document_access_logs.log_id;
+
+
+--
+-- Name: document_analyses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.document_analyses (
+    analysis_id integer NOT NULL,
+    submission_document_id integer NOT NULL,
+    sample_record_id character varying(100) NOT NULL,
+    attribute_id integer NOT NULL,
+    analysis_prompt text,
+    expected_value character varying(500),
+    confidence_threshold double precision NOT NULL,
+    extracted_value text,
+    confidence_score double precision NOT NULL,
+    analysis_rationale text NOT NULL,
+    matches_expected boolean,
+    validation_notes jsonb,
+    llm_model_used character varying(100),
+    llm_tokens_used integer,
+    llm_response_raw text,
+    analyzed_at timestamp with time zone NOT NULL,
+    analysis_duration_ms integer NOT NULL,
+    analyzed_by integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: document_analyses_analysis_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.document_analyses_analysis_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: document_analyses_analysis_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.document_analyses_analysis_id_seq OWNED BY public.document_analyses.analysis_id;
+
+
+--
+-- Name: document_extractions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.document_extractions (
+    extraction_id integer NOT NULL,
+    document_id integer NOT NULL,
+    attribute_name character varying(255) NOT NULL,
+    extracted_value text,
+    confidence_score integer,
+    extraction_method character varying(50),
+    source_location text,
+    supporting_context text,
+    data_quality_flags json,
+    alternative_values json,
+    is_validated boolean NOT NULL,
+    validated_by_user_id integer,
+    validation_notes text,
+    extracted_at timestamp without time zone NOT NULL,
+    llm_provider character varying(50),
+    llm_model character varying(100),
+    processing_time_ms integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: document_extractions_extraction_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.document_extractions_extraction_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: document_extractions_extraction_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.document_extractions_extraction_id_seq OWNED BY public.document_extractions.extraction_id;
+
+
+--
+-- Name: document_revisions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.document_revisions (
+    revision_id integer NOT NULL,
+    test_case_id character varying(36) NOT NULL,
+    document_id integer NOT NULL,
+    revision_number integer NOT NULL,
+    revision_reason text NOT NULL,
+    requested_by integer NOT NULL,
+    requested_at timestamp without time zone,
+    uploaded_by integer,
+    uploaded_at timestamp without time zone,
+    upload_notes text,
+    previous_document_id integer,
+    status character varying,
+    reviewed_by integer,
+    reviewed_at timestamp without time zone,
+    review_notes text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: document_revisions_revision_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.document_revisions_revision_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: document_revisions_revision_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.document_revisions_revision_id_seq OWNED BY public.document_revisions.revision_id;
+
+
+--
+-- Name: document_submissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.document_submissions (
+    submission_id character varying(36) NOT NULL,
+    test_case_id character varying(36) NOT NULL,
+    data_provider_id integer NOT NULL,
+    original_filename character varying(255) NOT NULL,
+    stored_filename character varying(255) NOT NULL,
+    file_path character varying(500) NOT NULL,
+    file_size_bytes integer NOT NULL,
+    document_type public.document_type_enum NOT NULL,
+    mime_type character varying(100) NOT NULL,
+    submission_notes text,
+    submitted_at timestamp with time zone NOT NULL,
+    is_valid boolean NOT NULL,
+    validation_notes text,
+    validated_by integer,
+    validated_at timestamp with time zone,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    revision_number integer DEFAULT 1 NOT NULL,
+    parent_submission_id character varying(36),
+    is_current boolean DEFAULT true NOT NULL,
+    notes text,
+    data_owner_id integer
+);
+
+
+--
+-- Name: documents; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents (
+    document_id integer NOT NULL,
+    document_name character varying(255) NOT NULL,
+    document_type character varying(50) NOT NULL,
+    file_path text NOT NULL,
+    file_size bigint NOT NULL,
+    mime_type character varying(100) NOT NULL,
+    report_id integer NOT NULL,
+    cycle_id integer,
+    uploaded_by_user_id integer NOT NULL,
+    status character varying(20) NOT NULL,
+    processing_notes text,
+    file_hash character varying(64) NOT NULL,
+    is_encrypted boolean NOT NULL,
+    encryption_key_id character varying(100),
+    document_metadata json,
+    tags json,
+    description text,
+    business_date timestamp without time zone,
+    parent_document_id integer,
+    version integer NOT NULL,
+    is_latest_version boolean NOT NULL,
+    is_confidential boolean NOT NULL,
+    access_level character varying(20) NOT NULL,
+    uploaded_at timestamp without time zone NOT NULL,
+    last_accessed_at timestamp without time zone,
+    expires_at timestamp without time zone,
+    is_archived boolean NOT NULL,
+    archived_at timestamp without time zone,
+    retention_date timestamp without time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: documents_document_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.documents_document_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: documents_document_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.documents_document_id_seq OWNED BY public.documents.document_id;
+
+
+--
+-- Name: escalation_email_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.escalation_email_logs (
+    log_id integer NOT NULL,
+    sla_violation_id integer NOT NULL,
+    escalation_rule_id integer NOT NULL,
+    report_id integer NOT NULL,
+    sent_at timestamp without time zone NOT NULL,
+    sent_to_emails text NOT NULL,
+    email_subject character varying(255) NOT NULL,
+    email_body text NOT NULL,
+    delivery_status character varying(50) NOT NULL,
+    delivery_error text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: escalation_email_logs_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.escalation_email_logs_log_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: escalation_email_logs_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.escalation_email_logs_log_id_seq OWNED BY public.escalation_email_logs.log_id;
+
+
+--
+-- Name: metrics_execution; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.metrics_execution (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_name character varying(50) NOT NULL,
+    activity_name character varying(100) NOT NULL,
+    user_id character varying(255),
+    start_time timestamp with time zone NOT NULL,
+    end_time timestamp with time zone,
+    duration_minutes double precision,
+    status character varying(50) NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: historical_data_owner_assignments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.historical_data_owner_assignments (
+    history_id integer NOT NULL,
+    report_name character varying(255) NOT NULL,
+    attribute_name character varying(255) NOT NULL,
+    data_owner_id integer NOT NULL,
+    assigned_by integer NOT NULL,
+    cycle_id integer NOT NULL,
+    assigned_at timestamp with time zone NOT NULL,
+    completion_status character varying(50) NOT NULL,
+    completion_time_hours double precision,
+    success_rating double precision,
+    notes text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: historical_data_owner_assignments_history_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.historical_data_owner_assignments_history_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: historical_data_owner_assignments_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.historical_data_owner_assignments_history_id_seq OWNED BY public.historical_data_owner_assignments.history_id;
+
+
+--
+-- Name: historical_data_provider_assignments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.historical_data_provider_assignments (
+    history_id integer NOT NULL,
+    report_name character varying(255) NOT NULL,
+    attribute_name character varying(255) NOT NULL,
+    data_provider_id integer NOT NULL,
+    assigned_by integer NOT NULL,
+    cycle_id integer NOT NULL,
+    assigned_at timestamp with time zone NOT NULL,
+    completion_status character varying(50) NOT NULL,
+    completion_time_hours double precision,
+    success_rating double precision,
+    notes text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: historical_data_provider_assignments_history_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.historical_data_provider_assignments_history_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: historical_data_provider_assignments_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.historical_data_provider_assignments_history_id_seq OWNED BY public.historical_data_provider_assignments.history_id;
+
+
+--
+-- Name: individual_samples; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.individual_samples (
+    id integer NOT NULL,
+    sample_id character varying,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    primary_key_value character varying NOT NULL,
+    sample_data json NOT NULL,
+    generation_method character varying NOT NULL,
+    generated_at timestamp with time zone DEFAULT now(),
+    generated_by_user_id integer,
+    tester_decision public.testerdecision,
+    tester_decision_date timestamp with time zone,
+    tester_decision_by_user_id integer,
+    tester_notes text,
+    report_owner_decision public.reportownerdecision,
+    report_owner_feedback text,
+    is_submitted boolean,
+    submission_id integer,
+    version_number integer,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone
+);
+
+
+--
+-- Name: individual_samples_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.individual_samples_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: individual_samples_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.individual_samples_id_seq OWNED BY public.individual_samples.id;
+
+
+--
+-- Name: llm_audit_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.llm_audit_log (
+    log_id integer NOT NULL,
+    cycle_id integer,
+    report_id integer,
+    llm_provider character varying(50) NOT NULL,
+    prompt_template character varying(255) NOT NULL,
+    request_payload jsonb NOT NULL,
+    response_payload jsonb NOT NULL,
+    execution_time_ms integer,
+    token_usage jsonb,
+    executed_at timestamp with time zone NOT NULL,
+    executed_by integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: llm_audit_log_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.llm_audit_log_log_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: llm_audit_log_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.llm_audit_log_log_id_seq OWNED BY public.llm_audit_log.log_id;
+
+
+--
+-- Name: llm_sample_generations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.llm_sample_generations (
+    generation_id character varying(36) NOT NULL,
+    set_id character varying(36) NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    requested_sample_size integer NOT NULL,
+    actual_samples_generated integer NOT NULL,
+    generation_prompt text,
+    selection_criteria jsonb NOT NULL,
+    risk_focus_areas jsonb,
+    exclude_criteria jsonb,
+    include_edge_cases boolean NOT NULL,
+    randomization_seed integer,
+    llm_model_used character varying(100),
+    generation_rationale text NOT NULL,
+    confidence_score double precision NOT NULL,
+    risk_coverage jsonb,
+    estimated_testing_time integer,
+    llm_metadata jsonb,
+    generated_by integer NOT NULL,
+    generated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: lobs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lobs (
+    lob_id integer NOT NULL,
+    lob_name character varying(255) NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: lobs_lob_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.lobs_lob_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: lobs_lob_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.lobs_lob_id_seq OWNED BY public.lobs.lob_id;
+
+
+--
+-- Name: observation_approvals; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.observation_approvals (
+    approval_id integer NOT NULL,
+    observation_id integer NOT NULL,
+    approval_status character varying NOT NULL,
+    approval_level character varying NOT NULL,
+    approver_comments text,
+    approval_rationale text,
+    severity_assessment character varying,
+    impact_validation boolean,
+    evidence_sufficiency boolean,
+    regulatory_significance boolean,
+    requires_escalation boolean,
+    recommended_action character varying,
+    priority_level character varying,
+    estimated_effort character varying,
+    target_resolution_date timestamp without time zone,
+    approval_criteria_met json,
+    approval_checklist json,
+    conditional_approval boolean,
+    conditions json,
+    approved_by integer,
+    approved_at timestamp without time zone,
+    escalated_to integer,
+    escalated_at timestamp without time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: observation_approvals_approval_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.observation_approvals_approval_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: observation_approvals_approval_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.observation_approvals_approval_id_seq OWNED BY public.observation_approvals.approval_id;
+
+
+--
+-- Name: observation_clarifications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.observation_clarifications (
+    clarification_id integer NOT NULL,
+    group_id integer NOT NULL,
+    clarification_text text NOT NULL,
+    supporting_documents json,
+    requested_by_role character varying NOT NULL,
+    requested_by_user_id integer NOT NULL,
+    requested_at timestamp without time zone,
+    response_text text,
+    response_documents json,
+    responded_by integer,
+    responded_at timestamp without time zone,
+    status character varying,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: observation_clarifications_clarification_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.observation_clarifications_clarification_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: observation_clarifications_clarification_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.observation_clarifications_clarification_id_seq OWNED BY public.observation_clarifications.clarification_id;
+
+
+--
+-- Name: observation_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.observation_groups (
+    group_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    issue_type character varying NOT NULL,
+    first_detected_at timestamp without time zone,
+    last_updated_at timestamp without time zone,
+    total_test_cases integer,
+    total_samples integer,
+    rating public.observationratingenum,
+    approval_status public.observationapprovalstatusenum,
+    report_owner_approved boolean,
+    report_owner_approved_by integer,
+    report_owner_approved_at timestamp without time zone,
+    report_owner_comments text,
+    data_executive_approved boolean,
+    data_executive_approved_by integer,
+    data_executive_approved_at timestamp without time zone,
+    data_executive_comments text,
+    finalized boolean,
+    finalized_by integer,
+    finalized_at timestamp without time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: observation_groups_group_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.observation_groups_group_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: observation_groups_group_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.observation_groups_group_id_seq OWNED BY public.observation_groups.group_id;
+
+
+--
+-- Name: observation_impact_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.observation_impact_assessments (
+    assessment_id integer NOT NULL,
+    observation_id integer NOT NULL,
+    impact_category public.impactcategoryenum NOT NULL,
+    impact_severity character varying NOT NULL,
+    impact_likelihood character varying NOT NULL,
+    impact_score double precision NOT NULL,
+    financial_impact_min double precision,
+    financial_impact_max double precision,
+    financial_impact_currency character varying,
+    regulatory_requirements_affected json,
+    regulatory_deadlines json,
+    potential_penalties double precision,
+    process_disruption_level character varying,
+    system_availability_impact character varying,
+    resource_requirements json,
+    resolution_time_estimate integer,
+    business_disruption_duration integer,
+    assessment_method character varying,
+    assessment_confidence double precision,
+    assessment_rationale text,
+    assessment_assumptions json,
+    assessed_by integer,
+    assessed_at timestamp without time zone,
+    reviewed_by integer,
+    reviewed_at timestamp without time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: observation_impact_assessments_assessment_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.observation_impact_assessments_assessment_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: observation_impact_assessments_assessment_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.observation_impact_assessments_assessment_id_seq OWNED BY public.observation_impact_assessments.assessment_id;
+
+
+--
+-- Name: observation_management_audit_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.observation_management_audit_logs (
+    log_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_id character varying,
+    observation_id integer,
+    action character varying NOT NULL,
+    entity_type character varying NOT NULL,
+    entity_id character varying,
+    old_values json,
+    new_values json,
+    changes_summary text,
+    performed_by integer NOT NULL,
+    performed_at timestamp without time zone,
+    user_role character varying,
+    ip_address character varying,
+    user_agent character varying,
+    session_id character varying,
+    notes text,
+    execution_time_ms integer,
+    business_justification text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    source_test_execution_id integer
+);
+
+
+--
+-- Name: observation_management_audit_logs_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.observation_management_audit_logs_log_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: observation_management_audit_logs_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.observation_management_audit_logs_log_id_seq OWNED BY public.observation_management_audit_logs.log_id;
+
+
+--
+-- Name: observation_management_phases; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.observation_management_phases (
+    phase_id character varying NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_status character varying NOT NULL,
+    planned_start_date timestamp without time zone,
+    planned_end_date timestamp without time zone,
+    observation_deadline timestamp without time zone NOT NULL,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    observation_strategy text,
+    detection_criteria json,
+    approval_threshold double precision,
+    instructions text,
+    notes text,
+    started_by integer,
+    completed_by integer,
+    assigned_testers json,
+    total_observations integer,
+    auto_detected_observations integer,
+    manual_observations integer,
+    approved_observations integer,
+    rejected_observations integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: observation_records; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.observation_records (
+    observation_id integer NOT NULL,
+    phase_id character varying NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    observation_title character varying NOT NULL,
+    observation_description text NOT NULL,
+    observation_type public.observationtypeenum NOT NULL,
+    severity public.observationseverityenum NOT NULL,
+    status public.observationstatusenum,
+    source_test_execution_id integer,
+    source_sample_record_id character varying,
+    source_attribute_id integer,
+    detection_method character varying,
+    detection_confidence double precision,
+    impact_description text,
+    impact_categories json,
+    financial_impact_estimate double precision,
+    regulatory_risk_level character varying,
+    affected_processes json,
+    affected_systems json,
+    evidence_documents json,
+    supporting_data json,
+    screenshots json,
+    related_observations json,
+    detected_by integer,
+    assigned_to integer,
+    detected_at timestamp without time zone,
+    assigned_at timestamp without time zone,
+    auto_detection_rules json,
+    auto_detection_score double precision,
+    manual_validation_required boolean,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: observation_records_backup; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.observation_records_backup (
+    observation_id integer NOT NULL,
+    phase_id character varying NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    observation_title character varying NOT NULL,
+    observation_description text NOT NULL,
+    observation_type public.observationtypeenum NOT NULL,
+    severity public.observationseverityenum NOT NULL,
+    status public.observationstatusenum,
+    source_test_execution_id integer,
+    source_sample_record_id character varying,
+    source_attribute_id integer,
+    detection_method character varying,
+    detection_confidence double precision,
+    impact_description text,
+    impact_categories json,
+    financial_impact_estimate double precision,
+    regulatory_risk_level character varying,
+    affected_processes json,
+    affected_systems json,
+    evidence_documents json,
+    supporting_data json,
+    screenshots json,
+    related_observations json,
+    detected_by integer,
+    assigned_to integer,
+    detected_at timestamp without time zone,
+    assigned_at timestamp without time zone,
+    auto_detection_rules json,
+    auto_detection_score double precision,
+    manual_validation_required boolean,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: observation_records_observation_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.observation_records_observation_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: observation_records_observation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.observation_records_observation_id_seq OWNED BY public.observation_records_backup.observation_id;
+
+
+--
+-- Name: observation_records_observation_id_seq1; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.observation_records_observation_id_seq1
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: observation_records_observation_id_seq1; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.observation_records_observation_id_seq1 OWNED BY public.observation_records.observation_id;
+
+
+--
+-- Name: observation_resolutions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.observation_resolutions (
+    resolution_id integer NOT NULL,
+    observation_id integer NOT NULL,
+    resolution_strategy character varying NOT NULL,
+    resolution_description text,
+    resolution_steps json,
+    success_criteria json,
+    validation_requirements json,
+    resolution_status public.resolutionstatusenum,
+    progress_percentage double precision,
+    current_step character varying,
+    planned_start_date timestamp without time zone,
+    planned_completion_date timestamp without time zone,
+    actual_start_date timestamp without time zone,
+    actual_completion_date timestamp without time zone,
+    assigned_resources json,
+    estimated_effort_hours integer,
+    actual_effort_hours integer,
+    budget_allocated double precision,
+    budget_spent double precision,
+    implemented_controls json,
+    process_changes json,
+    system_changes json,
+    documentation_updates json,
+    training_requirements json,
+    validation_tests_planned json,
+    validation_tests_completed json,
+    validation_results json,
+    effectiveness_metrics json,
+    resolution_owner integer,
+    created_by integer,
+    created_at timestamp without time zone,
+    validated_by integer,
+    validated_at timestamp without time zone,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: observation_resolutions_resolution_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.observation_resolutions_resolution_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: observation_resolutions_resolution_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.observation_resolutions_resolution_id_seq OWNED BY public.observation_resolutions.resolution_id;
+
+
+--
+-- Name: observation_versions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.observation_versions (
+    observation_version_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    observation_id uuid NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    observation_type character varying(50) NOT NULL,
+    severity character varying(20) NOT NULL,
+    title character varying(500) NOT NULL,
+    description text NOT NULL,
+    impact_description text,
+    affected_attributes jsonb,
+    affected_samples jsonb,
+    affected_lobs jsonb,
+    resolution_status character varying(50),
+    resolution_description text,
+    resolution_date timestamp with time zone,
+    resolved_by character varying(255),
+    group_id uuid,
+    is_group_parent boolean,
+    evidence_links jsonb,
+    supporting_documents jsonb,
+    tracking_metadata jsonb,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    version_number integer NOT NULL,
+    is_latest_version boolean NOT NULL,
+    version_created_at timestamp with time zone,
+    version_created_by character varying(255),
+    version_notes text,
+    change_reason character varying(500),
+    parent_version_id uuid,
+    version_status character varying(50),
+    approved_version_id uuid,
+    approved_at timestamp with time zone,
+    approved_by character varying(255)
+);
+
+
+--
+-- Name: observations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.observations (
+    observation_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_id integer,
+    observation_type public.observation_type_enum NOT NULL,
+    description text NOT NULL,
+    impact_level public.impact_level_enum NOT NULL,
+    samples_impacted integer NOT NULL,
+    status public.observation_status_enum NOT NULL,
+    tester_comments text,
+    report_owner_comments text,
+    resolution_rationale text,
+    resolved_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: observations_observation_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.observations_observation_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: observations_observation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.observations_observation_id_seq OWNED BY public.observations.observation_id;
+
+
+--
+-- Name: permission_audit_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.permission_audit_log (
+    audit_id integer NOT NULL,
+    action_type character varying(50) NOT NULL,
+    target_type character varying(50) NOT NULL,
+    target_id integer NOT NULL,
+    permission_id integer,
+    role_id integer,
+    performed_by integer,
+    performed_at timestamp without time zone DEFAULT now() NOT NULL,
+    reason text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: permission_audit_log_audit_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.permission_audit_log_audit_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: permission_audit_log_audit_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.permission_audit_log_audit_id_seq OWNED BY public.permission_audit_log.audit_id;
+
+
+--
+-- Name: permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.permissions (
+    permission_id integer NOT NULL,
+    resource character varying(100) NOT NULL,
+    action character varying(50) NOT NULL,
+    description text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: permissions_permission_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.permissions_permission_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: permissions_permission_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.permissions_permission_id_seq OWNED BY public.permissions.permission_id;
+
+
+--
+-- Name: metrics_phases; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.metrics_phases (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_name character varying(50) NOT NULL,
+    lob_name character varying(100),
+    total_attributes integer,
+    approved_attributes integer,
+    attributes_with_issues integer,
+    primary_keys integer,
+    non_pk_attributes integer,
+    total_samples integer,
+    approved_samples integer,
+    failed_samples integer,
+    total_test_cases integer,
+    completed_test_cases integer,
+    passed_test_cases integer,
+    failed_test_cases integer,
+    total_observations integer,
+    approved_observations integer,
+    completion_time_minutes double precision,
+    on_time_completion boolean,
+    submissions_for_approval integer,
+    data_providers_assigned integer,
+    changes_to_data_providers integer,
+    rfi_sent integer,
+    rfi_completed integer,
+    rfi_pending integer,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone
+);
+
+
+--
+-- Name: profiling_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.profiling_results (
+    result_id integer NOT NULL,
+    phase_id integer NOT NULL,
+    rule_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    execution_status character varying(50) NOT NULL,
+    execution_time_ms integer,
+    executed_at timestamp without time zone NOT NULL,
+    passed_count integer,
+    failed_count integer,
+    total_count integer,
+    pass_rate double precision,
+    result_summary json,
+    failed_records json,
+    result_details text,
+    quality_impact double precision,
+    severity character varying(50),
+    has_anomaly boolean,
+    anomaly_description text,
+    anomaly_marked_by integer,
+    anomaly_marked_at timestamp without time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: profiling_results_result_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.profiling_results_result_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: profiling_results_result_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.profiling_results_result_id_seq OWNED BY public.profiling_results.result_id;
+
+
+--
+-- Name: profiling_rules; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.profiling_rules (
+    rule_id integer NOT NULL,
+    phase_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    rule_name character varying(255) NOT NULL,
+    rule_type public.profilingruletype NOT NULL,
+    rule_description text,
+    rule_code text NOT NULL,
+    rule_parameters json,
+    llm_provider character varying(50),
+    llm_rationale text,
+    regulatory_reference text,
+    status public.profilingrulestatus NOT NULL,
+    approved_by integer,
+    approved_at timestamp without time zone,
+    approval_notes text,
+    is_executable boolean,
+    execution_order integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    version_number integer DEFAULT 1,
+    is_current_version boolean DEFAULT true,
+    business_key character varying(255) NOT NULL,
+    version_created_at timestamp without time zone,
+    version_created_by integer,
+    effective_from timestamp without time zone,
+    effective_to timestamp without time zone,
+    rejected_by integer,
+    rejected_at timestamp without time zone,
+    rejection_reason text,
+    rejection_notes text,
+    revision_notes text,
+    cycle_id integer,
+    report_id integer,
+    created_by integer,
+    updated_by integer,
+    rule_logic text,
+    expected_result text,
+    severity character varying(50)
+);
+
+
+--
+-- Name: profiling_rules_rule_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.profiling_rules_rule_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: profiling_rules_rule_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.profiling_rules_rule_id_seq OWNED BY public.profiling_rules.rule_id;
+
+
+--
+-- Name: regulatory_data_dictionary; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.regulatory_data_dictionary (
+    dict_id integer NOT NULL,
+    report_name character varying(255) NOT NULL,
+    schedule_name character varying(255) NOT NULL,
+    line_item_number character varying(50),
+    line_item_name character varying(500) NOT NULL,
+    technical_line_item_name character varying(500),
+    mdrm character varying(50),
+    description text,
+    static_or_dynamic character varying(20),
+    mandatory_or_optional character varying(20),
+    format_specification character varying(200),
+    num_reports_schedules_used character varying(50),
+    other_schedule_reference text,
+    is_active boolean NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: regulatory_data_dictionary_dict_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.regulatory_data_dictionary_dict_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: regulatory_data_dictionary_dict_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.regulatory_data_dictionary_dict_id_seq OWNED BY public.regulatory_data_dictionary.dict_id;
+
+
+--
+-- Name: report_attributes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.report_attributes (
+    attribute_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_name character varying(255) NOT NULL,
+    description text,
+    data_type public.data_type_enum,
+    mandatory_flag public.mandatory_flag_enum NOT NULL,
+    cde_flag boolean NOT NULL,
+    historical_issues_flag boolean NOT NULL,
+    is_scoped boolean NOT NULL,
+    llm_generated boolean NOT NULL,
+    llm_rationale text,
+    tester_notes text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    validation_rules text,
+    typical_source_documents text,
+    keywords_to_look_for text,
+    testing_approach text,
+    risk_score double precision,
+    llm_risk_rationale text,
+    is_primary_key boolean DEFAULT false NOT NULL,
+    primary_key_order integer,
+    approval_status character varying(20) DEFAULT 'pending'::character varying NOT NULL,
+    master_attribute_id integer,
+    version_number integer DEFAULT 1 NOT NULL,
+    is_latest_version boolean DEFAULT true NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    version_notes text,
+    change_reason character varying(100),
+    replaced_attribute_id integer,
+    version_created_at timestamp without time zone DEFAULT now() NOT NULL,
+    version_created_by integer DEFAULT 1 NOT NULL,
+    approved_at timestamp without time zone,
+    approved_by integer,
+    archived_at timestamp without time zone,
+    archived_by integer,
+    line_item_number character varying(20),
+    technical_line_item_name character varying(255),
+    mdrm character varying(50)
+);
+
+
+--
+-- Name: COLUMN report_attributes.risk_score; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.report_attributes.risk_score IS 'LLM-provided risk score (0-10) based on regulatory importance';
+
+
+--
+-- Name: COLUMN report_attributes.llm_risk_rationale; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.report_attributes.llm_risk_rationale IS 'LLM explanation for the assigned risk score';
+
+
+--
+-- Name: COLUMN report_attributes.is_primary_key; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.report_attributes.is_primary_key IS 'Whether this attribute is part of the primary key';
+
+
+--
+-- Name: COLUMN report_attributes.primary_key_order; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.report_attributes.primary_key_order IS 'Order of this attribute in composite primary key (1-based)';
+
+
+--
+-- Name: COLUMN report_attributes.approval_status; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.report_attributes.approval_status IS 'Approval status: pending, approved, rejected';
+
+
+--
+-- Name: COLUMN report_attributes.version_number; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.report_attributes.version_number IS 'Version number of this attribute';
+
+
+--
+-- Name: COLUMN report_attributes.is_latest_version; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.report_attributes.is_latest_version IS 'Whether this is the latest version';
+
+
+--
+-- Name: COLUMN report_attributes.is_active; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.report_attributes.is_active IS 'Whether this version is active';
+
+
+--
+-- Name: COLUMN report_attributes.version_notes; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.report_attributes.version_notes IS 'Notes about what changed in this version';
+
+
+--
+-- Name: COLUMN report_attributes.change_reason; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.report_attributes.change_reason IS 'Reason for creating new version';
+
+
+--
+-- Name: COLUMN report_attributes.line_item_number; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.report_attributes.line_item_number IS 'Regulatory line item number from data dictionary';
+
+
+--
+-- Name: COLUMN report_attributes.technical_line_item_name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.report_attributes.technical_line_item_name IS 'Technical line item name from data dictionary';
+
+
+--
+-- Name: COLUMN report_attributes.mdrm; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.report_attributes.mdrm IS 'MDRM code from regulatory data dictionary';
+
+
+--
+-- Name: report_attributes_attribute_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.report_attributes_attribute_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: report_attributes_attribute_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.report_attributes_attribute_id_seq OWNED BY public.report_attributes.attribute_id;
+
+
+--
+-- Name: report_owner_assignment_history; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.report_owner_assignment_history (
+    history_id integer NOT NULL,
+    assignment_id integer NOT NULL,
+    changed_by integer NOT NULL,
+    changed_at timestamp with time zone NOT NULL,
+    field_changed character varying(100) NOT NULL,
+    old_value text,
+    new_value text,
+    change_reason text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: report_owner_assignment_history_history_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.report_owner_assignment_history_history_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: report_owner_assignment_history_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.report_owner_assignment_history_history_id_seq OWNED BY public.report_owner_assignment_history.history_id;
+
+
+--
+-- Name: report_owner_assignments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.report_owner_assignments (
+    assignment_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_name character varying(50) NOT NULL,
+    assignment_type public.assignment_type_enum NOT NULL,
+    title character varying(255) NOT NULL,
+    description text,
+    assigned_to integer NOT NULL,
+    assigned_by integer NOT NULL,
+    assigned_at timestamp with time zone NOT NULL,
+    due_date timestamp with time zone,
+    started_at timestamp with time zone,
+    completed_at timestamp with time zone,
+    status public.assignment_status_enum NOT NULL,
+    priority public.assignment_priority_enum NOT NULL,
+    completed_by integer,
+    completion_notes text,
+    completion_attachments text,
+    escalated boolean NOT NULL,
+    escalated_at timestamp with time zone,
+    escalation_reason text,
+    assignment_metadata text,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: report_owner_assignments_assignment_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.report_owner_assignments_assignment_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: report_owner_assignments_assignment_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.report_owner_assignments_assignment_id_seq OWNED BY public.report_owner_assignments.assignment_id;
+
+
+--
+-- Name: report_owner_executives; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.report_owner_executives (
+    executive_id integer NOT NULL,
+    report_owner_id integer NOT NULL
+);
+
+
+--
+-- Name: report_owner_scoping_reviews; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.report_owner_scoping_reviews (
+    review_id integer NOT NULL,
+    submission_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    approval_status public.approval_status_enum NOT NULL,
+    review_comments text,
+    requested_changes json,
+    resource_impact_assessment text,
+    risk_coverage_assessment text,
+    reviewed_by integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: report_owner_scoping_reviews_review_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.report_owner_scoping_reviews_review_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: report_owner_scoping_reviews_review_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.report_owner_scoping_reviews_review_id_seq OWNED BY public.report_owner_scoping_reviews.review_id;
+
+
+--
+-- Name: reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.reports (
+    report_id integer NOT NULL,
+    report_name character varying(255) NOT NULL,
+    regulation character varying(255),
+    description text,
+    frequency character varying(100),
+    report_owner_id integer NOT NULL,
+    lob_id integer NOT NULL,
+    is_active boolean NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: reports_report_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.reports_report_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: reports_report_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.reports_report_id_seq OWNED BY public.reports.report_id;
+
+
+--
+-- Name: request_info_audit_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.request_info_audit_log (
+    audit_id character varying(36) NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_id character varying(36),
+    action character varying(100) NOT NULL,
+    entity_type character varying(50) NOT NULL,
+    entity_id character varying(36),
+    performed_by integer NOT NULL,
+    performed_at timestamp with time zone NOT NULL,
+    old_values jsonb,
+    new_values jsonb,
+    notes text,
+    ip_address character varying(45),
+    user_agent text,
+    session_id character varying(100),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: request_info_audit_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.request_info_audit_logs (
+    log_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_id character varying(36),
+    action character varying(100) NOT NULL,
+    entity_type character varying(50) NOT NULL,
+    entity_id character varying(100),
+    performed_by integer NOT NULL,
+    performed_at timestamp with time zone NOT NULL,
+    old_values jsonb,
+    new_values jsonb,
+    notes text,
+    ip_address character varying(45),
+    user_agent text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: request_info_audit_logs_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.request_info_audit_logs_log_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: request_info_audit_logs_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.request_info_audit_logs_log_id_seq OWNED BY public.request_info_audit_logs.log_id;
+
+
+--
+-- Name: request_info_phases; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.request_info_phases (
+    phase_id character varying(36) NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_status character varying(50) NOT NULL,
+    planned_start_date timestamp with time zone,
+    planned_end_date timestamp with time zone,
+    submission_deadline timestamp with time zone NOT NULL,
+    reminder_schedule jsonb,
+    instructions text,
+    started_at timestamp with time zone,
+    started_by integer,
+    completed_at timestamp with time zone,
+    completed_by integer,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: resource_permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.resource_permissions (
+    resource_permission_id integer NOT NULL,
+    user_id integer NOT NULL,
+    resource_type character varying(50) NOT NULL,
+    resource_id integer NOT NULL,
+    permission_id integer NOT NULL,
+    granted boolean NOT NULL,
+    granted_by integer,
+    granted_at timestamp without time zone DEFAULT now() NOT NULL,
+    expires_at timestamp without time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: resource_permissions_resource_permission_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.resource_permissions_resource_permission_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: resource_permissions_resource_permission_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.resource_permissions_resource_permission_id_seq OWNED BY public.resource_permissions.resource_permission_id;
+
+
+--
+-- Name: resources; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.resources (
+    resource_id integer NOT NULL,
+    resource_name character varying(100) NOT NULL,
+    display_name character varying(200) NOT NULL,
+    description text,
+    resource_type character varying(50) NOT NULL,
+    parent_resource_id integer,
+    is_active boolean NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: resources_resource_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.resources_resource_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: resources_resource_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.resources_resource_id_seq OWNED BY public.resources.resource_id;
+
+
+--
+-- Name: role_hierarchy; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.role_hierarchy (
+    parent_role_id integer NOT NULL,
+    child_role_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: role_permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.role_permissions (
+    role_id integer NOT NULL,
+    permission_id integer NOT NULL,
+    granted_by integer,
+    granted_at timestamp without time zone DEFAULT now() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: roles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.roles (
+    role_id integer NOT NULL,
+    role_name character varying(100) NOT NULL,
+    description text,
+    is_system boolean NOT NULL,
+    is_active boolean NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: roles_role_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.roles_role_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: roles_role_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.roles_role_id_seq OWNED BY public.roles.role_id;
+
+
+--
+-- Name: sample_approval_history; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sample_approval_history (
+    approval_id character varying(36) NOT NULL,
+    set_id character varying(36) NOT NULL,
+    approval_step character varying(100) NOT NULL,
+    decision character varying(50) NOT NULL,
+    approved_by integer NOT NULL,
+    approved_at timestamp with time zone NOT NULL,
+    feedback text,
+    requested_changes jsonb,
+    conditional_approval boolean NOT NULL,
+    approval_conditions jsonb,
+    previous_status public.sample_status_enum,
+    new_status public.sample_status_enum NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: sample_audit_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sample_audit_logs (
+    id integer NOT NULL,
+    sample_id integer,
+    submission_id integer,
+    action character varying NOT NULL,
+    action_details json,
+    user_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: sample_audit_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.sample_audit_logs_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: sample_audit_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.sample_audit_logs_id_seq OWNED BY public.sample_audit_logs.id;
+
+
+--
+-- Name: sample_feedback; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sample_feedback (
+    id integer NOT NULL,
+    sample_id integer NOT NULL,
+    submission_id integer NOT NULL,
+    feedback_type character varying NOT NULL,
+    feedback_text text NOT NULL,
+    severity character varying,
+    is_blocking boolean,
+    is_resolved boolean,
+    resolved_at timestamp with time zone,
+    resolved_by_user_id integer,
+    resolution_notes text,
+    created_by_user_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone
+);
+
+
+--
+-- Name: sample_feedback_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.sample_feedback_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: sample_feedback_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.sample_feedback_id_seq OWNED BY public.sample_feedback.id;
+
+
+--
+-- Name: sample_records; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sample_records (
+    record_id character varying(36) NOT NULL,
+    set_id character varying(36) NOT NULL,
+    sample_identifier character varying(255) NOT NULL,
+    primary_key_value character varying(255) NOT NULL,
+    sample_data jsonb NOT NULL,
+    risk_score double precision,
+    validation_status public.sample_validation_status_enum NOT NULL,
+    validation_score double precision,
+    selection_rationale text,
+    data_source_info jsonb,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone,
+    approval_status public.sample_approval_status_enum DEFAULT 'Pending'::public.sample_approval_status_enum NOT NULL,
+    approved_by integer,
+    approved_at timestamp with time zone,
+    rejection_reason text,
+    change_requests jsonb
+);
+
+
+--
+-- Name: sample_selection_audit_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sample_selection_audit_log (
+    audit_id character varying(36) NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    set_id character varying(36),
+    action character varying(100) NOT NULL,
+    entity_type character varying(50) NOT NULL,
+    entity_id character varying(36),
+    performed_by integer NOT NULL,
+    performed_at timestamp with time zone NOT NULL,
+    old_values jsonb,
+    new_values jsonb,
+    notes text,
+    ip_address character varying(45),
+    user_agent text,
+    session_id character varying(100),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: sample_selection_phases; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sample_selection_phases (
+    phase_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_status character varying(50),
+    planned_start_date timestamp without time zone,
+    planned_end_date timestamp without time zone,
+    actual_start_date timestamp without time zone,
+    actual_end_date timestamp without time zone,
+    target_sample_size integer,
+    sampling_methodology character varying(100),
+    sampling_criteria json,
+    llm_generation_enabled boolean,
+    llm_provider character varying(50),
+    llm_model character varying(100),
+    llm_confidence_threshold double precision,
+    manual_upload_enabled boolean,
+    upload_template_url character varying(500),
+    samples_generated integer,
+    samples_validated integer,
+    samples_approved integer,
+    notes text,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    created_by integer,
+    updated_by integer,
+    id integer NOT NULL
+);
+
+
+--
+-- Name: sample_selection_phases_phase_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.sample_selection_phases_phase_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: sample_selection_phases_phase_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.sample_selection_phases_phase_id_seq OWNED BY public.sample_selection_phases.phase_id;
+
+
+--
+-- Name: sample_sets; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sample_sets (
+    set_id character varying(36) NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    set_name character varying(255) NOT NULL,
+    description text,
+    generation_method public.sample_generation_method_enum NOT NULL,
+    sample_type public.sample_type_enum NOT NULL,
+    status public.sample_status_enum NOT NULL,
+    target_sample_size integer,
+    actual_sample_size integer NOT NULL,
+    created_by integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    approved_by integer,
+    approved_at timestamp with time zone,
+    approval_notes text,
+    generation_rationale text,
+    selection_criteria jsonb,
+    quality_score double precision,
+    sample_metadata jsonb,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    master_set_id character varying(36),
+    version_number integer DEFAULT 1 NOT NULL,
+    is_latest_version boolean DEFAULT true NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    version_notes text,
+    change_reason character varying(100),
+    replaced_set_id character varying(36),
+    version_created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    version_created_by integer DEFAULT 1 NOT NULL,
+    archived_at timestamp without time zone,
+    archived_by integer
+);
+
+
+--
+-- Name: sample_submission_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sample_submission_items (
+    id integer NOT NULL,
+    submission_id integer NOT NULL,
+    sample_id integer NOT NULL,
+    tester_decision public.testerdecision NOT NULL,
+    primary_key_value character varying NOT NULL,
+    sample_data_snapshot json NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: sample_submission_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.sample_submission_items_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: sample_submission_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.sample_submission_items_id_seq OWNED BY public.sample_submission_items.id;
+
+
+--
+-- Name: sample_submissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sample_submissions (
+    id integer NOT NULL,
+    submission_id character varying,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    version_number integer NOT NULL,
+    submitted_at timestamp with time zone DEFAULT now(),
+    submitted_by_user_id integer,
+    submission_notes text,
+    status public.submissionstatus,
+    reviewed_at timestamp with time zone,
+    reviewed_by_user_id integer,
+    review_decision public.reportownerdecision,
+    review_feedback text,
+    is_official_version boolean,
+    total_samples integer,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone
+);
+
+
+--
+-- Name: sample_submissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.sample_submissions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: sample_submissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.sample_submissions_id_seq OWNED BY public.sample_submissions.id;
+
+
+--
+-- Name: sample_upload_history; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sample_upload_history (
+    upload_id character varying(36) NOT NULL,
+    set_id character varying(36) NOT NULL,
+    upload_method character varying(50) NOT NULL,
+    original_filename character varying(255),
+    file_size_bytes integer,
+    total_rows integer NOT NULL,
+    valid_rows integer NOT NULL,
+    invalid_rows integer NOT NULL,
+    primary_key_column character varying(255) NOT NULL,
+    data_mapping jsonb,
+    validation_rules_applied jsonb,
+    data_quality_score double precision NOT NULL,
+    upload_summary jsonb,
+    processing_time_ms integer NOT NULL,
+    uploaded_by integer NOT NULL,
+    uploaded_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: sample_validation_issues; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sample_validation_issues (
+    issue_id character varying(36) NOT NULL,
+    validation_id character varying(36) NOT NULL,
+    record_id character varying(36) NOT NULL,
+    issue_type character varying(100) NOT NULL,
+    severity character varying(50) NOT NULL,
+    field_name character varying(255),
+    issue_description text NOT NULL,
+    suggested_fix text,
+    is_resolved boolean NOT NULL,
+    resolved_at timestamp with time zone,
+    resolved_by integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: sample_validation_results; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sample_validation_results (
+    validation_id character varying(36) NOT NULL,
+    set_id character varying(36) NOT NULL,
+    validation_type character varying(100) NOT NULL,
+    validation_rules jsonb NOT NULL,
+    overall_status public.sample_validation_status_enum NOT NULL,
+    total_samples integer NOT NULL,
+    valid_samples integer NOT NULL,
+    invalid_samples integer NOT NULL,
+    warning_samples integer NOT NULL,
+    overall_quality_score double precision NOT NULL,
+    validation_summary jsonb,
+    recommendations jsonb,
+    validated_by integer NOT NULL,
+    validated_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: samples; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.samples (
+    sample_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    primary_key_name character varying(100) NOT NULL,
+    primary_key_value character varying(255) NOT NULL,
+    sample_data jsonb NOT NULL,
+    llm_rationale text,
+    tester_rationale text,
+    status public.sample_status_enum NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: samples_sample_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.samples_sample_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: samples_sample_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.samples_sample_id_seq OWNED BY public.samples.sample_id;
+
+
+--
+-- Name: scoping_audit_log; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.scoping_audit_log (
+    audit_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    action character varying(100) NOT NULL,
+    performed_by integer NOT NULL,
+    details json NOT NULL,
+    previous_values json,
+    new_values json,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: scoping_audit_log_audit_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.scoping_audit_log_audit_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: scoping_audit_log_audit_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.scoping_audit_log_audit_id_seq OWNED BY public.scoping_audit_log.audit_id;
+
+
+--
+-- Name: scoping_decision_versions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.scoping_decision_versions (
+    decision_version_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    decision_id uuid NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    is_in_scope boolean NOT NULL,
+    scope_reason text,
+    testing_approach character varying(100),
+    sample_size_override integer,
+    special_instructions text,
+    risk_level character varying(20),
+    risk_factors jsonb,
+    assigned_lobs jsonb,
+    depends_on_attributes jsonb,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    version_number integer NOT NULL,
+    is_latest_version boolean NOT NULL,
+    version_created_at timestamp with time zone,
+    version_created_by character varying(255),
+    version_notes text,
+    change_reason character varying(500),
+    parent_version_id uuid,
+    version_status character varying(50),
+    approved_version_id uuid,
+    approved_at timestamp with time zone,
+    approved_by character varying(255)
+);
+
+
+--
+-- Name: scoping_submissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.scoping_submissions (
+    submission_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    submission_notes text,
+    total_attributes integer NOT NULL,
+    scoped_attributes integer NOT NULL,
+    skipped_attributes integer NOT NULL,
+    submitted_by integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    version integer DEFAULT 1 NOT NULL,
+    previous_version_id integer,
+    changes_from_previous json,
+    revision_reason text
+);
+
+
+--
+-- Name: scoping_submissions_submission_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.scoping_submissions_submission_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: scoping_submissions_submission_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.scoping_submissions_submission_id_seq OWNED BY public.scoping_submissions.submission_id;
+
+
+--
+-- Name: sla_configurations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sla_configurations (
+    sla_config_id integer NOT NULL,
+    sla_type public.slatype NOT NULL,
+    sla_hours integer NOT NULL,
+    warning_hours integer,
+    escalation_enabled boolean NOT NULL,
+    is_active boolean NOT NULL,
+    business_hours_only boolean NOT NULL,
+    weekend_excluded boolean NOT NULL,
+    auto_escalate_on_breach boolean NOT NULL,
+    escalation_interval_hours integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: sla_configurations_sla_config_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.sla_configurations_sla_config_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: sla_configurations_sla_config_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.sla_configurations_sla_config_id_seq OWNED BY public.sla_configurations.sla_config_id;
+
+
+--
+-- Name: sla_escalation_rules; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sla_escalation_rules (
+    escalation_rule_id integer NOT NULL,
+    sla_config_id integer NOT NULL,
+    escalation_level public.escalationlevel NOT NULL,
+    escalation_order integer NOT NULL,
+    escalate_to_role character varying(100) NOT NULL,
+    escalate_to_user_id integer,
+    hours_after_breach integer NOT NULL,
+    email_template_subject character varying(255) NOT NULL,
+    email_template_body text NOT NULL,
+    include_managers boolean NOT NULL,
+    is_active boolean NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: sla_escalation_rules_escalation_rule_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.sla_escalation_rules_escalation_rule_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: sla_escalation_rules_escalation_rule_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.sla_escalation_rules_escalation_rule_id_seq OWNED BY public.sla_escalation_rules.escalation_rule_id;
+
+
+--
+-- Name: sla_violation_tracking; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sla_violation_tracking (
+    violation_id integer NOT NULL,
+    sla_config_id integer NOT NULL,
+    report_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    started_at timestamp without time zone NOT NULL,
+    due_date timestamp without time zone NOT NULL,
+    warning_date timestamp without time zone,
+    completed_at timestamp without time zone,
+    is_violated boolean NOT NULL,
+    violated_at timestamp without time zone,
+    violation_hours integer,
+    current_escalation_level public.escalationlevel,
+    escalation_count integer NOT NULL,
+    last_escalated_at timestamp without time zone,
+    is_resolved boolean NOT NULL,
+    resolved_at timestamp without time zone,
+    resolution_notes text,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: sla_violation_tracking_violation_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.sla_violation_tracking_violation_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: sla_violation_tracking_violation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.sla_violation_tracking_violation_id_seq OWNED BY public.sla_violation_tracking.violation_id;
+
+
+--
+-- Name: submission_documents; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.submission_documents (
+    document_id integer NOT NULL,
+    phase_id character varying(36) NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    data_provider_id integer NOT NULL,
+    document_type public.document_type_enum NOT NULL,
+    original_filename character varying(255) NOT NULL,
+    stored_filename character varying(255) NOT NULL,
+    file_path character varying(500) NOT NULL,
+    file_size integer NOT NULL,
+    file_hash character varying(64) NOT NULL,
+    mime_type character varying(100) NOT NULL,
+    sample_records jsonb NOT NULL,
+    attributes jsonb NOT NULL,
+    description text NOT NULL,
+    notes text,
+    validation_status public.validation_status_enum NOT NULL,
+    validation_messages jsonb,
+    validation_score double precision,
+    uploaded_at timestamp with time zone NOT NULL,
+    validated_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: submission_documents_document_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.submission_documents_document_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: submission_documents_document_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.submission_documents_document_id_seq OWNED BY public.submission_documents.document_id;
+
+
+--
+-- Name: submission_reminders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.submission_reminders (
+    reminder_id character varying(36) NOT NULL,
+    phase_id character varying(36) NOT NULL,
+    data_provider_id integer NOT NULL,
+    reminder_type character varying(50) NOT NULL,
+    custom_message text,
+    days_before_deadline integer,
+    scheduled_at timestamp with time zone NOT NULL,
+    sent_at timestamp with time zone,
+    delivery_status character varying(50) NOT NULL,
+    delivery_attempts integer NOT NULL,
+    error_message text,
+    viewed_at timestamp with time zone,
+    responded_at timestamp with time zone,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: submission_validations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.submission_validations (
+    validation_id character varying(36) NOT NULL,
+    submission_id integer NOT NULL,
+    validation_type character varying(100) NOT NULL,
+    status public.validation_status_enum NOT NULL,
+    message text NOT NULL,
+    severity character varying(20) NOT NULL,
+    recommendation text,
+    rule_applied character varying(200),
+    validated_at timestamp with time zone NOT NULL,
+    validated_by character varying(100) NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: test_cases; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.test_cases (
+    test_case_id character varying(36) NOT NULL,
+    phase_id character varying(36) NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    sample_id character varying(36) NOT NULL,
+    sample_identifier character varying(255) NOT NULL,
+    data_owner_id integer NOT NULL,
+    assigned_by integer NOT NULL,
+    assigned_at timestamp with time zone NOT NULL,
+    attribute_name character varying(255) NOT NULL,
+    primary_key_attributes jsonb NOT NULL,
+    expected_evidence_type character varying(100),
+    special_instructions text,
+    status public.test_case_status_enum NOT NULL,
+    submission_deadline timestamp with time zone,
+    submitted_at timestamp with time zone,
+    acknowledged_at timestamp with time zone,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: test_comparisons; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.test_comparisons (
+    comparison_id integer NOT NULL,
+    execution_ids jsonb NOT NULL,
+    comparison_criteria jsonb NOT NULL,
+    comparison_results jsonb NOT NULL,
+    consistency_score double precision NOT NULL,
+    differences_found jsonb,
+    recommendations jsonb,
+    analysis_method_used character varying(100),
+    statistical_metrics jsonb,
+    compared_at timestamp with time zone NOT NULL,
+    comparison_duration_ms integer NOT NULL,
+    compared_by integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: test_comparisons_comparison_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.test_comparisons_comparison_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: test_comparisons_comparison_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.test_comparisons_comparison_id_seq OWNED BY public.test_comparisons.comparison_id;
+
+
+--
+-- Name: test_cycles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.test_cycles (
+    cycle_id integer NOT NULL,
+    cycle_name character varying(255) NOT NULL,
+    description text,
+    test_manager_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    start_date date NOT NULL,
+    end_date date,
+    status character varying(50) NOT NULL,
+    workflow_id character varying(255)
+);
+
+
+--
+-- Name: COLUMN test_cycles.workflow_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.test_cycles.workflow_id IS 'Temporal workflow ID for tracking workflow execution';
+
+
+--
+-- Name: test_cycles_cycle_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.test_cycles_cycle_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: test_cycles_cycle_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.test_cycles_cycle_id_seq OWNED BY public.test_cycles.cycle_id;
+
+
+--
+-- Name: test_execution_audit_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.test_execution_audit_logs (
+    log_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_id character varying(36),
+    action character varying(100) NOT NULL,
+    entity_type character varying(50) NOT NULL,
+    entity_id character varying(100),
+    performed_by integer NOT NULL,
+    performed_at timestamp with time zone NOT NULL,
+    old_values jsonb,
+    new_values jsonb,
+    notes text,
+    ip_address character varying(45),
+    user_agent text,
+    execution_time_ms integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: test_execution_audit_logs_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.test_execution_audit_logs_log_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: test_execution_audit_logs_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.test_execution_audit_logs_log_id_seq OWNED BY public.test_execution_audit_logs.log_id;
+
+
+--
+-- Name: test_execution_phases; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.test_execution_phases (
+    phase_id character varying(36) NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_status character varying(50) NOT NULL,
+    planned_start_date timestamp with time zone,
+    planned_end_date timestamp with time zone,
+    testing_deadline timestamp with time zone NOT NULL,
+    test_strategy text,
+    instructions text,
+    started_at timestamp with time zone,
+    started_by integer,
+    completed_at timestamp with time zone,
+    completed_by integer,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: test_execution_versions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.test_execution_versions (
+    execution_version_id uuid DEFAULT gen_random_uuid() NOT NULL,
+    execution_id uuid NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    sample_id integer NOT NULL,
+    test_results jsonb NOT NULL,
+    document_results jsonb,
+    database_results jsonb,
+    overall_result character varying(20),
+    confidence_score double precision,
+    issues_identified jsonb,
+    requires_resubmission boolean,
+    resubmission_reason text,
+    evidence_files jsonb,
+    screenshots jsonb,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    version_number integer NOT NULL,
+    is_latest_version boolean NOT NULL,
+    version_created_at timestamp with time zone,
+    version_created_by character varying(255),
+    version_notes text,
+    change_reason character varying(500),
+    parent_version_id uuid,
+    version_status character varying(50),
+    approved_version_id uuid,
+    approved_at timestamp with time zone,
+    approved_by character varying(255)
+);
+
+
+--
+-- Name: test_executions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.test_executions (
+    execution_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    sample_id integer,
+    attribute_id integer,
+    test_run_number integer NOT NULL,
+    source_value text,
+    expected_value text,
+    test_result public.test_result_enum,
+    discrepancy_details text,
+    data_source_type public.data_source_type_enum,
+    data_source_id integer,
+    document_id integer,
+    table_name character varying(255),
+    column_name character varying(255),
+    executed_at timestamp with time zone NOT NULL,
+    executed_by integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: test_executions_execution_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.test_executions_execution_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: test_executions_execution_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.test_executions_execution_id_seq OWNED BY public.test_executions.execution_id;
+
+
+--
+-- Name: test_report_phases; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.test_report_phases (
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    phase_id character varying NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    include_executive_summary boolean,
+    include_phase_artifacts boolean,
+    include_detailed_observations boolean,
+    include_metrics_dashboard boolean,
+    report_title character varying,
+    report_period character varying,
+    regulatory_references json,
+    final_report_document_id integer,
+    report_generated_at timestamp without time zone,
+    report_approved_by json,
+    status character varying
+);
+
+
+--
+-- Name: test_report_sections; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.test_report_sections (
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    section_id integer NOT NULL,
+    phase_id character varying NOT NULL,
+    section_name character varying NOT NULL,
+    section_order integer NOT NULL,
+    section_type character varying NOT NULL,
+    content_text text,
+    content_data json,
+    artifacts json,
+    metrics_summary json
+);
+
+
+--
+-- Name: test_report_sections_section_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.test_report_sections_section_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: test_report_sections_section_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.test_report_sections_section_id_seq OWNED BY public.test_report_sections.section_id;
+
+
+--
+-- Name: test_result_reviews; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.test_result_reviews (
+    review_id integer NOT NULL,
+    execution_id integer NOT NULL,
+    reviewer_id integer NOT NULL,
+    review_result public.review_status_enum NOT NULL,
+    reviewer_comments text NOT NULL,
+    recommended_action character varying(200),
+    requires_retest boolean NOT NULL,
+    accuracy_score double precision,
+    completeness_score double precision,
+    consistency_score double precision,
+    overall_score double precision,
+    review_criteria_used jsonb,
+    supporting_evidence text,
+    reviewed_at timestamp with time zone NOT NULL,
+    review_duration_ms integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: test_result_reviews_review_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.test_result_reviews_review_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: test_result_reviews_review_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.test_result_reviews_review_id_seq OWNED BY public.test_result_reviews.review_id;
+
+
+--
+-- Name: tester_scoping_decisions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tester_scoping_decisions (
+    decision_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    attribute_id integer NOT NULL,
+    recommendation_id integer,
+    decision public.scoping_decision_enum NOT NULL,
+    final_scoping boolean NOT NULL,
+    tester_rationale text,
+    override_reason text,
+    decided_by integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: tester_scoping_decisions_decision_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tester_scoping_decisions_decision_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tester_scoping_decisions_decision_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tester_scoping_decisions_decision_id_seq OWNED BY public.tester_scoping_decisions.decision_id;
+
+
+--
+-- Name: testing_execution_audit_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.testing_execution_audit_logs (
+    log_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_id character varying(36),
+    action character varying(100) NOT NULL,
+    entity_type character varying(50) NOT NULL,
+    entity_id character varying(100),
+    performed_by integer NOT NULL,
+    performed_at timestamp with time zone NOT NULL,
+    old_values jsonb,
+    new_values jsonb,
+    notes text,
+    ip_address character varying(45),
+    user_agent text,
+    execution_time_ms integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: testing_execution_audit_logs_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.testing_execution_audit_logs_log_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: testing_execution_audit_logs_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.testing_execution_audit_logs_log_id_seq OWNED BY public.testing_execution_audit_logs.log_id;
+
+
+--
+-- Name: testing_execution_phases; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.testing_execution_phases (
+    phase_id character varying(36) NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_status character varying(50) NOT NULL,
+    planned_start_date timestamp with time zone,
+    planned_end_date timestamp with time zone,
+    testing_deadline timestamp with time zone NOT NULL,
+    test_strategy text,
+    instructions text,
+    started_at timestamp with time zone,
+    started_by integer,
+    completed_at timestamp with time zone,
+    completed_by integer,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
+);
+
+
+--
+-- Name: testing_test_executions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.testing_test_executions (
+    execution_id integer NOT NULL,
+    phase_id character varying(36) NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    sample_record_id character varying(100) NOT NULL,
+    attribute_id integer NOT NULL,
+    test_type public.test_type_enum NOT NULL,
+    analysis_method public.analysis_method_enum NOT NULL,
+    priority character varying(20) NOT NULL,
+    custom_instructions text,
+    status public.test_status_enum NOT NULL,
+    result public.test_result_enum,
+    confidence_score double precision,
+    execution_summary text,
+    error_message text,
+    document_analysis_id integer,
+    database_test_id integer,
+    started_at timestamp with time zone,
+    completed_at timestamp with time zone,
+    processing_time_ms integer,
+    assigned_tester_id integer,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    data_source_id integer,
+    sample_id integer,
+    executed_by integer
+);
+
+
+--
+-- Name: testing_test_executions_execution_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.testing_test_executions_execution_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: testing_test_executions_execution_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.testing_test_executions_execution_id_seq OWNED BY public.testing_test_executions.execution_id;
+
+
+--
+-- Name: universal_assignment_history; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.universal_assignment_history (
+    history_id integer NOT NULL,
+    assignment_id character varying(36) NOT NULL,
+    changed_by_user_id integer NOT NULL,
+    changed_at timestamp with time zone NOT NULL,
+    action character varying(50) NOT NULL,
+    field_changed character varying(100),
+    old_value text,
+    new_value text,
+    change_reason text,
+    change_metadata jsonb,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: universal_assignment_history_history_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.universal_assignment_history_history_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: universal_assignment_history_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.universal_assignment_history_history_id_seq OWNED BY public.universal_assignment_history.history_id;
+
+
+--
+-- Name: universal_assignments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.universal_assignments (
+    assignment_id character varying(36) NOT NULL,
+    assignment_type public.universal_assignment_type_enum NOT NULL,
+    from_role character varying(50) NOT NULL,
+    to_role character varying(50) NOT NULL,
+    from_user_id integer NOT NULL,
+    to_user_id integer,
+    title character varying(255) NOT NULL,
+    description text,
+    task_instructions text,
+    context_type public.universal_context_type_enum NOT NULL,
+    context_data jsonb,
+    status public.universal_assignment_status_enum NOT NULL,
+    priority public.universal_assignment_priority_enum NOT NULL,
+    assigned_at timestamp with time zone NOT NULL,
+    due_date timestamp with time zone,
+    acknowledged_at timestamp with time zone,
+    started_at timestamp with time zone,
+    completed_at timestamp with time zone,
+    completed_by_user_id integer,
+    completion_notes text,
+    completion_data jsonb,
+    completion_attachments jsonb,
+    requires_approval boolean NOT NULL,
+    approval_role character varying(50),
+    approved_by_user_id integer,
+    approved_at timestamp with time zone,
+    approval_notes text,
+    escalated boolean NOT NULL,
+    escalated_at timestamp with time zone,
+    escalated_to_user_id integer,
+    escalation_reason text,
+    delegated_to_user_id integer,
+    delegated_at timestamp with time zone,
+    delegation_reason text,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    assignment_metadata jsonb,
+    workflow_step character varying(100),
+    parent_assignment_id character varying(36)
+);
+
+
+--
+-- Name: user_permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_permissions (
+    user_id integer NOT NULL,
+    permission_id integer NOT NULL,
+    granted boolean NOT NULL,
+    granted_by integer,
+    granted_at timestamp without time zone DEFAULT now() NOT NULL,
+    expires_at timestamp without time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: user_roles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_roles (
+    user_id integer NOT NULL,
+    role_id integer NOT NULL,
+    assigned_by integer,
+    assigned_at timestamp without time zone DEFAULT now() NOT NULL,
+    expires_at timestamp without time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.users (
+    user_id integer NOT NULL,
+    first_name character varying(100) NOT NULL,
+    last_name character varying(100) NOT NULL,
+    email character varying(255) NOT NULL,
+    phone character varying(20),
+    role public.user_role_enum NOT NULL,
+    lob_id integer,
+    is_active boolean NOT NULL,
+    hashed_password character varying(255) NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: users_user_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.users_user_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: users_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.users_user_id_seq OWNED BY public.users.user_id;
+
+
+--
+-- Name: version_history; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.version_history (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    entity_type character varying(50) NOT NULL,
+    entity_id uuid NOT NULL,
+    entity_name character varying(255),
+    version_number integer NOT NULL,
+    change_type character varying(50) NOT NULL,
+    change_reason text,
+    changed_by character varying(255) NOT NULL,
+    changed_at timestamp with time zone,
+    change_details jsonb,
+    cycle_id uuid,
+    report_id uuid,
+    phase_name character varying(50),
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: workflow_activities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.workflow_activities (
+    activity_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_name character varying(100) NOT NULL,
+    activity_name character varying(255) NOT NULL,
+    activity_type public.activity_type_enum NOT NULL,
+    activity_order integer NOT NULL,
+    status public.activity_status_enum DEFAULT 'NOT_STARTED'::public.activity_status_enum NOT NULL,
+    can_start boolean DEFAULT false NOT NULL,
+    can_complete boolean DEFAULT false NOT NULL,
+    is_manual boolean DEFAULT true NOT NULL,
+    is_optional boolean DEFAULT false NOT NULL,
+    started_at timestamp with time zone,
+    started_by integer,
+    completed_at timestamp with time zone,
+    completed_by integer,
+    revision_requested_at timestamp with time zone,
+    revision_requested_by integer,
+    revision_reason text,
+    blocked_at timestamp with time zone,
+    blocked_reason text,
+    metadata jsonb,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: workflow_activities_activity_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.workflow_activities_activity_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: workflow_activities_activity_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.workflow_activities_activity_id_seq OWNED BY public.workflow_activities.activity_id;
+
+
+--
+-- Name: workflow_activity_dependencies; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.workflow_activity_dependencies (
+    dependency_id integer NOT NULL,
+    phase_name character varying(100) NOT NULL,
+    activity_name character varying(255) NOT NULL,
+    depends_on_activity character varying(255) NOT NULL,
+    dependency_type character varying(50) DEFAULT 'completion'::character varying NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: workflow_activity_dependencies_dependency_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.workflow_activity_dependencies_dependency_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: workflow_activity_dependencies_dependency_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.workflow_activity_dependencies_dependency_id_seq OWNED BY public.workflow_activity_dependencies.dependency_id;
+
+
+--
+-- Name: workflow_activity_history; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.workflow_activity_history (
+    history_id integer NOT NULL,
+    activity_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_name character varying(100) NOT NULL,
+    activity_name character varying(255) NOT NULL,
+    from_status character varying(50),
+    to_status character varying(50) NOT NULL,
+    changed_by integer NOT NULL,
+    changed_at timestamp with time zone DEFAULT now() NOT NULL,
+    change_reason text,
+    metadata jsonb
+);
+
+
+--
+-- Name: workflow_activity_history_history_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.workflow_activity_history_history_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: workflow_activity_history_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.workflow_activity_history_history_id_seq OWNED BY public.workflow_activity_history.history_id;
+
+
+--
+-- Name: workflow_activity_templates; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.workflow_activity_templates (
+    template_id integer NOT NULL,
+    phase_name character varying(100) NOT NULL,
+    activity_name character varying(255) NOT NULL,
+    activity_type public.activity_type_enum NOT NULL,
+    activity_order integer NOT NULL,
+    description text,
+    is_manual boolean DEFAULT true NOT NULL,
+    is_optional boolean DEFAULT false NOT NULL,
+    required_role character varying(100),
+    auto_complete_on_event character varying(100),
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: workflow_activity_templates_template_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.workflow_activity_templates_template_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: workflow_activity_templates_template_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.workflow_activity_templates_template_id_seq OWNED BY public.workflow_activity_templates.template_id;
+
+
+--
+-- Name: workflow_alerts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.workflow_alerts (
+    alert_id integer NOT NULL,
+    execution_id character varying(36),
+    workflow_type character varying(100),
+    phase_name character varying(50),
+    alert_type character varying(50) NOT NULL,
+    severity character varying(20) NOT NULL,
+    threshold_value double precision,
+    actual_value double precision,
+    alert_message text,
+    created_at timestamp with time zone,
+    acknowledged boolean,
+    acknowledged_by integer,
+    acknowledged_at timestamp with time zone,
+    resolved boolean,
+    resolved_at timestamp with time zone,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: workflow_alerts_alert_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.workflow_alerts_alert_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: workflow_alerts_alert_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.workflow_alerts_alert_id_seq OWNED BY public.workflow_alerts.alert_id;
+
+
+--
+-- Name: workflow_executions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.workflow_executions (
+    execution_id character varying(36) NOT NULL,
+    workflow_id character varying(100) NOT NULL,
+    workflow_run_id character varying(100) NOT NULL,
+    workflow_type character varying(100) NOT NULL,
+    workflow_version character varying(20),
+    cycle_id integer NOT NULL,
+    report_id integer,
+    initiated_by integer NOT NULL,
+    status public.workflowexecutionstatus,
+    started_at timestamp with time zone,
+    completed_at timestamp with time zone,
+    duration_seconds double precision,
+    input_data json,
+    output_data json,
+    error_details json,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: workflow_metrics; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.workflow_metrics (
+    metric_id integer NOT NULL,
+    workflow_type character varying(100) NOT NULL,
+    phase_name character varying(50),
+    activity_name character varying(100),
+    step_type public.steptype,
+    period_start timestamp with time zone NOT NULL,
+    period_end timestamp with time zone NOT NULL,
+    execution_count integer,
+    success_count integer,
+    failure_count integer,
+    avg_duration double precision,
+    min_duration double precision,
+    max_duration double precision,
+    p50_duration double precision,
+    p90_duration double precision,
+    p95_duration double precision,
+    p99_duration double precision,
+    avg_retry_count double precision,
+    timeout_count integer,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: workflow_metrics_metric_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.workflow_metrics_metric_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: workflow_metrics_metric_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.workflow_metrics_metric_id_seq OWNED BY public.workflow_metrics.metric_id;
+
+
+--
+-- Name: workflow_phases; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.workflow_phases (
+    phase_id integer NOT NULL,
+    cycle_id integer NOT NULL,
+    report_id integer NOT NULL,
+    phase_name public.workflow_phase_enum NOT NULL,
+    status public.phase_status_enum NOT NULL,
+    planned_start_date date,
+    planned_end_date date,
+    actual_start_date timestamp with time zone,
+    actual_end_date timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    state public.workflow_phase_state_enum DEFAULT 'Not Started'::public.workflow_phase_state_enum NOT NULL,
+    schedule_status public.workflow_phase_status_enum DEFAULT 'On Track'::public.workflow_phase_status_enum NOT NULL,
+    state_override public.workflow_phase_state_enum,
+    status_override public.workflow_phase_status_enum,
+    override_reason text,
+    override_by integer,
+    override_at timestamp with time zone,
+    started_by integer,
+    completed_by integer,
+    notes text,
+    metadata jsonb,
+    phase_data jsonb
+);
+
+
+--
+-- Name: workflow_phases_phase_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.workflow_phases_phase_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: workflow_phases_phase_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.workflow_phases_phase_id_seq OWNED BY public.workflow_phases.phase_id;
+
+
+--
+-- Name: workflow_steps; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.workflow_steps (
+    step_id character varying(36) NOT NULL,
+    execution_id character varying(36) NOT NULL,
+    parent_step_id character varying(36),
+    step_name character varying(100) NOT NULL,
+    step_type public.steptype NOT NULL,
+    phase_name character varying(50),
+    activity_name character varying(100),
+    status public.workflowexecutionstatus,
+    started_at timestamp with time zone,
+    completed_at timestamp with time zone,
+    duration_seconds double precision,
+    attempt_number integer,
+    max_attempts integer,
+    retry_delay_seconds integer,
+    input_data json,
+    output_data json,
+    error_details json,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: workflow_transitions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.workflow_transitions (
+    transition_id character varying(36) NOT NULL,
+    execution_id character varying(36) NOT NULL,
+    from_step_id character varying(36),
+    to_step_id character varying(36),
+    transition_type character varying(50),
+    started_at timestamp with time zone NOT NULL,
+    completed_at timestamp with time zone,
+    duration_seconds double precision,
+    condition_evaluated character varying(200),
+    condition_result boolean,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: attribute_lob_assignments assignment_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_lob_assignments ALTER COLUMN assignment_id SET DEFAULT nextval('public.attribute_lob_assignments_assignment_id_seq'::regclass);
+
+
+--
+-- Name: attribute_profiling_scores score_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_profiling_scores ALTER COLUMN score_id SET DEFAULT nextval('public.attribute_profiling_scores_score_id_seq'::regclass);
+
+
+--
+-- Name: attribute_scoping_recommendations recommendation_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_scoping_recommendations ALTER COLUMN recommendation_id SET DEFAULT nextval('public.attribute_scoping_recommendations_recommendation_id_seq'::regclass);
+
+
+--
+-- Name: attribute_version_change_logs log_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_version_change_logs ALTER COLUMN log_id SET DEFAULT nextval('public.attribute_version_change_logs_log_id_seq'::regclass);
+
+
+--
+-- Name: attribute_version_comparisons comparison_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_version_comparisons ALTER COLUMN comparison_id SET DEFAULT nextval('public.attribute_version_comparisons_comparison_id_seq'::regclass);
+
+
+--
+-- Name: audit_log audit_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audit_log ALTER COLUMN audit_id SET DEFAULT nextval('public.audit_log_audit_id_seq'::regclass);
+
+
+--
+-- Name: bulk_test_executions bulk_execution_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bulk_test_executions ALTER COLUMN bulk_execution_id SET DEFAULT nextval('public.bulk_test_executions_bulk_execution_id_seq'::regclass);
+
+
+--
+-- Name: cdo_notifications notification_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cdo_notifications ALTER COLUMN notification_id SET DEFAULT nextval('public.cdo_notifications_notification_id_seq'::regclass);
+
+
+--
+-- Name: data_owner_assignments assignment_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_assignments ALTER COLUMN assignment_id SET DEFAULT nextval('public.data_owner_assignments_assignment_id_seq'::regclass);
+
+
+--
+-- Name: data_owner_escalation_log email_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_escalation_log ALTER COLUMN email_id SET DEFAULT nextval('public.data_owner_escalation_log_email_id_seq'::regclass);
+
+
+--
+-- Name: data_owner_phase_audit_log audit_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_phase_audit_log ALTER COLUMN audit_id SET DEFAULT nextval('public.data_owner_phase_audit_log_audit_id_seq'::regclass);
+
+
+--
+-- Name: data_owner_sla_violations violation_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_sla_violations ALTER COLUMN violation_id SET DEFAULT nextval('public.data_owner_sla_violations_violation_id_seq'::regclass);
+
+
+--
+-- Name: data_profiling_files file_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_files ALTER COLUMN file_id SET DEFAULT nextval('public.data_profiling_files_file_id_seq'::regclass);
+
+
+--
+-- Name: data_profiling_phases phase_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_phases ALTER COLUMN phase_id SET DEFAULT nextval('public.data_profiling_phases_phase_id_seq'::regclass);
+
+
+--
+-- Name: data_provider_assignments assignment_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_assignments ALTER COLUMN assignment_id SET DEFAULT nextval('public.data_provider_assignments_assignment_id_seq'::regclass);
+
+
+--
+-- Name: data_provider_escalation_log email_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_escalation_log ALTER COLUMN email_id SET DEFAULT nextval('public.data_provider_escalation_log_email_id_seq'::regclass);
+
+
+--
+-- Name: data_provider_phase_audit_log audit_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_phase_audit_log ALTER COLUMN audit_id SET DEFAULT nextval('public.data_provider_phase_audit_log_audit_id_seq'::regclass);
+
+
+--
+-- Name: data_provider_sla_violations violation_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_sla_violations ALTER COLUMN violation_id SET DEFAULT nextval('public.data_provider_sla_violations_violation_id_seq'::regclass);
+
+
+--
+-- Name: data_provider_submissions submission_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_submissions ALTER COLUMN submission_id SET DEFAULT nextval('public.data_provider_submissions_submission_id_seq'::regclass);
+
+
+--
+-- Name: data_sources data_source_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_sources ALTER COLUMN data_source_id SET DEFAULT nextval('public.data_sources_data_source_id_seq'::regclass);
+
+
+--
+-- Name: database_tests test_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.database_tests ALTER COLUMN test_id SET DEFAULT nextval('public.database_tests_test_id_seq'::regclass);
+
+
+--
+-- Name: document_access_logs log_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_access_logs ALTER COLUMN log_id SET DEFAULT nextval('public.document_access_logs_log_id_seq'::regclass);
+
+
+--
+-- Name: document_analyses analysis_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_analyses ALTER COLUMN analysis_id SET DEFAULT nextval('public.document_analyses_analysis_id_seq'::regclass);
+
+
+--
+-- Name: document_extractions extraction_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_extractions ALTER COLUMN extraction_id SET DEFAULT nextval('public.document_extractions_extraction_id_seq'::regclass);
+
+
+--
+-- Name: document_revisions revision_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_revisions ALTER COLUMN revision_id SET DEFAULT nextval('public.document_revisions_revision_id_seq'::regclass);
+
+
+--
+-- Name: documents document_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents ALTER COLUMN document_id SET DEFAULT nextval('public.documents_document_id_seq'::regclass);
+
+
+--
+-- Name: escalation_email_logs log_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_email_logs ALTER COLUMN log_id SET DEFAULT nextval('public.escalation_email_logs_log_id_seq'::regclass);
+
+
+--
+-- Name: historical_data_owner_assignments history_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.historical_data_owner_assignments ALTER COLUMN history_id SET DEFAULT nextval('public.historical_data_owner_assignments_history_id_seq'::regclass);
+
+
+--
+-- Name: historical_data_provider_assignments history_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.historical_data_provider_assignments ALTER COLUMN history_id SET DEFAULT nextval('public.historical_data_provider_assignments_history_id_seq'::regclass);
+
+
+--
+-- Name: individual_samples id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.individual_samples ALTER COLUMN id SET DEFAULT nextval('public.individual_samples_id_seq'::regclass);
+
+
+--
+-- Name: llm_audit_log log_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llm_audit_log ALTER COLUMN log_id SET DEFAULT nextval('public.llm_audit_log_log_id_seq'::regclass);
+
+
+--
+-- Name: lobs lob_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lobs ALTER COLUMN lob_id SET DEFAULT nextval('public.lobs_lob_id_seq'::regclass);
+
+
+--
+-- Name: observation_approvals approval_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_approvals ALTER COLUMN approval_id SET DEFAULT nextval('public.observation_approvals_approval_id_seq'::regclass);
+
+
+--
+-- Name: observation_clarifications clarification_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_clarifications ALTER COLUMN clarification_id SET DEFAULT nextval('public.observation_clarifications_clarification_id_seq'::regclass);
+
+
+--
+-- Name: observation_groups group_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_groups ALTER COLUMN group_id SET DEFAULT nextval('public.observation_groups_group_id_seq'::regclass);
+
+
+--
+-- Name: observation_impact_assessments assessment_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_impact_assessments ALTER COLUMN assessment_id SET DEFAULT nextval('public.observation_impact_assessments_assessment_id_seq'::regclass);
+
+
+--
+-- Name: observation_management_audit_logs log_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_management_audit_logs ALTER COLUMN log_id SET DEFAULT nextval('public.observation_management_audit_logs_log_id_seq'::regclass);
+
+
+--
+-- Name: observation_records observation_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records ALTER COLUMN observation_id SET DEFAULT nextval('public.observation_records_observation_id_seq1'::regclass);
+
+
+--
+-- Name: observation_records_backup observation_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records_backup ALTER COLUMN observation_id SET DEFAULT nextval('public.observation_records_observation_id_seq'::regclass);
+
+
+--
+-- Name: observation_resolutions resolution_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_resolutions ALTER COLUMN resolution_id SET DEFAULT nextval('public.observation_resolutions_resolution_id_seq'::regclass);
+
+
+--
+-- Name: observations observation_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observations ALTER COLUMN observation_id SET DEFAULT nextval('public.observations_observation_id_seq'::regclass);
+
+
+--
+-- Name: permission_audit_log audit_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.permission_audit_log ALTER COLUMN audit_id SET DEFAULT nextval('public.permission_audit_log_audit_id_seq'::regclass);
+
+
+--
+-- Name: permissions permission_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.permissions ALTER COLUMN permission_id SET DEFAULT nextval('public.permissions_permission_id_seq'::regclass);
+
+
+--
+-- Name: profiling_results result_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.profiling_results ALTER COLUMN result_id SET DEFAULT nextval('public.profiling_results_result_id_seq'::regclass);
+
+
+--
+-- Name: profiling_rules rule_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.profiling_rules ALTER COLUMN rule_id SET DEFAULT nextval('public.profiling_rules_rule_id_seq'::regclass);
+
+
+--
+-- Name: regulatory_data_dictionary dict_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.regulatory_data_dictionary ALTER COLUMN dict_id SET DEFAULT nextval('public.regulatory_data_dictionary_dict_id_seq'::regclass);
+
+
+--
+-- Name: report_attributes attribute_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_attributes ALTER COLUMN attribute_id SET DEFAULT nextval('public.report_attributes_attribute_id_seq'::regclass);
+
+
+--
+-- Name: report_owner_assignment_history history_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_assignment_history ALTER COLUMN history_id SET DEFAULT nextval('public.report_owner_assignment_history_history_id_seq'::regclass);
+
+
+--
+-- Name: report_owner_assignments assignment_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_assignments ALTER COLUMN assignment_id SET DEFAULT nextval('public.report_owner_assignments_assignment_id_seq'::regclass);
+
+
+--
+-- Name: report_owner_scoping_reviews review_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_scoping_reviews ALTER COLUMN review_id SET DEFAULT nextval('public.report_owner_scoping_reviews_review_id_seq'::regclass);
+
+
+--
+-- Name: reports report_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reports ALTER COLUMN report_id SET DEFAULT nextval('public.reports_report_id_seq'::regclass);
+
+
+--
+-- Name: request_info_audit_logs log_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_audit_logs ALTER COLUMN log_id SET DEFAULT nextval('public.request_info_audit_logs_log_id_seq'::regclass);
+
+
+--
+-- Name: resource_permissions resource_permission_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resource_permissions ALTER COLUMN resource_permission_id SET DEFAULT nextval('public.resource_permissions_resource_permission_id_seq'::regclass);
+
+
+--
+-- Name: resources resource_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resources ALTER COLUMN resource_id SET DEFAULT nextval('public.resources_resource_id_seq'::regclass);
+
+
+--
+-- Name: roles role_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.roles ALTER COLUMN role_id SET DEFAULT nextval('public.roles_role_id_seq'::regclass);
+
+
+--
+-- Name: sample_audit_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_audit_logs ALTER COLUMN id SET DEFAULT nextval('public.sample_audit_logs_id_seq'::regclass);
+
+
+--
+-- Name: sample_feedback id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_feedback ALTER COLUMN id SET DEFAULT nextval('public.sample_feedback_id_seq'::regclass);
+
+
+--
+-- Name: sample_selection_phases phase_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_selection_phases ALTER COLUMN phase_id SET DEFAULT nextval('public.sample_selection_phases_phase_id_seq'::regclass);
+
+
+--
+-- Name: sample_submission_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_submission_items ALTER COLUMN id SET DEFAULT nextval('public.sample_submission_items_id_seq'::regclass);
+
+
+--
+-- Name: sample_submissions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_submissions ALTER COLUMN id SET DEFAULT nextval('public.sample_submissions_id_seq'::regclass);
+
+
+--
+-- Name: samples sample_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.samples ALTER COLUMN sample_id SET DEFAULT nextval('public.samples_sample_id_seq'::regclass);
+
+
+--
+-- Name: scoping_audit_log audit_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_audit_log ALTER COLUMN audit_id SET DEFAULT nextval('public.scoping_audit_log_audit_id_seq'::regclass);
+
+
+--
+-- Name: scoping_submissions submission_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_submissions ALTER COLUMN submission_id SET DEFAULT nextval('public.scoping_submissions_submission_id_seq'::regclass);
+
+
+--
+-- Name: sla_configurations sla_config_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sla_configurations ALTER COLUMN sla_config_id SET DEFAULT nextval('public.sla_configurations_sla_config_id_seq'::regclass);
+
+
+--
+-- Name: sla_escalation_rules escalation_rule_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sla_escalation_rules ALTER COLUMN escalation_rule_id SET DEFAULT nextval('public.sla_escalation_rules_escalation_rule_id_seq'::regclass);
+
+
+--
+-- Name: sla_violation_tracking violation_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sla_violation_tracking ALTER COLUMN violation_id SET DEFAULT nextval('public.sla_violation_tracking_violation_id_seq'::regclass);
+
+
+--
+-- Name: submission_documents document_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.submission_documents ALTER COLUMN document_id SET DEFAULT nextval('public.submission_documents_document_id_seq'::regclass);
+
+
+--
+-- Name: test_comparisons comparison_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_comparisons ALTER COLUMN comparison_id SET DEFAULT nextval('public.test_comparisons_comparison_id_seq'::regclass);
+
+
+--
+-- Name: test_cycles cycle_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_cycles ALTER COLUMN cycle_id SET DEFAULT nextval('public.test_cycles_cycle_id_seq'::regclass);
+
+
+--
+-- Name: test_execution_audit_logs log_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_audit_logs ALTER COLUMN log_id SET DEFAULT nextval('public.test_execution_audit_logs_log_id_seq'::regclass);
+
+
+--
+-- Name: test_executions execution_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_executions ALTER COLUMN execution_id SET DEFAULT nextval('public.test_executions_execution_id_seq'::regclass);
+
+
+--
+-- Name: test_report_sections section_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_report_sections ALTER COLUMN section_id SET DEFAULT nextval('public.test_report_sections_section_id_seq'::regclass);
+
+
+--
+-- Name: test_result_reviews review_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_result_reviews ALTER COLUMN review_id SET DEFAULT nextval('public.test_result_reviews_review_id_seq'::regclass);
+
+
+--
+-- Name: tester_scoping_decisions decision_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tester_scoping_decisions ALTER COLUMN decision_id SET DEFAULT nextval('public.tester_scoping_decisions_decision_id_seq'::regclass);
+
+
+--
+-- Name: testing_execution_audit_logs log_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_execution_audit_logs ALTER COLUMN log_id SET DEFAULT nextval('public.testing_execution_audit_logs_log_id_seq'::regclass);
+
+
+--
+-- Name: testing_test_executions execution_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_test_executions ALTER COLUMN execution_id SET DEFAULT nextval('public.testing_test_executions_execution_id_seq'::regclass);
+
+
+--
+-- Name: universal_assignment_history history_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.universal_assignment_history ALTER COLUMN history_id SET DEFAULT nextval('public.universal_assignment_history_history_id_seq'::regclass);
+
+
+--
+-- Name: users user_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.users_user_id_seq'::regclass);
+
+
+--
+-- Name: workflow_activities activity_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activities ALTER COLUMN activity_id SET DEFAULT nextval('public.workflow_activities_activity_id_seq'::regclass);
+
+
+--
+-- Name: workflow_activity_dependencies dependency_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activity_dependencies ALTER COLUMN dependency_id SET DEFAULT nextval('public.workflow_activity_dependencies_dependency_id_seq'::regclass);
+
+
+--
+-- Name: workflow_activity_history history_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activity_history ALTER COLUMN history_id SET DEFAULT nextval('public.workflow_activity_history_history_id_seq'::regclass);
+
+
+--
+-- Name: workflow_activity_templates template_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activity_templates ALTER COLUMN template_id SET DEFAULT nextval('public.workflow_activity_templates_template_id_seq'::regclass);
+
+
+--
+-- Name: workflow_alerts alert_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_alerts ALTER COLUMN alert_id SET DEFAULT nextval('public.workflow_alerts_alert_id_seq'::regclass);
+
+
+--
+-- Name: workflow_metrics metric_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_metrics ALTER COLUMN metric_id SET DEFAULT nextval('public.workflow_metrics_metric_id_seq'::regclass);
+
+
+--
+-- Name: workflow_phases phase_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_phases ALTER COLUMN phase_id SET DEFAULT nextval('public.workflow_phases_phase_id_seq'::regclass);
+
+
+--
+-- Name: observation_groups _observation_group_uc; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_groups
+    ADD CONSTRAINT _observation_group_uc UNIQUE (cycle_id, report_id, attribute_id, issue_type);
+
+
+--
+-- Name: alembic_version alembic_version_pkc; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.alembic_version
+    ADD CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num);
+
+
+--
+-- Name: assignment_templates assignment_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.assignment_templates
+    ADD CONSTRAINT assignment_templates_pkey PRIMARY KEY (template_id);
+
+
+--
+-- Name: attribute_lob_assignments attribute_lob_assignments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_lob_assignments
+    ADD CONSTRAINT attribute_lob_assignments_pkey PRIMARY KEY (assignment_id);
+
+
+--
+-- Name: attribute_profiling_scores attribute_profiling_scores_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_profiling_scores
+    ADD CONSTRAINT attribute_profiling_scores_pkey PRIMARY KEY (score_id);
+
+
+--
+-- Name: attribute_scoping_recommendation_versions attribute_scoping_recommendation_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_scoping_recommendation_versions
+    ADD CONSTRAINT attribute_scoping_recommendation_versions_pkey PRIMARY KEY (recommendation_version_id);
+
+
+--
+-- Name: attribute_scoping_recommendations attribute_scoping_recommendations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_scoping_recommendations
+    ADD CONSTRAINT attribute_scoping_recommendations_pkey PRIMARY KEY (recommendation_id);
+
+
+--
+-- Name: attribute_version_change_logs attribute_version_change_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_version_change_logs
+    ADD CONSTRAINT attribute_version_change_logs_pkey PRIMARY KEY (log_id);
+
+
+--
+-- Name: attribute_version_comparisons attribute_version_comparisons_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_version_comparisons
+    ADD CONSTRAINT attribute_version_comparisons_pkey PRIMARY KEY (comparison_id);
+
+
+--
+-- Name: audit_log audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audit_log
+    ADD CONSTRAINT audit_log_pkey PRIMARY KEY (audit_id);
+
+
+--
+-- Name: bulk_test_executions bulk_test_executions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bulk_test_executions
+    ADD CONSTRAINT bulk_test_executions_pkey PRIMARY KEY (bulk_execution_id);
+
+
+--
+-- Name: cdo_notifications cdo_notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cdo_notifications
+    ADD CONSTRAINT cdo_notifications_pkey PRIMARY KEY (notification_id);
+
+
+--
+-- Name: cycle_reports cycle_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cycle_reports
+    ADD CONSTRAINT cycle_reports_pkey PRIMARY KEY (cycle_id, report_id);
+
+
+--
+-- Name: data_owner_assignments data_owner_assignments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_assignments
+    ADD CONSTRAINT data_owner_assignments_pkey PRIMARY KEY (assignment_id);
+
+
+--
+-- Name: data_owner_escalation_log data_owner_escalation_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_escalation_log
+    ADD CONSTRAINT data_owner_escalation_log_pkey PRIMARY KEY (email_id);
+
+
+--
+-- Name: data_owner_notifications data_owner_notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_notifications
+    ADD CONSTRAINT data_owner_notifications_pkey PRIMARY KEY (notification_id);
+
+
+--
+-- Name: data_owner_phase_audit_log data_owner_phase_audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_phase_audit_log
+    ADD CONSTRAINT data_owner_phase_audit_log_pkey PRIMARY KEY (audit_id);
+
+
+--
+-- Name: data_owner_sla_violations data_owner_sla_violations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_sla_violations
+    ADD CONSTRAINT data_owner_sla_violations_pkey PRIMARY KEY (violation_id);
+
+
+--
+-- Name: data_profiling_files data_profiling_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_files
+    ADD CONSTRAINT data_profiling_files_pkey PRIMARY KEY (file_id);
+
+
+--
+-- Name: data_profiling_phases data_profiling_phases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_phases
+    ADD CONSTRAINT data_profiling_phases_pkey PRIMARY KEY (phase_id);
+
+
+--
+-- Name: data_profiling_rule_versions data_profiling_rule_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_rule_versions
+    ADD CONSTRAINT data_profiling_rule_versions_pkey PRIMARY KEY (rule_version_id);
+
+
+--
+-- Name: data_provider_assignments data_provider_assignments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_assignments
+    ADD CONSTRAINT data_provider_assignments_pkey PRIMARY KEY (assignment_id);
+
+
+--
+-- Name: data_provider_escalation_log data_provider_escalation_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_escalation_log
+    ADD CONSTRAINT data_provider_escalation_log_pkey PRIMARY KEY (email_id);
+
+
+--
+-- Name: data_provider_notifications data_provider_notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_notifications
+    ADD CONSTRAINT data_provider_notifications_pkey PRIMARY KEY (notification_id);
+
+
+--
+-- Name: data_provider_phase_audit_log data_provider_phase_audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_phase_audit_log
+    ADD CONSTRAINT data_provider_phase_audit_log_pkey PRIMARY KEY (audit_id);
+
+
+--
+-- Name: data_provider_sla_violations data_provider_sla_violations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_sla_violations
+    ADD CONSTRAINT data_provider_sla_violations_pkey PRIMARY KEY (violation_id);
+
+
+--
+-- Name: data_provider_submissions data_provider_submissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_submissions
+    ADD CONSTRAINT data_provider_submissions_pkey PRIMARY KEY (submission_id);
+
+
+--
+-- Name: data_sources data_sources_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_sources
+    ADD CONSTRAINT data_sources_pkey PRIMARY KEY (data_source_id);
+
+
+--
+-- Name: database_submissions database_submissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.database_submissions
+    ADD CONSTRAINT database_submissions_pkey PRIMARY KEY (db_submission_id);
+
+
+--
+-- Name: database_tests database_tests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.database_tests
+    ADD CONSTRAINT database_tests_pkey PRIMARY KEY (test_id);
+
+
+--
+-- Name: document_access_logs document_access_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_access_logs
+    ADD CONSTRAINT document_access_logs_pkey PRIMARY KEY (log_id);
+
+
+--
+-- Name: document_analyses document_analyses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_analyses
+    ADD CONSTRAINT document_analyses_pkey PRIMARY KEY (analysis_id);
+
+
+--
+-- Name: document_extractions document_extractions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_extractions
+    ADD CONSTRAINT document_extractions_pkey PRIMARY KEY (extraction_id);
+
+
+--
+-- Name: document_revisions document_revisions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_revisions
+    ADD CONSTRAINT document_revisions_pkey PRIMARY KEY (revision_id);
+
+
+--
+-- Name: document_submissions document_submissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_submissions
+    ADD CONSTRAINT document_submissions_pkey PRIMARY KEY (submission_id);
+
+
+--
+-- Name: documents documents_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents
+    ADD CONSTRAINT documents_pkey PRIMARY KEY (document_id);
+
+
+--
+-- Name: escalation_email_logs escalation_email_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_email_logs
+    ADD CONSTRAINT escalation_email_logs_pkey PRIMARY KEY (log_id);
+
+
+--
+-- Name: metrics_execution metrics_execution_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.metrics_execution
+    ADD CONSTRAINT metrics_execution_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: historical_data_owner_assignments historical_data_owner_assignments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.historical_data_owner_assignments
+    ADD CONSTRAINT historical_data_owner_assignments_pkey PRIMARY KEY (history_id);
+
+
+--
+-- Name: historical_data_provider_assignments historical_data_provider_assignments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.historical_data_provider_assignments
+    ADD CONSTRAINT historical_data_provider_assignments_pkey PRIMARY KEY (history_id);
+
+
+--
+-- Name: individual_samples individual_samples_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.individual_samples
+    ADD CONSTRAINT individual_samples_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: llm_audit_log llm_audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llm_audit_log
+    ADD CONSTRAINT llm_audit_log_pkey PRIMARY KEY (log_id);
+
+
+--
+-- Name: llm_sample_generations llm_sample_generations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llm_sample_generations
+    ADD CONSTRAINT llm_sample_generations_pkey PRIMARY KEY (generation_id);
+
+
+--
+-- Name: lobs lobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lobs
+    ADD CONSTRAINT lobs_pkey PRIMARY KEY (lob_id);
+
+
+--
+-- Name: observation_approvals observation_approvals_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_approvals
+    ADD CONSTRAINT observation_approvals_pkey PRIMARY KEY (approval_id);
+
+
+--
+-- Name: observation_clarifications observation_clarifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_clarifications
+    ADD CONSTRAINT observation_clarifications_pkey PRIMARY KEY (clarification_id);
+
+
+--
+-- Name: observation_groups observation_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_groups
+    ADD CONSTRAINT observation_groups_pkey PRIMARY KEY (group_id);
+
+
+--
+-- Name: observation_impact_assessments observation_impact_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_impact_assessments
+    ADD CONSTRAINT observation_impact_assessments_pkey PRIMARY KEY (assessment_id);
+
+
+--
+-- Name: observation_management_audit_logs observation_management_audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_management_audit_logs
+    ADD CONSTRAINT observation_management_audit_logs_pkey PRIMARY KEY (log_id);
+
+
+--
+-- Name: observation_management_phases observation_management_phases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_management_phases
+    ADD CONSTRAINT observation_management_phases_pkey PRIMARY KEY (phase_id);
+
+
+--
+-- Name: observation_records_backup observation_records_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records_backup
+    ADD CONSTRAINT observation_records_pkey PRIMARY KEY (observation_id);
+
+
+--
+-- Name: observation_records observation_records_pkey1; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records
+    ADD CONSTRAINT observation_records_pkey1 PRIMARY KEY (observation_id);
+
+
+--
+-- Name: observation_resolutions observation_resolutions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_resolutions
+    ADD CONSTRAINT observation_resolutions_pkey PRIMARY KEY (resolution_id);
+
+
+--
+-- Name: observation_versions observation_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_versions
+    ADD CONSTRAINT observation_versions_pkey PRIMARY KEY (observation_version_id);
+
+
+--
+-- Name: observations observations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observations
+    ADD CONSTRAINT observations_pkey PRIMARY KEY (observation_id);
+
+
+--
+-- Name: permission_audit_log permission_audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.permission_audit_log
+    ADD CONSTRAINT permission_audit_log_pkey PRIMARY KEY (audit_id);
+
+
+--
+-- Name: permissions permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.permissions
+    ADD CONSTRAINT permissions_pkey PRIMARY KEY (permission_id);
+
+
+--
+-- Name: metrics_phases metrics_phases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.metrics_phases
+    ADD CONSTRAINT metrics_phases_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: profiling_results profiling_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.profiling_results
+    ADD CONSTRAINT profiling_results_pkey PRIMARY KEY (result_id);
+
+
+--
+-- Name: profiling_rules profiling_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.profiling_rules
+    ADD CONSTRAINT profiling_rules_pkey PRIMARY KEY (rule_id);
+
+
+--
+-- Name: regulatory_data_dictionary regulatory_data_dictionary_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.regulatory_data_dictionary
+    ADD CONSTRAINT regulatory_data_dictionary_pkey PRIMARY KEY (dict_id);
+
+
+--
+-- Name: report_attributes report_attributes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_attributes
+    ADD CONSTRAINT report_attributes_pkey PRIMARY KEY (attribute_id);
+
+
+--
+-- Name: report_owner_assignment_history report_owner_assignment_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_assignment_history
+    ADD CONSTRAINT report_owner_assignment_history_pkey PRIMARY KEY (history_id);
+
+
+--
+-- Name: report_owner_assignments report_owner_assignments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_assignments
+    ADD CONSTRAINT report_owner_assignments_pkey PRIMARY KEY (assignment_id);
+
+
+--
+-- Name: report_owner_executives report_owner_executives_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_executives
+    ADD CONSTRAINT report_owner_executives_pkey PRIMARY KEY (executive_id, report_owner_id);
+
+
+--
+-- Name: report_owner_scoping_reviews report_owner_scoping_reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_scoping_reviews
+    ADD CONSTRAINT report_owner_scoping_reviews_pkey PRIMARY KEY (review_id);
+
+
+--
+-- Name: reports reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reports
+    ADD CONSTRAINT reports_pkey PRIMARY KEY (report_id);
+
+
+--
+-- Name: request_info_audit_log request_info_audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_audit_log
+    ADD CONSTRAINT request_info_audit_log_pkey PRIMARY KEY (audit_id);
+
+
+--
+-- Name: request_info_audit_logs request_info_audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_audit_logs
+    ADD CONSTRAINT request_info_audit_logs_pkey PRIMARY KEY (log_id);
+
+
+--
+-- Name: request_info_phases request_info_phases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_phases
+    ADD CONSTRAINT request_info_phases_pkey PRIMARY KEY (phase_id);
+
+
+--
+-- Name: resource_permissions resource_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resource_permissions
+    ADD CONSTRAINT resource_permissions_pkey PRIMARY KEY (resource_permission_id);
+
+
+--
+-- Name: resources resources_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resources
+    ADD CONSTRAINT resources_pkey PRIMARY KEY (resource_id);
+
+
+--
+-- Name: role_hierarchy role_hierarchy_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.role_hierarchy
+    ADD CONSTRAINT role_hierarchy_pkey PRIMARY KEY (parent_role_id, child_role_id);
+
+
+--
+-- Name: role_permissions role_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.role_permissions
+    ADD CONSTRAINT role_permissions_pkey PRIMARY KEY (role_id, permission_id);
+
+
+--
+-- Name: roles roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.roles
+    ADD CONSTRAINT roles_pkey PRIMARY KEY (role_id);
+
+
+--
+-- Name: sample_approval_history sample_approval_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_approval_history
+    ADD CONSTRAINT sample_approval_history_pkey PRIMARY KEY (approval_id);
+
+
+--
+-- Name: sample_audit_logs sample_audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_audit_logs
+    ADD CONSTRAINT sample_audit_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: sample_feedback sample_feedback_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_feedback
+    ADD CONSTRAINT sample_feedback_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: sample_records sample_records_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_records
+    ADD CONSTRAINT sample_records_pkey PRIMARY KEY (record_id);
+
+
+--
+-- Name: sample_selection_audit_log sample_selection_audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_selection_audit_log
+    ADD CONSTRAINT sample_selection_audit_log_pkey PRIMARY KEY (audit_id);
+
+
+--
+-- Name: sample_selection_phases sample_selection_phases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_selection_phases
+    ADD CONSTRAINT sample_selection_phases_pkey PRIMARY KEY (phase_id, id);
+
+
+--
+-- Name: sample_sets sample_sets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_sets
+    ADD CONSTRAINT sample_sets_pkey PRIMARY KEY (set_id);
+
+
+--
+-- Name: sample_submission_items sample_submission_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_submission_items
+    ADD CONSTRAINT sample_submission_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: sample_submissions sample_submissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_submissions
+    ADD CONSTRAINT sample_submissions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: sample_upload_history sample_upload_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_upload_history
+    ADD CONSTRAINT sample_upload_history_pkey PRIMARY KEY (upload_id);
+
+
+--
+-- Name: sample_validation_issues sample_validation_issues_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_validation_issues
+    ADD CONSTRAINT sample_validation_issues_pkey PRIMARY KEY (issue_id);
+
+
+--
+-- Name: sample_validation_results sample_validation_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_validation_results
+    ADD CONSTRAINT sample_validation_results_pkey PRIMARY KEY (validation_id);
+
+
+--
+-- Name: samples samples_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.samples
+    ADD CONSTRAINT samples_pkey PRIMARY KEY (sample_id);
+
+
+--
+-- Name: scoping_audit_log scoping_audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_audit_log
+    ADD CONSTRAINT scoping_audit_log_pkey PRIMARY KEY (audit_id);
+
+
+--
+-- Name: scoping_decision_versions scoping_decision_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_decision_versions
+    ADD CONSTRAINT scoping_decision_versions_pkey PRIMARY KEY (decision_version_id);
+
+
+--
+-- Name: scoping_submissions scoping_submissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_submissions
+    ADD CONSTRAINT scoping_submissions_pkey PRIMARY KEY (submission_id);
+
+
+--
+-- Name: sla_configurations sla_configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sla_configurations
+    ADD CONSTRAINT sla_configurations_pkey PRIMARY KEY (sla_config_id);
+
+
+--
+-- Name: sla_escalation_rules sla_escalation_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sla_escalation_rules
+    ADD CONSTRAINT sla_escalation_rules_pkey PRIMARY KEY (escalation_rule_id);
+
+
+--
+-- Name: sla_violation_tracking sla_violation_tracking_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sla_violation_tracking
+    ADD CONSTRAINT sla_violation_tracking_pkey PRIMARY KEY (violation_id);
+
+
+--
+-- Name: submission_documents submission_documents_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.submission_documents
+    ADD CONSTRAINT submission_documents_pkey PRIMARY KEY (document_id);
+
+
+--
+-- Name: submission_reminders submission_reminders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.submission_reminders
+    ADD CONSTRAINT submission_reminders_pkey PRIMARY KEY (reminder_id);
+
+
+--
+-- Name: submission_validations submission_validations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.submission_validations
+    ADD CONSTRAINT submission_validations_pkey PRIMARY KEY (validation_id);
+
+
+--
+-- Name: test_cases test_cases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_cases
+    ADD CONSTRAINT test_cases_pkey PRIMARY KEY (test_case_id);
+
+
+--
+-- Name: test_comparisons test_comparisons_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_comparisons
+    ADD CONSTRAINT test_comparisons_pkey PRIMARY KEY (comparison_id);
+
+
+--
+-- Name: test_cycles test_cycles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_cycles
+    ADD CONSTRAINT test_cycles_pkey PRIMARY KEY (cycle_id);
+
+
+--
+-- Name: test_execution_audit_logs test_execution_audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_audit_logs
+    ADD CONSTRAINT test_execution_audit_logs_pkey PRIMARY KEY (log_id);
+
+
+--
+-- Name: test_execution_phases test_execution_phases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_phases
+    ADD CONSTRAINT test_execution_phases_pkey PRIMARY KEY (phase_id);
+
+
+--
+-- Name: test_execution_versions test_execution_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_versions
+    ADD CONSTRAINT test_execution_versions_pkey PRIMARY KEY (execution_version_id);
+
+
+--
+-- Name: test_executions test_executions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_executions
+    ADD CONSTRAINT test_executions_pkey PRIMARY KEY (execution_id);
+
+
+--
+-- Name: test_report_phases test_report_phases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_report_phases
+    ADD CONSTRAINT test_report_phases_pkey PRIMARY KEY (phase_id);
+
+
+--
+-- Name: test_report_sections test_report_sections_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_report_sections
+    ADD CONSTRAINT test_report_sections_pkey PRIMARY KEY (section_id);
+
+
+--
+-- Name: test_result_reviews test_result_reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_result_reviews
+    ADD CONSTRAINT test_result_reviews_pkey PRIMARY KEY (review_id);
+
+
+--
+-- Name: tester_scoping_decisions tester_scoping_decisions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tester_scoping_decisions
+    ADD CONSTRAINT tester_scoping_decisions_pkey PRIMARY KEY (decision_id);
+
+
+--
+-- Name: testing_execution_audit_logs testing_execution_audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_execution_audit_logs
+    ADD CONSTRAINT testing_execution_audit_logs_pkey PRIMARY KEY (log_id);
+
+
+--
+-- Name: testing_execution_phases testing_execution_phases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_execution_phases
+    ADD CONSTRAINT testing_execution_phases_pkey PRIMARY KEY (phase_id);
+
+
+--
+-- Name: testing_test_executions testing_test_executions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_test_executions
+    ADD CONSTRAINT testing_test_executions_pkey PRIMARY KEY (execution_id);
+
+
+--
+-- Name: universal_assignment_history universal_assignment_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.universal_assignment_history
+    ADD CONSTRAINT universal_assignment_history_pkey PRIMARY KEY (history_id);
+
+
+--
+-- Name: universal_assignments universal_assignments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.universal_assignments
+    ADD CONSTRAINT universal_assignments_pkey PRIMARY KEY (assignment_id);
+
+
+--
+-- Name: workflow_activity_dependencies uq_activity_dependencies_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activity_dependencies
+    ADD CONSTRAINT uq_activity_dependencies_unique UNIQUE (phase_name, activity_name, depends_on_activity);
+
+
+--
+-- Name: workflow_activity_templates uq_activity_templates_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activity_templates
+    ADD CONSTRAINT uq_activity_templates_unique UNIQUE (phase_name, activity_name);
+
+
+--
+-- Name: permissions uq_resource_action; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.permissions
+    ADD CONSTRAINT uq_resource_action UNIQUE (resource, action);
+
+
+--
+-- Name: resource_permissions uq_user_resource_permission; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resource_permissions
+    ADD CONSTRAINT uq_user_resource_permission UNIQUE (user_id, resource_type, resource_id, permission_id);
+
+
+--
+-- Name: workflow_activities uq_workflow_activities_unique_activity; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activities
+    ADD CONSTRAINT uq_workflow_activities_unique_activity UNIQUE (cycle_id, report_id, phase_name, activity_name);
+
+
+--
+-- Name: user_permissions user_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_permissions
+    ADD CONSTRAINT user_permissions_pkey PRIMARY KEY (user_id, permission_id);
+
+
+--
+-- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_roles
+    ADD CONSTRAINT user_roles_pkey PRIMARY KEY (user_id, role_id);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: version_history version_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.version_history
+    ADD CONSTRAINT version_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: workflow_activities workflow_activities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activities
+    ADD CONSTRAINT workflow_activities_pkey PRIMARY KEY (activity_id);
+
+
+--
+-- Name: workflow_activity_dependencies workflow_activity_dependencies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activity_dependencies
+    ADD CONSTRAINT workflow_activity_dependencies_pkey PRIMARY KEY (dependency_id);
+
+
+--
+-- Name: workflow_activity_history workflow_activity_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activity_history
+    ADD CONSTRAINT workflow_activity_history_pkey PRIMARY KEY (history_id);
+
+
+--
+-- Name: workflow_activity_templates workflow_activity_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activity_templates
+    ADD CONSTRAINT workflow_activity_templates_pkey PRIMARY KEY (template_id);
+
+
+--
+-- Name: workflow_alerts workflow_alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_alerts
+    ADD CONSTRAINT workflow_alerts_pkey PRIMARY KEY (alert_id);
+
+
+--
+-- Name: workflow_executions workflow_executions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_executions
+    ADD CONSTRAINT workflow_executions_pkey PRIMARY KEY (execution_id);
+
+
+--
+-- Name: workflow_metrics workflow_metrics_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_metrics
+    ADD CONSTRAINT workflow_metrics_pkey PRIMARY KEY (metric_id);
+
+
+--
+-- Name: workflow_metrics workflow_metrics_workflow_type_phase_name_activity_name_ste_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_metrics
+    ADD CONSTRAINT workflow_metrics_workflow_type_phase_name_activity_name_ste_key UNIQUE (workflow_type, phase_name, activity_name, step_type, period_start, period_end);
+
+
+--
+-- Name: workflow_phases workflow_phases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_phases
+    ADD CONSTRAINT workflow_phases_pkey PRIMARY KEY (phase_id);
+
+
+--
+-- Name: workflow_steps workflow_steps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_steps
+    ADD CONSTRAINT workflow_steps_pkey PRIMARY KEY (step_id);
+
+
+--
+-- Name: workflow_transitions workflow_transitions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_transitions
+    ADD CONSTRAINT workflow_transitions_pkey PRIMARY KEY (transition_id);
+
+
+--
+-- Name: idx_approval_history_approved_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_approval_history_approved_at ON public.sample_approval_history USING btree (approved_at);
+
+
+--
+-- Name: idx_approval_history_decision; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_approval_history_decision ON public.sample_approval_history USING btree (decision);
+
+
+--
+-- Name: idx_approval_history_set_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_approval_history_set_id ON public.sample_approval_history USING btree (set_id);
+
+
+--
+-- Name: idx_cycle_reports_workflow_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_cycle_reports_workflow_id ON public.cycle_reports USING btree (workflow_id);
+
+
+--
+-- Name: idx_document_submissions_current; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_document_submissions_current ON public.document_submissions USING btree (test_case_id, is_current);
+
+
+--
+-- Name: idx_document_submissions_parent; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_document_submissions_parent ON public.document_submissions USING btree (parent_submission_id);
+
+
+--
+-- Name: idx_metrics_execution_cycle_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_metrics_execution_cycle_id ON public.metrics_execution USING btree (cycle_id);
+
+
+--
+-- Name: idx_metrics_execution_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_metrics_execution_report_id ON public.metrics_execution USING btree (report_id);
+
+
+--
+-- Name: idx_llm_generations_cycle_report; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_llm_generations_cycle_report ON public.llm_sample_generations USING btree (cycle_id, report_id);
+
+
+--
+-- Name: idx_llm_generations_generated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_llm_generations_generated_at ON public.llm_sample_generations USING btree (generated_at);
+
+
+--
+-- Name: idx_metrics_phases_cycle_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_metrics_phases_cycle_id ON public.metrics_phases USING btree (cycle_id);
+
+
+--
+-- Name: idx_metrics_phases_phase_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_metrics_phases_phase_name ON public.metrics_phases USING btree (phase_name);
+
+
+--
+-- Name: idx_metrics_phases_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_metrics_phases_report_id ON public.metrics_phases USING btree (report_id);
+
+
+--
+-- Name: idx_ro_assignment_history_assignment; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_ro_assignment_history_assignment ON public.report_owner_assignment_history USING btree (assignment_id);
+
+
+--
+-- Name: idx_ro_assignment_history_changed_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_ro_assignment_history_changed_at ON public.report_owner_assignment_history USING btree (changed_at);
+
+
+--
+-- Name: idx_ro_assignments_assigned_to; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_ro_assignments_assigned_to ON public.report_owner_assignments USING btree (assigned_to);
+
+
+--
+-- Name: idx_ro_assignments_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_ro_assignments_created_at ON public.report_owner_assignments USING btree (created_at);
+
+
+--
+-- Name: idx_ro_assignments_cycle_report; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_ro_assignments_cycle_report ON public.report_owner_assignments USING btree (cycle_id, report_id);
+
+
+--
+-- Name: idx_ro_assignments_due_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_ro_assignments_due_date ON public.report_owner_assignments USING btree (due_date);
+
+
+--
+-- Name: idx_ro_assignments_phase; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_ro_assignments_phase ON public.report_owner_assignments USING btree (phase_name);
+
+
+--
+-- Name: idx_ro_assignments_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_ro_assignments_status ON public.report_owner_assignments USING btree (status);
+
+
+--
+-- Name: idx_sample_audit_action; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sample_audit_action ON public.sample_selection_audit_log USING btree (action);
+
+
+--
+-- Name: idx_sample_audit_cycle_report; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sample_audit_cycle_report ON public.sample_selection_audit_log USING btree (cycle_id, report_id);
+
+
+--
+-- Name: idx_sample_audit_entity; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sample_audit_entity ON public.sample_selection_audit_log USING btree (entity_type, entity_id);
+
+
+--
+-- Name: idx_sample_audit_performed_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sample_audit_performed_at ON public.sample_selection_audit_log USING btree (performed_at);
+
+
+--
+-- Name: idx_sample_records_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sample_records_identifier ON public.sample_records USING btree (sample_identifier);
+
+
+--
+-- Name: idx_sample_records_set_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sample_records_set_id ON public.sample_records USING btree (set_id);
+
+
+--
+-- Name: idx_sample_records_validation_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sample_records_validation_status ON public.sample_records USING btree (validation_status);
+
+
+--
+-- Name: idx_sample_sets_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sample_sets_created_at ON public.sample_sets USING btree (created_at);
+
+
+--
+-- Name: idx_sample_sets_cycle_report; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sample_sets_cycle_report ON public.sample_sets USING btree (cycle_id, report_id);
+
+
+--
+-- Name: idx_sample_sets_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sample_sets_status ON public.sample_sets USING btree (status);
+
+
+--
+-- Name: idx_upload_history_method; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_upload_history_method ON public.sample_upload_history USING btree (upload_method);
+
+
+--
+-- Name: idx_upload_history_uploaded_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_upload_history_uploaded_at ON public.sample_upload_history USING btree (uploaded_at);
+
+
+--
+-- Name: idx_validation_issues_resolved; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_validation_issues_resolved ON public.sample_validation_issues USING btree (is_resolved);
+
+
+--
+-- Name: idx_validation_issues_severity; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_validation_issues_severity ON public.sample_validation_issues USING btree (severity);
+
+
+--
+-- Name: idx_workflow_alerts_severity; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_workflow_alerts_severity ON public.workflow_alerts USING btree (severity, created_at);
+
+
+--
+-- Name: idx_workflow_alerts_unresolved; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_workflow_alerts_unresolved ON public.workflow_alerts USING btree (resolved, created_at);
+
+
+--
+-- Name: idx_workflow_executions_cycle; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_workflow_executions_cycle ON public.workflow_executions USING btree (cycle_id);
+
+
+--
+-- Name: idx_workflow_executions_started; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_workflow_executions_started ON public.workflow_executions USING btree (started_at);
+
+
+--
+-- Name: idx_workflow_executions_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_workflow_executions_status ON public.workflow_executions USING btree (status);
+
+
+--
+-- Name: idx_workflow_metrics_phase_period; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_workflow_metrics_phase_period ON public.workflow_metrics USING btree (phase_name, period_start);
+
+
+--
+-- Name: idx_workflow_metrics_type_period; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_workflow_metrics_type_period ON public.workflow_metrics USING btree (workflow_type, period_start);
+
+
+--
+-- Name: idx_workflow_steps_execution; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_workflow_steps_execution ON public.workflow_steps USING btree (execution_id);
+
+
+--
+-- Name: idx_workflow_steps_phase; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_workflow_steps_phase ON public.workflow_steps USING btree (phase_name);
+
+
+--
+-- Name: idx_workflow_steps_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_workflow_steps_status ON public.workflow_steps USING btree (status);
+
+
+--
+-- Name: idx_workflow_transitions_execution; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_workflow_transitions_execution ON public.workflow_transitions USING btree (execution_id);
+
+
+--
+-- Name: idx_workflow_transitions_timing; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_workflow_transitions_timing ON public.workflow_transitions USING btree (started_at, completed_at);
+
+
+--
+-- Name: ix_assignment_templates_template_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_assignment_templates_template_id ON public.assignment_templates USING btree (template_id);
+
+
+--
+-- Name: ix_attribute_lob_assignments_assignment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_attribute_lob_assignments_assignment_id ON public.attribute_lob_assignments USING btree (assignment_id);
+
+
+--
+-- Name: ix_attribute_profiling_scores_score_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_attribute_profiling_scores_score_id ON public.attribute_profiling_scores USING btree (score_id);
+
+
+--
+-- Name: ix_attribute_scoping_recommendations_recommendation_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_attribute_scoping_recommendations_recommendation_id ON public.attribute_scoping_recommendations USING btree (recommendation_id);
+
+
+--
+-- Name: ix_attribute_version_change_logs_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_attribute_version_change_logs_log_id ON public.attribute_version_change_logs USING btree (log_id);
+
+
+--
+-- Name: ix_attribute_version_comparisons_comparison_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_attribute_version_comparisons_comparison_id ON public.attribute_version_comparisons USING btree (comparison_id);
+
+
+--
+-- Name: ix_audit_log_action; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_audit_log_action ON public.audit_log USING btree (action);
+
+
+--
+-- Name: ix_audit_log_audit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_audit_log_audit_id ON public.audit_log USING btree (audit_id);
+
+
+--
+-- Name: ix_bulk_test_executions_bulk_execution_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_bulk_test_executions_bulk_execution_id ON public.bulk_test_executions USING btree (bulk_execution_id);
+
+
+--
+-- Name: ix_cdo_notifications_notification_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_cdo_notifications_notification_id ON public.cdo_notifications USING btree (notification_id);
+
+
+--
+-- Name: ix_data_owner_assignments_assignment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_owner_assignments_assignment_id ON public.data_owner_assignments USING btree (assignment_id);
+
+
+--
+-- Name: ix_data_owner_escalation_log_email_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_owner_escalation_log_email_id ON public.data_owner_escalation_log USING btree (email_id);
+
+
+--
+-- Name: ix_data_owner_notifications_notification_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_owner_notifications_notification_id ON public.data_owner_notifications USING btree (notification_id);
+
+
+--
+-- Name: ix_data_owner_phase_audit_log_action; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_owner_phase_audit_log_action ON public.data_owner_phase_audit_log USING btree (action);
+
+
+--
+-- Name: ix_data_owner_phase_audit_log_audit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_owner_phase_audit_log_audit_id ON public.data_owner_phase_audit_log USING btree (audit_id);
+
+
+--
+-- Name: ix_data_owner_sla_violations_violation_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_owner_sla_violations_violation_id ON public.data_owner_sla_violations USING btree (violation_id);
+
+
+--
+-- Name: ix_data_profiling_files_file_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_profiling_files_file_id ON public.data_profiling_files USING btree (file_id);
+
+
+--
+-- Name: ix_data_profiling_phases_phase_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_profiling_phases_phase_id ON public.data_profiling_phases USING btree (phase_id);
+
+
+--
+-- Name: ix_data_provider_assignments_assignment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_provider_assignments_assignment_id ON public.data_provider_assignments USING btree (assignment_id);
+
+
+--
+-- Name: ix_data_provider_escalation_log_email_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_provider_escalation_log_email_id ON public.data_provider_escalation_log USING btree (email_id);
+
+
+--
+-- Name: ix_data_provider_notifications_notification_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_provider_notifications_notification_id ON public.data_provider_notifications USING btree (notification_id);
+
+
+--
+-- Name: ix_data_provider_phase_audit_log_action; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_provider_phase_audit_log_action ON public.data_provider_phase_audit_log USING btree (action);
+
+
+--
+-- Name: ix_data_provider_phase_audit_log_audit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_provider_phase_audit_log_audit_id ON public.data_provider_phase_audit_log USING btree (audit_id);
+
+
+--
+-- Name: ix_data_provider_sla_violations_violation_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_provider_sla_violations_violation_id ON public.data_provider_sla_violations USING btree (violation_id);
+
+
+--
+-- Name: ix_data_provider_submissions_submission_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_provider_submissions_submission_id ON public.data_provider_submissions USING btree (submission_id);
+
+
+--
+-- Name: ix_data_sources_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_sources_data_source_id ON public.data_sources USING btree (data_source_id);
+
+
+--
+-- Name: ix_data_sources_data_source_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_data_sources_data_source_name ON public.data_sources USING btree (data_source_name);
+
+
+--
+-- Name: ix_database_submissions_db_submission_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_database_submissions_db_submission_id ON public.database_submissions USING btree (db_submission_id);
+
+
+--
+-- Name: ix_database_tests_test_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_database_tests_test_id ON public.database_tests USING btree (test_id);
+
+
+--
+-- Name: ix_document_access_logs_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_document_access_logs_log_id ON public.document_access_logs USING btree (log_id);
+
+
+--
+-- Name: ix_document_analyses_analysis_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_document_analyses_analysis_id ON public.document_analyses USING btree (analysis_id);
+
+
+--
+-- Name: ix_document_extractions_attribute_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_document_extractions_attribute_name ON public.document_extractions USING btree (attribute_name);
+
+
+--
+-- Name: ix_document_extractions_extraction_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_document_extractions_extraction_id ON public.document_extractions USING btree (extraction_id);
+
+
+--
+-- Name: ix_document_submissions_data_owner_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_document_submissions_data_owner_id ON public.document_submissions USING btree (data_owner_id);
+
+
+--
+-- Name: ix_document_submissions_submission_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_document_submissions_submission_id ON public.document_submissions USING btree (submission_id);
+
+
+--
+-- Name: ix_documents_document_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_documents_document_id ON public.documents USING btree (document_id);
+
+
+--
+-- Name: ix_documents_document_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_documents_document_name ON public.documents USING btree (document_name);
+
+
+--
+-- Name: ix_documents_document_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_documents_document_type ON public.documents USING btree (document_type);
+
+
+--
+-- Name: ix_documents_file_hash; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_documents_file_hash ON public.documents USING btree (file_hash);
+
+
+--
+-- Name: ix_escalation_email_logs_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_escalation_email_logs_log_id ON public.escalation_email_logs USING btree (log_id);
+
+
+--
+-- Name: ix_historical_data_owner_assignments_attribute_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_historical_data_owner_assignments_attribute_name ON public.historical_data_owner_assignments USING btree (attribute_name);
+
+
+--
+-- Name: ix_historical_data_owner_assignments_history_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_historical_data_owner_assignments_history_id ON public.historical_data_owner_assignments USING btree (history_id);
+
+
+--
+-- Name: ix_historical_data_owner_assignments_report_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_historical_data_owner_assignments_report_name ON public.historical_data_owner_assignments USING btree (report_name);
+
+
+--
+-- Name: ix_historical_data_provider_assignments_attribute_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_historical_data_provider_assignments_attribute_name ON public.historical_data_provider_assignments USING btree (attribute_name);
+
+
+--
+-- Name: ix_historical_data_provider_assignments_history_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_historical_data_provider_assignments_history_id ON public.historical_data_provider_assignments USING btree (history_id);
+
+
+--
+-- Name: ix_historical_data_provider_assignments_report_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_historical_data_provider_assignments_report_name ON public.historical_data_provider_assignments USING btree (report_name);
+
+
+--
+-- Name: ix_individual_samples_cycle_report; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_individual_samples_cycle_report ON public.individual_samples USING btree (cycle_id, report_id);
+
+
+--
+-- Name: ix_individual_samples_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_individual_samples_id ON public.individual_samples USING btree (id);
+
+
+--
+-- Name: ix_individual_samples_sample_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ix_individual_samples_sample_id ON public.individual_samples USING btree (sample_id);
+
+
+--
+-- Name: ix_llm_audit_log_llm_provider; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_llm_audit_log_llm_provider ON public.llm_audit_log USING btree (llm_provider);
+
+
+--
+-- Name: ix_llm_audit_log_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_llm_audit_log_log_id ON public.llm_audit_log USING btree (log_id);
+
+
+--
+-- Name: ix_llm_sample_generations_generation_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_llm_sample_generations_generation_id ON public.llm_sample_generations USING btree (generation_id);
+
+
+--
+-- Name: ix_lobs_lob_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_lobs_lob_id ON public.lobs USING btree (lob_id);
+
+
+--
+-- Name: ix_lobs_lob_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ix_lobs_lob_name ON public.lobs USING btree (lob_name);
+
+
+--
+-- Name: ix_observations_observation_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_observations_observation_id ON public.observations USING btree (observation_id);
+
+
+--
+-- Name: ix_permission_audit_log_audit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_permission_audit_log_audit_id ON public.permission_audit_log USING btree (audit_id);
+
+
+--
+-- Name: ix_permission_audit_log_performed_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_permission_audit_log_performed_at ON public.permission_audit_log USING btree (performed_at);
+
+
+--
+-- Name: ix_permission_audit_log_target_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_permission_audit_log_target_id ON public.permission_audit_log USING btree (target_id);
+
+
+--
+-- Name: ix_permission_audit_log_target_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_permission_audit_log_target_type ON public.permission_audit_log USING btree (target_type);
+
+
+--
+-- Name: ix_permissions_action; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_permissions_action ON public.permissions USING btree (action);
+
+
+--
+-- Name: ix_permissions_permission_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_permissions_permission_id ON public.permissions USING btree (permission_id);
+
+
+--
+-- Name: ix_permissions_resource; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_permissions_resource ON public.permissions USING btree (resource);
+
+
+--
+-- Name: ix_profiling_results_result_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_profiling_results_result_id ON public.profiling_results USING btree (result_id);
+
+
+--
+-- Name: ix_profiling_rules_business_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_profiling_rules_business_key ON public.profiling_rules USING btree (business_key);
+
+
+--
+-- Name: ix_profiling_rules_current_version; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_profiling_rules_current_version ON public.profiling_rules USING btree (is_current_version);
+
+
+--
+-- Name: ix_profiling_rules_rule_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_profiling_rules_rule_id ON public.profiling_rules USING btree (rule_id);
+
+
+--
+-- Name: ix_profiling_rules_version_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_profiling_rules_version_number ON public.profiling_rules USING btree (version_number);
+
+
+--
+-- Name: ix_rdd_item_name_search; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_rdd_item_name_search ON public.regulatory_data_dictionary USING btree (line_item_name);
+
+
+--
+-- Name: ix_rdd_mandatory_search; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_rdd_mandatory_search ON public.regulatory_data_dictionary USING btree (mandatory_or_optional);
+
+
+--
+-- Name: ix_rdd_report_schedule; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_rdd_report_schedule ON public.regulatory_data_dictionary USING btree (report_name, schedule_name);
+
+
+--
+-- Name: ix_regulatory_data_dictionary_line_item_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_regulatory_data_dictionary_line_item_name ON public.regulatory_data_dictionary USING btree (line_item_name);
+
+
+--
+-- Name: ix_regulatory_data_dictionary_mandatory_or_optional; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_regulatory_data_dictionary_mandatory_or_optional ON public.regulatory_data_dictionary USING btree (mandatory_or_optional);
+
+
+--
+-- Name: ix_regulatory_data_dictionary_report_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_regulatory_data_dictionary_report_name ON public.regulatory_data_dictionary USING btree (report_name);
+
+
+--
+-- Name: ix_regulatory_data_dictionary_schedule_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_regulatory_data_dictionary_schedule_name ON public.regulatory_data_dictionary USING btree (schedule_name);
+
+
+--
+-- Name: ix_report_attributes_attribute_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_report_attributes_attribute_id ON public.report_attributes USING btree (attribute_id);
+
+
+--
+-- Name: ix_report_attributes_attribute_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_report_attributes_attribute_name ON public.report_attributes USING btree (attribute_name);
+
+
+--
+-- Name: ix_report_attributes_master_attribute_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_report_attributes_master_attribute_id ON public.report_attributes USING btree (master_attribute_id);
+
+
+--
+-- Name: ix_report_owner_assignment_history_history_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_report_owner_assignment_history_history_id ON public.report_owner_assignment_history USING btree (history_id);
+
+
+--
+-- Name: ix_report_owner_assignments_assignment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_report_owner_assignments_assignment_id ON public.report_owner_assignments USING btree (assignment_id);
+
+
+--
+-- Name: ix_report_owner_assignments_phase_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_report_owner_assignments_phase_name ON public.report_owner_assignments USING btree (phase_name);
+
+
+--
+-- Name: ix_report_owner_scoping_reviews_review_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_report_owner_scoping_reviews_review_id ON public.report_owner_scoping_reviews USING btree (review_id);
+
+
+--
+-- Name: ix_reports_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_reports_report_id ON public.reports USING btree (report_id);
+
+
+--
+-- Name: ix_reports_report_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_reports_report_name ON public.reports USING btree (report_name);
+
+
+--
+-- Name: ix_request_info_audit_log_action; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_request_info_audit_log_action ON public.request_info_audit_log USING btree (action);
+
+
+--
+-- Name: ix_request_info_audit_log_audit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_request_info_audit_log_audit_id ON public.request_info_audit_log USING btree (audit_id);
+
+
+--
+-- Name: ix_request_info_audit_logs_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_request_info_audit_logs_log_id ON public.request_info_audit_logs USING btree (log_id);
+
+
+--
+-- Name: ix_request_info_phases_phase_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_request_info_phases_phase_id ON public.request_info_phases USING btree (phase_id);
+
+
+--
+-- Name: ix_resource_permissions_resource_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_resource_permissions_resource_id ON public.resource_permissions USING btree (resource_id);
+
+
+--
+-- Name: ix_resource_permissions_resource_permission_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_resource_permissions_resource_permission_id ON public.resource_permissions USING btree (resource_permission_id);
+
+
+--
+-- Name: ix_resource_permissions_resource_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_resource_permissions_resource_type ON public.resource_permissions USING btree (resource_type);
+
+
+--
+-- Name: ix_resource_permissions_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_resource_permissions_user_id ON public.resource_permissions USING btree (user_id);
+
+
+--
+-- Name: ix_resources_resource_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_resources_resource_id ON public.resources USING btree (resource_id);
+
+
+--
+-- Name: ix_resources_resource_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ix_resources_resource_name ON public.resources USING btree (resource_name);
+
+
+--
+-- Name: ix_resources_resource_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_resources_resource_type ON public.resources USING btree (resource_type);
+
+
+--
+-- Name: ix_roles_role_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_roles_role_id ON public.roles USING btree (role_id);
+
+
+--
+-- Name: ix_roles_role_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ix_roles_role_name ON public.roles USING btree (role_name);
+
+
+--
+-- Name: ix_sample_approval_history_approval_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_approval_history_approval_id ON public.sample_approval_history USING btree (approval_id);
+
+
+--
+-- Name: ix_sample_audit_logs_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_audit_logs_id ON public.sample_audit_logs USING btree (id);
+
+
+--
+-- Name: ix_sample_audit_logs_sample; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_audit_logs_sample ON public.sample_audit_logs USING btree (sample_id);
+
+
+--
+-- Name: ix_sample_feedback_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_feedback_id ON public.sample_feedback USING btree (id);
+
+
+--
+-- Name: ix_sample_feedback_sample_submission; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_feedback_sample_submission ON public.sample_feedback USING btree (sample_id, submission_id);
+
+
+--
+-- Name: ix_sample_records_record_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_records_record_id ON public.sample_records USING btree (record_id);
+
+
+--
+-- Name: ix_sample_records_sample_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_records_sample_identifier ON public.sample_records USING btree (sample_identifier);
+
+
+--
+-- Name: ix_sample_selection_audit_log_action; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_selection_audit_log_action ON public.sample_selection_audit_log USING btree (action);
+
+
+--
+-- Name: ix_sample_selection_audit_log_audit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_selection_audit_log_audit_id ON public.sample_selection_audit_log USING btree (audit_id);
+
+
+--
+-- Name: ix_sample_selection_phases_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_selection_phases_id ON public.sample_selection_phases USING btree (id);
+
+
+--
+-- Name: ix_sample_sets_set_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_sets_set_id ON public.sample_sets USING btree (set_id);
+
+
+--
+-- Name: ix_sample_sets_set_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_sets_set_name ON public.sample_sets USING btree (set_name);
+
+
+--
+-- Name: ix_sample_submission_items_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_submission_items_id ON public.sample_submission_items USING btree (id);
+
+
+--
+-- Name: ix_sample_submissions_cycle_report; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_submissions_cycle_report ON public.sample_submissions USING btree (cycle_id, report_id);
+
+
+--
+-- Name: ix_sample_submissions_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_submissions_id ON public.sample_submissions USING btree (id);
+
+
+--
+-- Name: ix_sample_submissions_submission_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ix_sample_submissions_submission_id ON public.sample_submissions USING btree (submission_id);
+
+
+--
+-- Name: ix_sample_upload_history_upload_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_upload_history_upload_id ON public.sample_upload_history USING btree (upload_id);
+
+
+--
+-- Name: ix_sample_validation_issues_issue_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_validation_issues_issue_id ON public.sample_validation_issues USING btree (issue_id);
+
+
+--
+-- Name: ix_sample_validation_results_validation_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sample_validation_results_validation_id ON public.sample_validation_results USING btree (validation_id);
+
+
+--
+-- Name: ix_samples_sample_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_samples_sample_id ON public.samples USING btree (sample_id);
+
+
+--
+-- Name: ix_scoping_audit_log_audit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_scoping_audit_log_audit_id ON public.scoping_audit_log USING btree (audit_id);
+
+
+--
+-- Name: ix_scoping_submissions_submission_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_scoping_submissions_submission_id ON public.scoping_submissions USING btree (submission_id);
+
+
+--
+-- Name: ix_sla_configurations_sla_config_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sla_configurations_sla_config_id ON public.sla_configurations USING btree (sla_config_id);
+
+
+--
+-- Name: ix_sla_configurations_sla_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sla_configurations_sla_type ON public.sla_configurations USING btree (sla_type);
+
+
+--
+-- Name: ix_sla_escalation_rules_escalation_rule_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sla_escalation_rules_escalation_rule_id ON public.sla_escalation_rules USING btree (escalation_rule_id);
+
+
+--
+-- Name: ix_sla_violation_tracking_violation_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_sla_violation_tracking_violation_id ON public.sla_violation_tracking USING btree (violation_id);
+
+
+--
+-- Name: ix_submission_documents_document_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_submission_documents_document_id ON public.submission_documents USING btree (document_id);
+
+
+--
+-- Name: ix_submission_reminders_reminder_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_submission_reminders_reminder_id ON public.submission_reminders USING btree (reminder_id);
+
+
+--
+-- Name: ix_submission_validations_validation_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_submission_validations_validation_id ON public.submission_validations USING btree (validation_id);
+
+
+--
+-- Name: ix_test_cases_test_case_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_test_cases_test_case_id ON public.test_cases USING btree (test_case_id);
+
+
+--
+-- Name: ix_test_comparisons_comparison_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_test_comparisons_comparison_id ON public.test_comparisons USING btree (comparison_id);
+
+
+--
+-- Name: ix_test_cycles_cycle_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_test_cycles_cycle_id ON public.test_cycles USING btree (cycle_id);
+
+
+--
+-- Name: ix_test_cycles_cycle_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_test_cycles_cycle_name ON public.test_cycles USING btree (cycle_name);
+
+
+--
+-- Name: ix_test_cycles_cycle_workflow; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_test_cycles_cycle_workflow ON public.test_cycles USING btree (cycle_id, workflow_id);
+
+
+--
+-- Name: ix_test_cycles_workflow_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_test_cycles_workflow_id ON public.test_cycles USING btree (workflow_id);
+
+
+--
+-- Name: ix_test_execution_audit_logs_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_test_execution_audit_logs_log_id ON public.test_execution_audit_logs USING btree (log_id);
+
+
+--
+-- Name: ix_test_execution_phases_phase_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_test_execution_phases_phase_id ON public.test_execution_phases USING btree (phase_id);
+
+
+--
+-- Name: ix_test_executions_execution_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_test_executions_execution_id ON public.test_executions USING btree (execution_id);
+
+
+--
+-- Name: ix_test_report_sections_section_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_test_report_sections_section_id ON public.test_report_sections USING btree (section_id);
+
+
+--
+-- Name: ix_test_result_reviews_review_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_test_result_reviews_review_id ON public.test_result_reviews USING btree (review_id);
+
+
+--
+-- Name: ix_tester_scoping_decisions_decision_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_tester_scoping_decisions_decision_id ON public.tester_scoping_decisions USING btree (decision_id);
+
+
+--
+-- Name: ix_testing_execution_audit_logs_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_testing_execution_audit_logs_log_id ON public.testing_execution_audit_logs USING btree (log_id);
+
+
+--
+-- Name: ix_testing_execution_phases_phase_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_testing_execution_phases_phase_id ON public.testing_execution_phases USING btree (phase_id);
+
+
+--
+-- Name: ix_testing_test_executions_execution_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_testing_test_executions_execution_id ON public.testing_test_executions USING btree (execution_id);
+
+
+--
+-- Name: ix_universal_assignment_history_history_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_universal_assignment_history_history_id ON public.universal_assignment_history USING btree (history_id);
+
+
+--
+-- Name: ix_universal_assignments_assignment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_universal_assignments_assignment_id ON public.universal_assignments USING btree (assignment_id);
+
+
+--
+-- Name: ix_universal_assignments_assignment_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_universal_assignments_assignment_type ON public.universal_assignments USING btree (assignment_type);
+
+
+--
+-- Name: ix_universal_assignments_context_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_universal_assignments_context_type ON public.universal_assignments USING btree (context_type);
+
+
+--
+-- Name: ix_universal_assignments_due_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_universal_assignments_due_date ON public.universal_assignments USING btree (due_date);
+
+
+--
+-- Name: ix_universal_assignments_from_role; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_universal_assignments_from_role ON public.universal_assignments USING btree (from_role);
+
+
+--
+-- Name: ix_universal_assignments_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_universal_assignments_status ON public.universal_assignments USING btree (status);
+
+
+--
+-- Name: ix_universal_assignments_to_role; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_universal_assignments_to_role ON public.universal_assignments USING btree (to_role);
+
+
+--
+-- Name: ix_user_permissions_expires_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_user_permissions_expires_at ON public.user_permissions USING btree (expires_at);
+
+
+--
+-- Name: ix_user_permissions_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_user_permissions_user_id ON public.user_permissions USING btree (user_id);
+
+
+--
+-- Name: ix_user_roles_expires_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_user_roles_expires_at ON public.user_roles USING btree (expires_at);
+
+
+--
+-- Name: ix_user_roles_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_user_roles_user_id ON public.user_roles USING btree (user_id);
+
+
+--
+-- Name: ix_users_email; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX ix_users_email ON public.users USING btree (email);
+
+
+--
+-- Name: ix_users_role; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_users_role ON public.users USING btree (role);
+
+
+--
+-- Name: ix_users_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_users_user_id ON public.users USING btree (user_id);
+
+
+--
+-- Name: ix_workflow_activities_cycle_report; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_workflow_activities_cycle_report ON public.workflow_activities USING btree (cycle_id, report_id);
+
+
+--
+-- Name: ix_workflow_activities_phase; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_workflow_activities_phase ON public.workflow_activities USING btree (cycle_id, report_id, phase_name);
+
+
+--
+-- Name: ix_workflow_activities_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_workflow_activities_status ON public.workflow_activities USING btree (status);
+
+
+--
+-- Name: ix_workflow_phases_phase_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX ix_workflow_phases_phase_id ON public.workflow_phases USING btree (phase_id);
+
+
+--
+-- Name: attribute_lob_assignments attribute_lob_assignments_assigned_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_lob_assignments
+    ADD CONSTRAINT attribute_lob_assignments_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: attribute_lob_assignments attribute_lob_assignments_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_lob_assignments
+    ADD CONSTRAINT attribute_lob_assignments_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: attribute_lob_assignments attribute_lob_assignments_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_lob_assignments
+    ADD CONSTRAINT attribute_lob_assignments_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: attribute_lob_assignments attribute_lob_assignments_lob_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_lob_assignments
+    ADD CONSTRAINT attribute_lob_assignments_lob_id_fkey FOREIGN KEY (lob_id) REFERENCES public.lobs(lob_id);
+
+
+--
+-- Name: attribute_lob_assignments attribute_lob_assignments_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_lob_assignments
+    ADD CONSTRAINT attribute_lob_assignments_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: attribute_profiling_scores attribute_profiling_scores_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_profiling_scores
+    ADD CONSTRAINT attribute_profiling_scores_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: attribute_profiling_scores attribute_profiling_scores_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_profiling_scores
+    ADD CONSTRAINT attribute_profiling_scores_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.data_profiling_phases(phase_id);
+
+
+--
+-- Name: attribute_scoping_recommendation_versions attribute_scoping_recommendation_versions_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_scoping_recommendation_versions
+    ADD CONSTRAINT attribute_scoping_recommendation_versions_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: attribute_scoping_recommendation_versions attribute_scoping_recommendation_versions_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_scoping_recommendation_versions
+    ADD CONSTRAINT attribute_scoping_recommendation_versions_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: attribute_scoping_recommendation_versions attribute_scoping_recommendation_versions_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_scoping_recommendation_versions
+    ADD CONSTRAINT attribute_scoping_recommendation_versions_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: attribute_scoping_recommendations attribute_scoping_recommendations_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_scoping_recommendations
+    ADD CONSTRAINT attribute_scoping_recommendations_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: attribute_scoping_recommendations attribute_scoping_recommendations_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_scoping_recommendations
+    ADD CONSTRAINT attribute_scoping_recommendations_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: attribute_scoping_recommendations attribute_scoping_recommendations_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_scoping_recommendations
+    ADD CONSTRAINT attribute_scoping_recommendations_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: attribute_version_change_logs attribute_version_change_logs_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_version_change_logs
+    ADD CONSTRAINT attribute_version_change_logs_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: attribute_version_change_logs attribute_version_change_logs_changed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_version_change_logs
+    ADD CONSTRAINT attribute_version_change_logs_changed_by_fkey FOREIGN KEY (changed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: attribute_version_comparisons attribute_version_comparisons_compared_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_version_comparisons
+    ADD CONSTRAINT attribute_version_comparisons_compared_by_fkey FOREIGN KEY (compared_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: attribute_version_comparisons attribute_version_comparisons_version_a_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_version_comparisons
+    ADD CONSTRAINT attribute_version_comparisons_version_a_id_fkey FOREIGN KEY (version_a_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: attribute_version_comparisons attribute_version_comparisons_version_b_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attribute_version_comparisons
+    ADD CONSTRAINT attribute_version_comparisons_version_b_id_fkey FOREIGN KEY (version_b_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: audit_log audit_log_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.audit_log
+    ADD CONSTRAINT audit_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: bulk_test_executions bulk_test_executions_initiated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bulk_test_executions
+    ADD CONSTRAINT bulk_test_executions_initiated_by_fkey FOREIGN KEY (initiated_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: bulk_test_executions bulk_test_executions_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bulk_test_executions
+    ADD CONSTRAINT bulk_test_executions_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.testing_execution_phases(phase_id);
+
+
+--
+-- Name: cdo_notifications cdo_notifications_cdo_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cdo_notifications
+    ADD CONSTRAINT cdo_notifications_cdo_id_fkey FOREIGN KEY (cdo_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: cdo_notifications cdo_notifications_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cdo_notifications
+    ADD CONSTRAINT cdo_notifications_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: cdo_notifications cdo_notifications_lob_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cdo_notifications
+    ADD CONSTRAINT cdo_notifications_lob_id_fkey FOREIGN KEY (lob_id) REFERENCES public.lobs(lob_id);
+
+
+--
+-- Name: cdo_notifications cdo_notifications_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cdo_notifications
+    ADD CONSTRAINT cdo_notifications_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: cycle_reports cycle_reports_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cycle_reports
+    ADD CONSTRAINT cycle_reports_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: cycle_reports cycle_reports_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cycle_reports
+    ADD CONSTRAINT cycle_reports_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: cycle_reports cycle_reports_tester_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cycle_reports
+    ADD CONSTRAINT cycle_reports_tester_id_fkey FOREIGN KEY (tester_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_owner_assignments data_owner_assignments_assigned_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_assignments
+    ADD CONSTRAINT data_owner_assignments_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_owner_assignments data_owner_assignments_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_assignments
+    ADD CONSTRAINT data_owner_assignments_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: data_owner_assignments data_owner_assignments_cdo_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_assignments
+    ADD CONSTRAINT data_owner_assignments_cdo_id_fkey FOREIGN KEY (cdo_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_owner_assignments data_owner_assignments_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_assignments
+    ADD CONSTRAINT data_owner_assignments_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: data_owner_assignments data_owner_assignments_data_owner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_assignments
+    ADD CONSTRAINT data_owner_assignments_data_owner_id_fkey FOREIGN KEY (data_owner_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_owner_assignments data_owner_assignments_lob_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_assignments
+    ADD CONSTRAINT data_owner_assignments_lob_id_fkey FOREIGN KEY (lob_id) REFERENCES public.lobs(lob_id);
+
+
+--
+-- Name: data_owner_assignments data_owner_assignments_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_assignments
+    ADD CONSTRAINT data_owner_assignments_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: data_owner_escalation_log data_owner_escalation_log_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_escalation_log
+    ADD CONSTRAINT data_owner_escalation_log_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: data_owner_escalation_log data_owner_escalation_log_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_escalation_log
+    ADD CONSTRAINT data_owner_escalation_log_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: data_owner_escalation_log data_owner_escalation_log_sent_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_escalation_log
+    ADD CONSTRAINT data_owner_escalation_log_sent_by_fkey FOREIGN KEY (sent_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_owner_notifications data_owner_notifications_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_notifications
+    ADD CONSTRAINT data_owner_notifications_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: data_owner_notifications data_owner_notifications_data_owner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_notifications
+    ADD CONSTRAINT data_owner_notifications_data_owner_id_fkey FOREIGN KEY (data_owner_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_owner_notifications data_owner_notifications_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_notifications
+    ADD CONSTRAINT data_owner_notifications_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.request_info_phases(phase_id);
+
+
+--
+-- Name: data_owner_notifications data_owner_notifications_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_notifications
+    ADD CONSTRAINT data_owner_notifications_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: data_owner_phase_audit_log data_owner_phase_audit_log_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_phase_audit_log
+    ADD CONSTRAINT data_owner_phase_audit_log_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: data_owner_phase_audit_log data_owner_phase_audit_log_performed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_phase_audit_log
+    ADD CONSTRAINT data_owner_phase_audit_log_performed_by_fkey FOREIGN KEY (performed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_owner_phase_audit_log data_owner_phase_audit_log_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_phase_audit_log
+    ADD CONSTRAINT data_owner_phase_audit_log_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: data_owner_sla_violations data_owner_sla_violations_assignment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_sla_violations
+    ADD CONSTRAINT data_owner_sla_violations_assignment_id_fkey FOREIGN KEY (assignment_id) REFERENCES public.data_owner_assignments(assignment_id);
+
+
+--
+-- Name: data_owner_sla_violations data_owner_sla_violations_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_sla_violations
+    ADD CONSTRAINT data_owner_sla_violations_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: data_owner_sla_violations data_owner_sla_violations_cdo_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_sla_violations
+    ADD CONSTRAINT data_owner_sla_violations_cdo_id_fkey FOREIGN KEY (cdo_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_owner_sla_violations data_owner_sla_violations_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_sla_violations
+    ADD CONSTRAINT data_owner_sla_violations_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: data_owner_sla_violations data_owner_sla_violations_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_owner_sla_violations
+    ADD CONSTRAINT data_owner_sla_violations_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: data_profiling_files data_profiling_files_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_files
+    ADD CONSTRAINT data_profiling_files_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.data_profiling_phases(phase_id);
+
+
+--
+-- Name: data_profiling_files data_profiling_files_uploaded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_files
+    ADD CONSTRAINT data_profiling_files_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_profiling_phases data_profiling_phases_completed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_phases
+    ADD CONSTRAINT data_profiling_phases_completed_by_fkey FOREIGN KEY (completed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_profiling_phases data_profiling_phases_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_phases
+    ADD CONSTRAINT data_profiling_phases_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: data_profiling_phases data_profiling_phases_data_requested_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_phases
+    ADD CONSTRAINT data_profiling_phases_data_requested_by_fkey FOREIGN KEY (data_requested_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_profiling_phases data_profiling_phases_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_phases
+    ADD CONSTRAINT data_profiling_phases_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: data_profiling_phases data_profiling_phases_started_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_phases
+    ADD CONSTRAINT data_profiling_phases_started_by_fkey FOREIGN KEY (started_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_profiling_rule_versions data_profiling_rule_versions_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_rule_versions
+    ADD CONSTRAINT data_profiling_rule_versions_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: data_profiling_rule_versions data_profiling_rule_versions_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_rule_versions
+    ADD CONSTRAINT data_profiling_rule_versions_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: data_profiling_rule_versions data_profiling_rule_versions_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_profiling_rule_versions
+    ADD CONSTRAINT data_profiling_rule_versions_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: data_provider_assignments data_provider_assignments_assigned_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_assignments
+    ADD CONSTRAINT data_provider_assignments_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_provider_assignments data_provider_assignments_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_assignments
+    ADD CONSTRAINT data_provider_assignments_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: data_provider_assignments data_provider_assignments_cdo_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_assignments
+    ADD CONSTRAINT data_provider_assignments_cdo_id_fkey FOREIGN KEY (cdo_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_provider_assignments data_provider_assignments_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_assignments
+    ADD CONSTRAINT data_provider_assignments_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: data_provider_assignments data_provider_assignments_data_provider_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_assignments
+    ADD CONSTRAINT data_provider_assignments_data_provider_id_fkey FOREIGN KEY (data_provider_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_provider_assignments data_provider_assignments_lob_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_assignments
+    ADD CONSTRAINT data_provider_assignments_lob_id_fkey FOREIGN KEY (lob_id) REFERENCES public.lobs(lob_id);
+
+
+--
+-- Name: data_provider_assignments data_provider_assignments_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_assignments
+    ADD CONSTRAINT data_provider_assignments_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: data_provider_escalation_log data_provider_escalation_log_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_escalation_log
+    ADD CONSTRAINT data_provider_escalation_log_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: data_provider_escalation_log data_provider_escalation_log_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_escalation_log
+    ADD CONSTRAINT data_provider_escalation_log_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: data_provider_escalation_log data_provider_escalation_log_sent_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_escalation_log
+    ADD CONSTRAINT data_provider_escalation_log_sent_by_fkey FOREIGN KEY (sent_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_provider_notifications data_provider_notifications_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_notifications
+    ADD CONSTRAINT data_provider_notifications_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: data_provider_notifications data_provider_notifications_data_provider_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_notifications
+    ADD CONSTRAINT data_provider_notifications_data_provider_id_fkey FOREIGN KEY (data_provider_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_provider_notifications data_provider_notifications_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_notifications
+    ADD CONSTRAINT data_provider_notifications_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.request_info_phases(phase_id);
+
+
+--
+-- Name: data_provider_notifications data_provider_notifications_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_notifications
+    ADD CONSTRAINT data_provider_notifications_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: data_provider_phase_audit_log data_provider_phase_audit_log_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_phase_audit_log
+    ADD CONSTRAINT data_provider_phase_audit_log_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: data_provider_phase_audit_log data_provider_phase_audit_log_performed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_phase_audit_log
+    ADD CONSTRAINT data_provider_phase_audit_log_performed_by_fkey FOREIGN KEY (performed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_provider_phase_audit_log data_provider_phase_audit_log_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_phase_audit_log
+    ADD CONSTRAINT data_provider_phase_audit_log_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: data_provider_sla_violations data_provider_sla_violations_assignment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_sla_violations
+    ADD CONSTRAINT data_provider_sla_violations_assignment_id_fkey FOREIGN KEY (assignment_id) REFERENCES public.data_provider_assignments(assignment_id);
+
+
+--
+-- Name: data_provider_sla_violations data_provider_sla_violations_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_sla_violations
+    ADD CONSTRAINT data_provider_sla_violations_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: data_provider_sla_violations data_provider_sla_violations_cdo_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_sla_violations
+    ADD CONSTRAINT data_provider_sla_violations_cdo_id_fkey FOREIGN KEY (cdo_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_provider_sla_violations data_provider_sla_violations_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_sla_violations
+    ADD CONSTRAINT data_provider_sla_violations_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: data_provider_sla_violations data_provider_sla_violations_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_sla_violations
+    ADD CONSTRAINT data_provider_sla_violations_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: data_provider_submissions data_provider_submissions_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_submissions
+    ADD CONSTRAINT data_provider_submissions_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: data_provider_submissions data_provider_submissions_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_submissions
+    ADD CONSTRAINT data_provider_submissions_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: data_provider_submissions data_provider_submissions_data_provider_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_submissions
+    ADD CONSTRAINT data_provider_submissions_data_provider_id_fkey FOREIGN KEY (data_provider_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: data_provider_submissions data_provider_submissions_database_submission_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_submissions
+    ADD CONSTRAINT data_provider_submissions_database_submission_id_fkey FOREIGN KEY (database_submission_id) REFERENCES public.database_submissions(db_submission_id);
+
+
+--
+-- Name: data_provider_submissions data_provider_submissions_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_submissions
+    ADD CONSTRAINT data_provider_submissions_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.request_info_phases(phase_id);
+
+
+--
+-- Name: data_provider_submissions data_provider_submissions_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_provider_submissions
+    ADD CONSTRAINT data_provider_submissions_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: database_submissions database_submissions_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.database_submissions
+    ADD CONSTRAINT database_submissions_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: database_submissions database_submissions_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.database_submissions
+    ADD CONSTRAINT database_submissions_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: database_submissions database_submissions_data_provider_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.database_submissions
+    ADD CONSTRAINT database_submissions_data_provider_id_fkey FOREIGN KEY (data_provider_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: database_submissions database_submissions_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.database_submissions
+    ADD CONSTRAINT database_submissions_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.request_info_phases(phase_id);
+
+
+--
+-- Name: database_submissions database_submissions_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.database_submissions
+    ADD CONSTRAINT database_submissions_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: database_tests database_tests_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.database_tests
+    ADD CONSTRAINT database_tests_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: database_tests database_tests_database_submission_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.database_tests
+    ADD CONSTRAINT database_tests_database_submission_id_fkey FOREIGN KEY (database_submission_id) REFERENCES public.database_submissions(db_submission_id);
+
+
+--
+-- Name: database_tests database_tests_tested_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.database_tests
+    ADD CONSTRAINT database_tests_tested_by_fkey FOREIGN KEY (tested_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: document_access_logs document_access_logs_document_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_access_logs
+    ADD CONSTRAINT document_access_logs_document_id_fkey FOREIGN KEY (document_id) REFERENCES public.documents(document_id);
+
+
+--
+-- Name: document_access_logs document_access_logs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_access_logs
+    ADD CONSTRAINT document_access_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: document_analyses document_analyses_analyzed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_analyses
+    ADD CONSTRAINT document_analyses_analyzed_by_fkey FOREIGN KEY (analyzed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: document_analyses document_analyses_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_analyses
+    ADD CONSTRAINT document_analyses_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: document_analyses document_analyses_submission_document_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_analyses
+    ADD CONSTRAINT document_analyses_submission_document_id_fkey FOREIGN KEY (submission_document_id) REFERENCES public.submission_documents(document_id);
+
+
+--
+-- Name: document_extractions document_extractions_document_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_extractions
+    ADD CONSTRAINT document_extractions_document_id_fkey FOREIGN KEY (document_id) REFERENCES public.documents(document_id);
+
+
+--
+-- Name: document_extractions document_extractions_validated_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_extractions
+    ADD CONSTRAINT document_extractions_validated_by_user_id_fkey FOREIGN KEY (validated_by_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: document_revisions document_revisions_document_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_revisions
+    ADD CONSTRAINT document_revisions_document_id_fkey FOREIGN KEY (document_id) REFERENCES public.documents(document_id);
+
+
+--
+-- Name: document_revisions document_revisions_previous_document_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_revisions
+    ADD CONSTRAINT document_revisions_previous_document_id_fkey FOREIGN KEY (previous_document_id) REFERENCES public.documents(document_id);
+
+
+--
+-- Name: document_revisions document_revisions_requested_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_revisions
+    ADD CONSTRAINT document_revisions_requested_by_fkey FOREIGN KEY (requested_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: document_revisions document_revisions_reviewed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_revisions
+    ADD CONSTRAINT document_revisions_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: document_revisions document_revisions_test_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_revisions
+    ADD CONSTRAINT document_revisions_test_case_id_fkey FOREIGN KEY (test_case_id) REFERENCES public.test_cases(test_case_id);
+
+
+--
+-- Name: document_revisions document_revisions_uploaded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_revisions
+    ADD CONSTRAINT document_revisions_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: document_submissions document_submissions_data_provider_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_submissions
+    ADD CONSTRAINT document_submissions_data_provider_id_fkey FOREIGN KEY (data_provider_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: document_submissions document_submissions_test_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_submissions
+    ADD CONSTRAINT document_submissions_test_case_id_fkey FOREIGN KEY (test_case_id) REFERENCES public.test_cases(test_case_id);
+
+
+--
+-- Name: document_submissions document_submissions_validated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_submissions
+    ADD CONSTRAINT document_submissions_validated_by_fkey FOREIGN KEY (validated_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: documents documents_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents
+    ADD CONSTRAINT documents_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: documents documents_parent_document_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents
+    ADD CONSTRAINT documents_parent_document_id_fkey FOREIGN KEY (parent_document_id) REFERENCES public.documents(document_id);
+
+
+--
+-- Name: documents documents_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents
+    ADD CONSTRAINT documents_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: documents documents_uploaded_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents
+    ADD CONSTRAINT documents_uploaded_by_user_id_fkey FOREIGN KEY (uploaded_by_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: escalation_email_logs escalation_email_logs_escalation_rule_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_email_logs
+    ADD CONSTRAINT escalation_email_logs_escalation_rule_id_fkey FOREIGN KEY (escalation_rule_id) REFERENCES public.sla_escalation_rules(escalation_rule_id);
+
+
+--
+-- Name: escalation_email_logs escalation_email_logs_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_email_logs
+    ADD CONSTRAINT escalation_email_logs_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: escalation_email_logs escalation_email_logs_sla_violation_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.escalation_email_logs
+    ADD CONSTRAINT escalation_email_logs_sla_violation_id_fkey FOREIGN KEY (sla_violation_id) REFERENCES public.sla_violation_tracking(violation_id);
+
+
+--
+-- Name: metrics_execution metrics_execution_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.metrics_execution
+    ADD CONSTRAINT metrics_execution_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: metrics_execution metrics_execution_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.metrics_execution
+    ADD CONSTRAINT metrics_execution_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: document_submissions fk_document_submissions_data_owner_id; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_submissions
+    ADD CONSTRAINT fk_document_submissions_data_owner_id FOREIGN KEY (data_owner_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: document_submissions fk_document_submissions_parent; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_submissions
+    ADD CONSTRAINT fk_document_submissions_parent FOREIGN KEY (parent_submission_id) REFERENCES public.document_submissions(submission_id);
+
+
+--
+-- Name: report_attributes fk_report_attributes_approved_by; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_attributes
+    ADD CONSTRAINT fk_report_attributes_approved_by FOREIGN KEY (approved_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: report_attributes fk_report_attributes_archived_by; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_attributes
+    ADD CONSTRAINT fk_report_attributes_archived_by FOREIGN KEY (archived_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: report_attributes fk_report_attributes_master_attribute; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_attributes
+    ADD CONSTRAINT fk_report_attributes_master_attribute FOREIGN KEY (master_attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: report_attributes fk_report_attributes_replaced_attribute; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_attributes
+    ADD CONSTRAINT fk_report_attributes_replaced_attribute FOREIGN KEY (replaced_attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: report_attributes fk_report_attributes_version_created_by; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_attributes
+    ADD CONSTRAINT fk_report_attributes_version_created_by FOREIGN KEY (version_created_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sample_records fk_sample_records_approved_by; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_records
+    ADD CONSTRAINT fk_sample_records_approved_by FOREIGN KEY (approved_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: scoping_submissions fk_scoping_submissions_previous_version; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_submissions
+    ADD CONSTRAINT fk_scoping_submissions_previous_version FOREIGN KEY (previous_version_id) REFERENCES public.scoping_submissions(submission_id);
+
+
+--
+-- Name: testing_test_executions fk_testing_test_executions_data_source; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_test_executions
+    ADD CONSTRAINT fk_testing_test_executions_data_source FOREIGN KEY (data_source_id) REFERENCES public.data_sources(data_source_id);
+
+
+--
+-- Name: testing_test_executions fk_testing_test_executions_executed_by; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_test_executions
+    ADD CONSTRAINT fk_testing_test_executions_executed_by FOREIGN KEY (executed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: testing_test_executions fk_testing_test_executions_sample; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_test_executions
+    ADD CONSTRAINT fk_testing_test_executions_sample FOREIGN KEY (sample_id) REFERENCES public.samples(sample_id);
+
+
+--
+-- Name: workflow_phases fk_workflow_phases_completed_by; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_phases
+    ADD CONSTRAINT fk_workflow_phases_completed_by FOREIGN KEY (completed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: workflow_phases fk_workflow_phases_override_by; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_phases
+    ADD CONSTRAINT fk_workflow_phases_override_by FOREIGN KEY (override_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: workflow_phases fk_workflow_phases_started_by; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_phases
+    ADD CONSTRAINT fk_workflow_phases_started_by FOREIGN KEY (started_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: historical_data_owner_assignments historical_data_owner_assignments_assigned_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.historical_data_owner_assignments
+    ADD CONSTRAINT historical_data_owner_assignments_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: historical_data_owner_assignments historical_data_owner_assignments_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.historical_data_owner_assignments
+    ADD CONSTRAINT historical_data_owner_assignments_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: historical_data_owner_assignments historical_data_owner_assignments_data_owner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.historical_data_owner_assignments
+    ADD CONSTRAINT historical_data_owner_assignments_data_owner_id_fkey FOREIGN KEY (data_owner_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: historical_data_provider_assignments historical_data_provider_assignments_assigned_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.historical_data_provider_assignments
+    ADD CONSTRAINT historical_data_provider_assignments_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: historical_data_provider_assignments historical_data_provider_assignments_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.historical_data_provider_assignments
+    ADD CONSTRAINT historical_data_provider_assignments_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: historical_data_provider_assignments historical_data_provider_assignments_data_provider_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.historical_data_provider_assignments
+    ADD CONSTRAINT historical_data_provider_assignments_data_provider_id_fkey FOREIGN KEY (data_provider_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: individual_samples individual_samples_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.individual_samples
+    ADD CONSTRAINT individual_samples_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: individual_samples individual_samples_generated_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.individual_samples
+    ADD CONSTRAINT individual_samples_generated_by_user_id_fkey FOREIGN KEY (generated_by_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: individual_samples individual_samples_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.individual_samples
+    ADD CONSTRAINT individual_samples_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: individual_samples individual_samples_submission_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.individual_samples
+    ADD CONSTRAINT individual_samples_submission_id_fkey FOREIGN KEY (submission_id) REFERENCES public.sample_submissions(id);
+
+
+--
+-- Name: individual_samples individual_samples_tester_decision_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.individual_samples
+    ADD CONSTRAINT individual_samples_tester_decision_by_user_id_fkey FOREIGN KEY (tester_decision_by_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: llm_audit_log llm_audit_log_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llm_audit_log
+    ADD CONSTRAINT llm_audit_log_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: llm_audit_log llm_audit_log_executed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llm_audit_log
+    ADD CONSTRAINT llm_audit_log_executed_by_fkey FOREIGN KEY (executed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: llm_audit_log llm_audit_log_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llm_audit_log
+    ADD CONSTRAINT llm_audit_log_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: llm_sample_generations llm_sample_generations_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llm_sample_generations
+    ADD CONSTRAINT llm_sample_generations_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: llm_sample_generations llm_sample_generations_generated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llm_sample_generations
+    ADD CONSTRAINT llm_sample_generations_generated_by_fkey FOREIGN KEY (generated_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: llm_sample_generations llm_sample_generations_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llm_sample_generations
+    ADD CONSTRAINT llm_sample_generations_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: llm_sample_generations llm_sample_generations_set_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.llm_sample_generations
+    ADD CONSTRAINT llm_sample_generations_set_id_fkey FOREIGN KEY (set_id) REFERENCES public.sample_sets(set_id);
+
+
+--
+-- Name: observation_approvals observation_approvals_approved_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_approvals
+    ADD CONSTRAINT observation_approvals_approved_by_fkey FOREIGN KEY (approved_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_approvals observation_approvals_escalated_to_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_approvals
+    ADD CONSTRAINT observation_approvals_escalated_to_fkey FOREIGN KEY (escalated_to) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_approvals observation_approvals_observation_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_approvals
+    ADD CONSTRAINT observation_approvals_observation_id_fkey FOREIGN KEY (observation_id) REFERENCES public.observation_records_backup(observation_id);
+
+
+--
+-- Name: observation_clarifications observation_clarifications_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_clarifications
+    ADD CONSTRAINT observation_clarifications_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.observation_groups(group_id);
+
+
+--
+-- Name: observation_clarifications observation_clarifications_requested_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_clarifications
+    ADD CONSTRAINT observation_clarifications_requested_by_user_id_fkey FOREIGN KEY (requested_by_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_clarifications observation_clarifications_responded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_clarifications
+    ADD CONSTRAINT observation_clarifications_responded_by_fkey FOREIGN KEY (responded_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_groups observation_groups_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_groups
+    ADD CONSTRAINT observation_groups_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: observation_groups observation_groups_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_groups
+    ADD CONSTRAINT observation_groups_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: observation_groups observation_groups_data_executive_approved_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_groups
+    ADD CONSTRAINT observation_groups_data_executive_approved_by_fkey FOREIGN KEY (data_executive_approved_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_groups observation_groups_finalized_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_groups
+    ADD CONSTRAINT observation_groups_finalized_by_fkey FOREIGN KEY (finalized_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_groups observation_groups_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_groups
+    ADD CONSTRAINT observation_groups_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: observation_groups observation_groups_report_owner_approved_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_groups
+    ADD CONSTRAINT observation_groups_report_owner_approved_by_fkey FOREIGN KEY (report_owner_approved_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_impact_assessments observation_impact_assessments_assessed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_impact_assessments
+    ADD CONSTRAINT observation_impact_assessments_assessed_by_fkey FOREIGN KEY (assessed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_impact_assessments observation_impact_assessments_observation_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_impact_assessments
+    ADD CONSTRAINT observation_impact_assessments_observation_id_fkey FOREIGN KEY (observation_id) REFERENCES public.observation_records_backup(observation_id);
+
+
+--
+-- Name: observation_impact_assessments observation_impact_assessments_reviewed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_impact_assessments
+    ADD CONSTRAINT observation_impact_assessments_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_management_audit_logs observation_management_audit_logs_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_management_audit_logs
+    ADD CONSTRAINT observation_management_audit_logs_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: observation_management_audit_logs observation_management_audit_logs_observation_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_management_audit_logs
+    ADD CONSTRAINT observation_management_audit_logs_observation_id_fkey FOREIGN KEY (observation_id) REFERENCES public.observation_records_backup(observation_id);
+
+
+--
+-- Name: observation_management_audit_logs observation_management_audit_logs_performed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_management_audit_logs
+    ADD CONSTRAINT observation_management_audit_logs_performed_by_fkey FOREIGN KEY (performed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_management_audit_logs observation_management_audit_logs_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_management_audit_logs
+    ADD CONSTRAINT observation_management_audit_logs_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.observation_management_phases(phase_id);
+
+
+--
+-- Name: observation_management_audit_logs observation_management_audit_logs_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_management_audit_logs
+    ADD CONSTRAINT observation_management_audit_logs_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: observation_management_audit_logs observation_management_audit_logs_source_test_execution_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_management_audit_logs
+    ADD CONSTRAINT observation_management_audit_logs_source_test_execution_id_fkey FOREIGN KEY (source_test_execution_id) REFERENCES public.testing_test_executions(execution_id);
+
+
+--
+-- Name: observation_management_phases observation_management_phases_completed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_management_phases
+    ADD CONSTRAINT observation_management_phases_completed_by_fkey FOREIGN KEY (completed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_management_phases observation_management_phases_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_management_phases
+    ADD CONSTRAINT observation_management_phases_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: observation_management_phases observation_management_phases_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_management_phases
+    ADD CONSTRAINT observation_management_phases_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: observation_management_phases observation_management_phases_started_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_management_phases
+    ADD CONSTRAINT observation_management_phases_started_by_fkey FOREIGN KEY (started_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_records_backup observation_records_assigned_to_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records_backup
+    ADD CONSTRAINT observation_records_assigned_to_fkey FOREIGN KEY (assigned_to) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_records observation_records_assigned_to_fkey1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records
+    ADD CONSTRAINT observation_records_assigned_to_fkey1 FOREIGN KEY (assigned_to) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_records_backup observation_records_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records_backup
+    ADD CONSTRAINT observation_records_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: observation_records observation_records_cycle_id_fkey1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records
+    ADD CONSTRAINT observation_records_cycle_id_fkey1 FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: observation_records_backup observation_records_detected_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records_backup
+    ADD CONSTRAINT observation_records_detected_by_fkey FOREIGN KEY (detected_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_records observation_records_detected_by_fkey1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records
+    ADD CONSTRAINT observation_records_detected_by_fkey1 FOREIGN KEY (detected_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_records_backup observation_records_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records_backup
+    ADD CONSTRAINT observation_records_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.observation_management_phases(phase_id);
+
+
+--
+-- Name: observation_records observation_records_phase_id_fkey1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records
+    ADD CONSTRAINT observation_records_phase_id_fkey1 FOREIGN KEY (phase_id) REFERENCES public.observation_management_phases(phase_id);
+
+
+--
+-- Name: observation_records_backup observation_records_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records_backup
+    ADD CONSTRAINT observation_records_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: observation_records observation_records_report_id_fkey1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records
+    ADD CONSTRAINT observation_records_report_id_fkey1 FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: observation_records_backup observation_records_source_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records_backup
+    ADD CONSTRAINT observation_records_source_attribute_id_fkey FOREIGN KEY (source_attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: observation_records observation_records_source_attribute_id_fkey1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records
+    ADD CONSTRAINT observation_records_source_attribute_id_fkey1 FOREIGN KEY (source_attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: observation_records_backup observation_records_source_test_execution_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records_backup
+    ADD CONSTRAINT observation_records_source_test_execution_id_fkey FOREIGN KEY (source_test_execution_id) REFERENCES public.testing_test_executions(execution_id);
+
+
+--
+-- Name: observation_records observation_records_source_test_execution_id_fkey1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_records
+    ADD CONSTRAINT observation_records_source_test_execution_id_fkey1 FOREIGN KEY (source_test_execution_id) REFERENCES public.testing_test_executions(execution_id);
+
+
+--
+-- Name: observation_resolutions observation_resolutions_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_resolutions
+    ADD CONSTRAINT observation_resolutions_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_resolutions observation_resolutions_observation_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_resolutions
+    ADD CONSTRAINT observation_resolutions_observation_id_fkey FOREIGN KEY (observation_id) REFERENCES public.observation_records_backup(observation_id);
+
+
+--
+-- Name: observation_resolutions observation_resolutions_resolution_owner_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_resolutions
+    ADD CONSTRAINT observation_resolutions_resolution_owner_fkey FOREIGN KEY (resolution_owner) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_resolutions observation_resolutions_validated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_resolutions
+    ADD CONSTRAINT observation_resolutions_validated_by_fkey FOREIGN KEY (validated_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: observation_versions observation_versions_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_versions
+    ADD CONSTRAINT observation_versions_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: observation_versions observation_versions_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observation_versions
+    ADD CONSTRAINT observation_versions_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: observations observations_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observations
+    ADD CONSTRAINT observations_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: observations observations_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observations
+    ADD CONSTRAINT observations_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: observations observations_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.observations
+    ADD CONSTRAINT observations_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: permission_audit_log permission_audit_log_performed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.permission_audit_log
+    ADD CONSTRAINT permission_audit_log_performed_by_fkey FOREIGN KEY (performed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: permission_audit_log permission_audit_log_permission_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.permission_audit_log
+    ADD CONSTRAINT permission_audit_log_permission_id_fkey FOREIGN KEY (permission_id) REFERENCES public.permissions(permission_id);
+
+
+--
+-- Name: permission_audit_log permission_audit_log_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.permission_audit_log
+    ADD CONSTRAINT permission_audit_log_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.roles(role_id);
+
+
+--
+-- Name: metrics_phases metrics_phases_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.metrics_phases
+    ADD CONSTRAINT metrics_phases_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: metrics_phases metrics_phases_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.metrics_phases
+    ADD CONSTRAINT metrics_phases_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: profiling_results profiling_results_anomaly_marked_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.profiling_results
+    ADD CONSTRAINT profiling_results_anomaly_marked_by_fkey FOREIGN KEY (anomaly_marked_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: profiling_results profiling_results_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.profiling_results
+    ADD CONSTRAINT profiling_results_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: profiling_results profiling_results_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.profiling_results
+    ADD CONSTRAINT profiling_results_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.data_profiling_phases(phase_id);
+
+
+--
+-- Name: profiling_results profiling_results_rule_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.profiling_results
+    ADD CONSTRAINT profiling_results_rule_id_fkey FOREIGN KEY (rule_id) REFERENCES public.profiling_rules(rule_id);
+
+
+--
+-- Name: profiling_rules profiling_rules_approved_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.profiling_rules
+    ADD CONSTRAINT profiling_rules_approved_by_fkey FOREIGN KEY (approved_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: profiling_rules profiling_rules_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.profiling_rules
+    ADD CONSTRAINT profiling_rules_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: profiling_rules profiling_rules_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.profiling_rules
+    ADD CONSTRAINT profiling_rules_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.data_profiling_phases(phase_id);
+
+
+--
+-- Name: report_attributes report_attributes_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_attributes
+    ADD CONSTRAINT report_attributes_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: report_attributes report_attributes_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_attributes
+    ADD CONSTRAINT report_attributes_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: report_owner_assignment_history report_owner_assignment_history_assignment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_assignment_history
+    ADD CONSTRAINT report_owner_assignment_history_assignment_id_fkey FOREIGN KEY (assignment_id) REFERENCES public.report_owner_assignments(assignment_id);
+
+
+--
+-- Name: report_owner_assignment_history report_owner_assignment_history_changed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_assignment_history
+    ADD CONSTRAINT report_owner_assignment_history_changed_by_fkey FOREIGN KEY (changed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: report_owner_assignments report_owner_assignments_assigned_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_assignments
+    ADD CONSTRAINT report_owner_assignments_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: report_owner_assignments report_owner_assignments_assigned_to_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_assignments
+    ADD CONSTRAINT report_owner_assignments_assigned_to_fkey FOREIGN KEY (assigned_to) REFERENCES public.users(user_id);
+
+
+--
+-- Name: report_owner_assignments report_owner_assignments_completed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_assignments
+    ADD CONSTRAINT report_owner_assignments_completed_by_fkey FOREIGN KEY (completed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: report_owner_assignments report_owner_assignments_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_assignments
+    ADD CONSTRAINT report_owner_assignments_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: report_owner_assignments report_owner_assignments_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_assignments
+    ADD CONSTRAINT report_owner_assignments_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: report_owner_executives report_owner_executives_executive_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_executives
+    ADD CONSTRAINT report_owner_executives_executive_id_fkey FOREIGN KEY (executive_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: report_owner_executives report_owner_executives_report_owner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_executives
+    ADD CONSTRAINT report_owner_executives_report_owner_id_fkey FOREIGN KEY (report_owner_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: report_owner_scoping_reviews report_owner_scoping_reviews_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_scoping_reviews
+    ADD CONSTRAINT report_owner_scoping_reviews_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: report_owner_scoping_reviews report_owner_scoping_reviews_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_scoping_reviews
+    ADD CONSTRAINT report_owner_scoping_reviews_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: report_owner_scoping_reviews report_owner_scoping_reviews_reviewed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_scoping_reviews
+    ADD CONSTRAINT report_owner_scoping_reviews_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: report_owner_scoping_reviews report_owner_scoping_reviews_submission_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_owner_scoping_reviews
+    ADD CONSTRAINT report_owner_scoping_reviews_submission_id_fkey FOREIGN KEY (submission_id) REFERENCES public.scoping_submissions(submission_id);
+
+
+--
+-- Name: reports reports_lob_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reports
+    ADD CONSTRAINT reports_lob_id_fkey FOREIGN KEY (lob_id) REFERENCES public.lobs(lob_id);
+
+
+--
+-- Name: reports reports_report_owner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.reports
+    ADD CONSTRAINT reports_report_owner_id_fkey FOREIGN KEY (report_owner_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: request_info_audit_log request_info_audit_log_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_audit_log
+    ADD CONSTRAINT request_info_audit_log_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: request_info_audit_log request_info_audit_log_performed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_audit_log
+    ADD CONSTRAINT request_info_audit_log_performed_by_fkey FOREIGN KEY (performed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: request_info_audit_log request_info_audit_log_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_audit_log
+    ADD CONSTRAINT request_info_audit_log_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.request_info_phases(phase_id);
+
+
+--
+-- Name: request_info_audit_log request_info_audit_log_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_audit_log
+    ADD CONSTRAINT request_info_audit_log_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: request_info_audit_logs request_info_audit_logs_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_audit_logs
+    ADD CONSTRAINT request_info_audit_logs_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: request_info_audit_logs request_info_audit_logs_performed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_audit_logs
+    ADD CONSTRAINT request_info_audit_logs_performed_by_fkey FOREIGN KEY (performed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: request_info_audit_logs request_info_audit_logs_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_audit_logs
+    ADD CONSTRAINT request_info_audit_logs_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.request_info_phases(phase_id);
+
+
+--
+-- Name: request_info_audit_logs request_info_audit_logs_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_audit_logs
+    ADD CONSTRAINT request_info_audit_logs_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: request_info_phases request_info_phases_completed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_phases
+    ADD CONSTRAINT request_info_phases_completed_by_fkey FOREIGN KEY (completed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: request_info_phases request_info_phases_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_phases
+    ADD CONSTRAINT request_info_phases_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: request_info_phases request_info_phases_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_phases
+    ADD CONSTRAINT request_info_phases_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: request_info_phases request_info_phases_started_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_info_phases
+    ADD CONSTRAINT request_info_phases_started_by_fkey FOREIGN KEY (started_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: resource_permissions resource_permissions_granted_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resource_permissions
+    ADD CONSTRAINT resource_permissions_granted_by_fkey FOREIGN KEY (granted_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: resource_permissions resource_permissions_permission_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resource_permissions
+    ADD CONSTRAINT resource_permissions_permission_id_fkey FOREIGN KEY (permission_id) REFERENCES public.permissions(permission_id) ON DELETE CASCADE;
+
+
+--
+-- Name: resource_permissions resource_permissions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resource_permissions
+    ADD CONSTRAINT resource_permissions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id) ON DELETE CASCADE;
+
+
+--
+-- Name: resources resources_parent_resource_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.resources
+    ADD CONSTRAINT resources_parent_resource_id_fkey FOREIGN KEY (parent_resource_id) REFERENCES public.resources(resource_id);
+
+
+--
+-- Name: role_hierarchy role_hierarchy_child_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.role_hierarchy
+    ADD CONSTRAINT role_hierarchy_child_role_id_fkey FOREIGN KEY (child_role_id) REFERENCES public.roles(role_id) ON DELETE CASCADE;
+
+
+--
+-- Name: role_hierarchy role_hierarchy_parent_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.role_hierarchy
+    ADD CONSTRAINT role_hierarchy_parent_role_id_fkey FOREIGN KEY (parent_role_id) REFERENCES public.roles(role_id) ON DELETE CASCADE;
+
+
+--
+-- Name: role_permissions role_permissions_granted_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.role_permissions
+    ADD CONSTRAINT role_permissions_granted_by_fkey FOREIGN KEY (granted_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: role_permissions role_permissions_permission_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.role_permissions
+    ADD CONSTRAINT role_permissions_permission_id_fkey FOREIGN KEY (permission_id) REFERENCES public.permissions(permission_id) ON DELETE CASCADE;
+
+
+--
+-- Name: role_permissions role_permissions_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.role_permissions
+    ADD CONSTRAINT role_permissions_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.roles(role_id) ON DELETE CASCADE;
+
+
+--
+-- Name: sample_approval_history sample_approval_history_approved_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_approval_history
+    ADD CONSTRAINT sample_approval_history_approved_by_fkey FOREIGN KEY (approved_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sample_approval_history sample_approval_history_set_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_approval_history
+    ADD CONSTRAINT sample_approval_history_set_id_fkey FOREIGN KEY (set_id) REFERENCES public.sample_sets(set_id);
+
+
+--
+-- Name: sample_audit_logs sample_audit_logs_sample_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_audit_logs
+    ADD CONSTRAINT sample_audit_logs_sample_id_fkey FOREIGN KEY (sample_id) REFERENCES public.individual_samples(id);
+
+
+--
+-- Name: sample_audit_logs sample_audit_logs_submission_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_audit_logs
+    ADD CONSTRAINT sample_audit_logs_submission_id_fkey FOREIGN KEY (submission_id) REFERENCES public.sample_submissions(id);
+
+
+--
+-- Name: sample_audit_logs sample_audit_logs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_audit_logs
+    ADD CONSTRAINT sample_audit_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sample_feedback sample_feedback_created_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_feedback
+    ADD CONSTRAINT sample_feedback_created_by_user_id_fkey FOREIGN KEY (created_by_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sample_feedback sample_feedback_resolved_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_feedback
+    ADD CONSTRAINT sample_feedback_resolved_by_user_id_fkey FOREIGN KEY (resolved_by_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sample_feedback sample_feedback_sample_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_feedback
+    ADD CONSTRAINT sample_feedback_sample_id_fkey FOREIGN KEY (sample_id) REFERENCES public.individual_samples(id);
+
+
+--
+-- Name: sample_feedback sample_feedback_submission_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_feedback
+    ADD CONSTRAINT sample_feedback_submission_id_fkey FOREIGN KEY (submission_id) REFERENCES public.sample_submissions(id);
+
+
+--
+-- Name: sample_records sample_records_set_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_records
+    ADD CONSTRAINT sample_records_set_id_fkey FOREIGN KEY (set_id) REFERENCES public.sample_sets(set_id);
+
+
+--
+-- Name: sample_selection_audit_log sample_selection_audit_log_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_selection_audit_log
+    ADD CONSTRAINT sample_selection_audit_log_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: sample_selection_audit_log sample_selection_audit_log_performed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_selection_audit_log
+    ADD CONSTRAINT sample_selection_audit_log_performed_by_fkey FOREIGN KEY (performed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sample_selection_audit_log sample_selection_audit_log_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_selection_audit_log
+    ADD CONSTRAINT sample_selection_audit_log_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: sample_selection_audit_log sample_selection_audit_log_set_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_selection_audit_log
+    ADD CONSTRAINT sample_selection_audit_log_set_id_fkey FOREIGN KEY (set_id) REFERENCES public.sample_sets(set_id);
+
+
+--
+-- Name: sample_selection_phases sample_selection_phases_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_selection_phases
+    ADD CONSTRAINT sample_selection_phases_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sample_selection_phases sample_selection_phases_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_selection_phases
+    ADD CONSTRAINT sample_selection_phases_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: sample_selection_phases sample_selection_phases_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_selection_phases
+    ADD CONSTRAINT sample_selection_phases_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: sample_selection_phases sample_selection_phases_updated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_selection_phases
+    ADD CONSTRAINT sample_selection_phases_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sample_sets sample_sets_approved_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_sets
+    ADD CONSTRAINT sample_sets_approved_by_fkey FOREIGN KEY (approved_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sample_sets sample_sets_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_sets
+    ADD CONSTRAINT sample_sets_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sample_sets sample_sets_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_sets
+    ADD CONSTRAINT sample_sets_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: sample_sets sample_sets_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_sets
+    ADD CONSTRAINT sample_sets_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: sample_submission_items sample_submission_items_sample_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_submission_items
+    ADD CONSTRAINT sample_submission_items_sample_id_fkey FOREIGN KEY (sample_id) REFERENCES public.individual_samples(id);
+
+
+--
+-- Name: sample_submission_items sample_submission_items_submission_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_submission_items
+    ADD CONSTRAINT sample_submission_items_submission_id_fkey FOREIGN KEY (submission_id) REFERENCES public.sample_submissions(id);
+
+
+--
+-- Name: sample_submissions sample_submissions_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_submissions
+    ADD CONSTRAINT sample_submissions_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: sample_submissions sample_submissions_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_submissions
+    ADD CONSTRAINT sample_submissions_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: sample_submissions sample_submissions_reviewed_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_submissions
+    ADD CONSTRAINT sample_submissions_reviewed_by_user_id_fkey FOREIGN KEY (reviewed_by_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sample_submissions sample_submissions_submitted_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_submissions
+    ADD CONSTRAINT sample_submissions_submitted_by_user_id_fkey FOREIGN KEY (submitted_by_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sample_upload_history sample_upload_history_set_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_upload_history
+    ADD CONSTRAINT sample_upload_history_set_id_fkey FOREIGN KEY (set_id) REFERENCES public.sample_sets(set_id);
+
+
+--
+-- Name: sample_upload_history sample_upload_history_uploaded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_upload_history
+    ADD CONSTRAINT sample_upload_history_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sample_validation_issues sample_validation_issues_record_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_validation_issues
+    ADD CONSTRAINT sample_validation_issues_record_id_fkey FOREIGN KEY (record_id) REFERENCES public.sample_records(record_id);
+
+
+--
+-- Name: sample_validation_issues sample_validation_issues_resolved_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_validation_issues
+    ADD CONSTRAINT sample_validation_issues_resolved_by_fkey FOREIGN KEY (resolved_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sample_validation_issues sample_validation_issues_validation_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_validation_issues
+    ADD CONSTRAINT sample_validation_issues_validation_id_fkey FOREIGN KEY (validation_id) REFERENCES public.sample_validation_results(validation_id);
+
+
+--
+-- Name: sample_validation_results sample_validation_results_set_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_validation_results
+    ADD CONSTRAINT sample_validation_results_set_id_fkey FOREIGN KEY (set_id) REFERENCES public.sample_sets(set_id);
+
+
+--
+-- Name: sample_validation_results sample_validation_results_validated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sample_validation_results
+    ADD CONSTRAINT sample_validation_results_validated_by_fkey FOREIGN KEY (validated_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: samples samples_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.samples
+    ADD CONSTRAINT samples_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: samples samples_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.samples
+    ADD CONSTRAINT samples_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: scoping_audit_log scoping_audit_log_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_audit_log
+    ADD CONSTRAINT scoping_audit_log_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: scoping_audit_log scoping_audit_log_performed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_audit_log
+    ADD CONSTRAINT scoping_audit_log_performed_by_fkey FOREIGN KEY (performed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: scoping_audit_log scoping_audit_log_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_audit_log
+    ADD CONSTRAINT scoping_audit_log_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: scoping_decision_versions scoping_decision_versions_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_decision_versions
+    ADD CONSTRAINT scoping_decision_versions_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: scoping_decision_versions scoping_decision_versions_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_decision_versions
+    ADD CONSTRAINT scoping_decision_versions_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: scoping_decision_versions scoping_decision_versions_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_decision_versions
+    ADD CONSTRAINT scoping_decision_versions_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: scoping_submissions scoping_submissions_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_submissions
+    ADD CONSTRAINT scoping_submissions_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: scoping_submissions scoping_submissions_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_submissions
+    ADD CONSTRAINT scoping_submissions_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: scoping_submissions scoping_submissions_submitted_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scoping_submissions
+    ADD CONSTRAINT scoping_submissions_submitted_by_fkey FOREIGN KEY (submitted_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sla_escalation_rules sla_escalation_rules_escalate_to_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sla_escalation_rules
+    ADD CONSTRAINT sla_escalation_rules_escalate_to_user_id_fkey FOREIGN KEY (escalate_to_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sla_escalation_rules sla_escalation_rules_sla_config_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sla_escalation_rules
+    ADD CONSTRAINT sla_escalation_rules_sla_config_id_fkey FOREIGN KEY (sla_config_id) REFERENCES public.sla_configurations(sla_config_id);
+
+
+--
+-- Name: sla_violation_tracking sla_violation_tracking_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sla_violation_tracking
+    ADD CONSTRAINT sla_violation_tracking_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: sla_violation_tracking sla_violation_tracking_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sla_violation_tracking
+    ADD CONSTRAINT sla_violation_tracking_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: sla_violation_tracking sla_violation_tracking_sla_config_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sla_violation_tracking
+    ADD CONSTRAINT sla_violation_tracking_sla_config_id_fkey FOREIGN KEY (sla_config_id) REFERENCES public.sla_configurations(sla_config_id);
+
+
+--
+-- Name: submission_documents submission_documents_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.submission_documents
+    ADD CONSTRAINT submission_documents_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: submission_documents submission_documents_data_provider_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.submission_documents
+    ADD CONSTRAINT submission_documents_data_provider_id_fkey FOREIGN KEY (data_provider_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: submission_documents submission_documents_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.submission_documents
+    ADD CONSTRAINT submission_documents_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.request_info_phases(phase_id);
+
+
+--
+-- Name: submission_documents submission_documents_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.submission_documents
+    ADD CONSTRAINT submission_documents_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: submission_reminders submission_reminders_data_provider_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.submission_reminders
+    ADD CONSTRAINT submission_reminders_data_provider_id_fkey FOREIGN KEY (data_provider_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: submission_reminders submission_reminders_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.submission_reminders
+    ADD CONSTRAINT submission_reminders_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.request_info_phases(phase_id);
+
+
+--
+-- Name: submission_validations submission_validations_submission_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.submission_validations
+    ADD CONSTRAINT submission_validations_submission_id_fkey FOREIGN KEY (submission_id) REFERENCES public.data_provider_submissions(submission_id);
+
+
+--
+-- Name: test_cases test_cases_assigned_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_cases
+    ADD CONSTRAINT test_cases_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: test_cases test_cases_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_cases
+    ADD CONSTRAINT test_cases_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: test_cases test_cases_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_cases
+    ADD CONSTRAINT test_cases_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: test_cases test_cases_data_provider_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_cases
+    ADD CONSTRAINT test_cases_data_provider_id_fkey FOREIGN KEY (data_owner_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: test_cases test_cases_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_cases
+    ADD CONSTRAINT test_cases_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.request_info_phases(phase_id);
+
+
+--
+-- Name: test_cases test_cases_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_cases
+    ADD CONSTRAINT test_cases_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: test_comparisons test_comparisons_compared_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_comparisons
+    ADD CONSTRAINT test_comparisons_compared_by_fkey FOREIGN KEY (compared_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: test_cycles test_cycles_test_manager_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_cycles
+    ADD CONSTRAINT test_cycles_test_manager_id_fkey FOREIGN KEY (test_manager_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: test_execution_audit_logs test_execution_audit_logs_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_audit_logs
+    ADD CONSTRAINT test_execution_audit_logs_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: test_execution_audit_logs test_execution_audit_logs_performed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_audit_logs
+    ADD CONSTRAINT test_execution_audit_logs_performed_by_fkey FOREIGN KEY (performed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: test_execution_audit_logs test_execution_audit_logs_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_audit_logs
+    ADD CONSTRAINT test_execution_audit_logs_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.test_execution_phases(phase_id);
+
+
+--
+-- Name: test_execution_audit_logs test_execution_audit_logs_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_audit_logs
+    ADD CONSTRAINT test_execution_audit_logs_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: test_execution_phases test_execution_phases_completed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_phases
+    ADD CONSTRAINT test_execution_phases_completed_by_fkey FOREIGN KEY (completed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: test_execution_phases test_execution_phases_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_phases
+    ADD CONSTRAINT test_execution_phases_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: test_execution_phases test_execution_phases_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_phases
+    ADD CONSTRAINT test_execution_phases_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: test_execution_phases test_execution_phases_started_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_phases
+    ADD CONSTRAINT test_execution_phases_started_by_fkey FOREIGN KEY (started_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: test_execution_versions test_execution_versions_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_versions
+    ADD CONSTRAINT test_execution_versions_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: test_execution_versions test_execution_versions_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_versions
+    ADD CONSTRAINT test_execution_versions_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: test_execution_versions test_execution_versions_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_versions
+    ADD CONSTRAINT test_execution_versions_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: test_execution_versions test_execution_versions_sample_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_execution_versions
+    ADD CONSTRAINT test_execution_versions_sample_id_fkey FOREIGN KEY (sample_id) REFERENCES public.samples(sample_id);
+
+
+--
+-- Name: test_executions test_executions_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_executions
+    ADD CONSTRAINT test_executions_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: test_executions test_executions_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_executions
+    ADD CONSTRAINT test_executions_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: test_executions test_executions_data_source_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_executions
+    ADD CONSTRAINT test_executions_data_source_id_fkey FOREIGN KEY (data_source_id) REFERENCES public.data_sources(data_source_id);
+
+
+--
+-- Name: test_executions test_executions_document_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_executions
+    ADD CONSTRAINT test_executions_document_id_fkey FOREIGN KEY (document_id) REFERENCES public.documents(document_id);
+
+
+--
+-- Name: test_executions test_executions_executed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_executions
+    ADD CONSTRAINT test_executions_executed_by_fkey FOREIGN KEY (executed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: test_executions test_executions_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_executions
+    ADD CONSTRAINT test_executions_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: test_executions test_executions_sample_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_executions
+    ADD CONSTRAINT test_executions_sample_id_fkey FOREIGN KEY (sample_id) REFERENCES public.samples(sample_id);
+
+
+--
+-- Name: test_report_phases test_report_phases_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_report_phases
+    ADD CONSTRAINT test_report_phases_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: test_report_phases test_report_phases_final_report_document_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_report_phases
+    ADD CONSTRAINT test_report_phases_final_report_document_id_fkey FOREIGN KEY (final_report_document_id) REFERENCES public.documents(document_id);
+
+
+--
+-- Name: test_report_phases test_report_phases_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_report_phases
+    ADD CONSTRAINT test_report_phases_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: test_report_sections test_report_sections_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_report_sections
+    ADD CONSTRAINT test_report_sections_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.test_report_phases(phase_id);
+
+
+--
+-- Name: test_result_reviews test_result_reviews_execution_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_result_reviews
+    ADD CONSTRAINT test_result_reviews_execution_id_fkey FOREIGN KEY (execution_id) REFERENCES public.testing_test_executions(execution_id);
+
+
+--
+-- Name: test_result_reviews test_result_reviews_reviewer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.test_result_reviews
+    ADD CONSTRAINT test_result_reviews_reviewer_id_fkey FOREIGN KEY (reviewer_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: tester_scoping_decisions tester_scoping_decisions_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tester_scoping_decisions
+    ADD CONSTRAINT tester_scoping_decisions_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: tester_scoping_decisions tester_scoping_decisions_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tester_scoping_decisions
+    ADD CONSTRAINT tester_scoping_decisions_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: tester_scoping_decisions tester_scoping_decisions_decided_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tester_scoping_decisions
+    ADD CONSTRAINT tester_scoping_decisions_decided_by_fkey FOREIGN KEY (decided_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: tester_scoping_decisions tester_scoping_decisions_recommendation_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tester_scoping_decisions
+    ADD CONSTRAINT tester_scoping_decisions_recommendation_id_fkey FOREIGN KEY (recommendation_id) REFERENCES public.attribute_scoping_recommendations(recommendation_id);
+
+
+--
+-- Name: tester_scoping_decisions tester_scoping_decisions_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tester_scoping_decisions
+    ADD CONSTRAINT tester_scoping_decisions_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: testing_execution_audit_logs testing_execution_audit_logs_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_execution_audit_logs
+    ADD CONSTRAINT testing_execution_audit_logs_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: testing_execution_audit_logs testing_execution_audit_logs_performed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_execution_audit_logs
+    ADD CONSTRAINT testing_execution_audit_logs_performed_by_fkey FOREIGN KEY (performed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: testing_execution_audit_logs testing_execution_audit_logs_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_execution_audit_logs
+    ADD CONSTRAINT testing_execution_audit_logs_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.testing_execution_phases(phase_id);
+
+
+--
+-- Name: testing_execution_audit_logs testing_execution_audit_logs_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_execution_audit_logs
+    ADD CONSTRAINT testing_execution_audit_logs_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: testing_execution_phases testing_execution_phases_completed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_execution_phases
+    ADD CONSTRAINT testing_execution_phases_completed_by_fkey FOREIGN KEY (completed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: testing_execution_phases testing_execution_phases_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_execution_phases
+    ADD CONSTRAINT testing_execution_phases_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: testing_execution_phases testing_execution_phases_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_execution_phases
+    ADD CONSTRAINT testing_execution_phases_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: testing_execution_phases testing_execution_phases_started_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_execution_phases
+    ADD CONSTRAINT testing_execution_phases_started_by_fkey FOREIGN KEY (started_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: testing_test_executions testing_test_executions_assigned_tester_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_test_executions
+    ADD CONSTRAINT testing_test_executions_assigned_tester_id_fkey FOREIGN KEY (assigned_tester_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: testing_test_executions testing_test_executions_attribute_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_test_executions
+    ADD CONSTRAINT testing_test_executions_attribute_id_fkey FOREIGN KEY (attribute_id) REFERENCES public.report_attributes(attribute_id);
+
+
+--
+-- Name: testing_test_executions testing_test_executions_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_test_executions
+    ADD CONSTRAINT testing_test_executions_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: testing_test_executions testing_test_executions_database_test_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_test_executions
+    ADD CONSTRAINT testing_test_executions_database_test_id_fkey FOREIGN KEY (database_test_id) REFERENCES public.database_tests(test_id);
+
+
+--
+-- Name: testing_test_executions testing_test_executions_document_analysis_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_test_executions
+    ADD CONSTRAINT testing_test_executions_document_analysis_id_fkey FOREIGN KEY (document_analysis_id) REFERENCES public.document_analyses(analysis_id);
+
+
+--
+-- Name: testing_test_executions testing_test_executions_phase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_test_executions
+    ADD CONSTRAINT testing_test_executions_phase_id_fkey FOREIGN KEY (phase_id) REFERENCES public.test_execution_phases(phase_id);
+
+
+--
+-- Name: testing_test_executions testing_test_executions_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.testing_test_executions
+    ADD CONSTRAINT testing_test_executions_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: universal_assignment_history universal_assignment_history_assignment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.universal_assignment_history
+    ADD CONSTRAINT universal_assignment_history_assignment_id_fkey FOREIGN KEY (assignment_id) REFERENCES public.universal_assignments(assignment_id);
+
+
+--
+-- Name: universal_assignment_history universal_assignment_history_changed_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.universal_assignment_history
+    ADD CONSTRAINT universal_assignment_history_changed_by_user_id_fkey FOREIGN KEY (changed_by_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: universal_assignments universal_assignments_approved_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.universal_assignments
+    ADD CONSTRAINT universal_assignments_approved_by_user_id_fkey FOREIGN KEY (approved_by_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: universal_assignments universal_assignments_completed_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.universal_assignments
+    ADD CONSTRAINT universal_assignments_completed_by_user_id_fkey FOREIGN KEY (completed_by_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: universal_assignments universal_assignments_delegated_to_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.universal_assignments
+    ADD CONSTRAINT universal_assignments_delegated_to_user_id_fkey FOREIGN KEY (delegated_to_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: universal_assignments universal_assignments_escalated_to_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.universal_assignments
+    ADD CONSTRAINT universal_assignments_escalated_to_user_id_fkey FOREIGN KEY (escalated_to_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: universal_assignments universal_assignments_from_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.universal_assignments
+    ADD CONSTRAINT universal_assignments_from_user_id_fkey FOREIGN KEY (from_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: universal_assignments universal_assignments_parent_assignment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.universal_assignments
+    ADD CONSTRAINT universal_assignments_parent_assignment_id_fkey FOREIGN KEY (parent_assignment_id) REFERENCES public.universal_assignments(assignment_id);
+
+
+--
+-- Name: universal_assignments universal_assignments_to_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.universal_assignments
+    ADD CONSTRAINT universal_assignments_to_user_id_fkey FOREIGN KEY (to_user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: user_permissions user_permissions_granted_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_permissions
+    ADD CONSTRAINT user_permissions_granted_by_fkey FOREIGN KEY (granted_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: user_permissions user_permissions_permission_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_permissions
+    ADD CONSTRAINT user_permissions_permission_id_fkey FOREIGN KEY (permission_id) REFERENCES public.permissions(permission_id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_permissions user_permissions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_permissions
+    ADD CONSTRAINT user_permissions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_roles user_roles_assigned_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_roles
+    ADD CONSTRAINT user_roles_assigned_by_fkey FOREIGN KEY (assigned_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: user_roles user_roles_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_roles
+    ADD CONSTRAINT user_roles_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.roles(role_id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_roles user_roles_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_roles
+    ADD CONSTRAINT user_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id) ON DELETE CASCADE;
+
+
+--
+-- Name: users users_lob_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_lob_id_fkey FOREIGN KEY (lob_id) REFERENCES public.lobs(lob_id);
+
+
+--
+-- Name: workflow_activities workflow_activities_completed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activities
+    ADD CONSTRAINT workflow_activities_completed_by_fkey FOREIGN KEY (completed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: workflow_activities workflow_activities_revision_requested_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activities
+    ADD CONSTRAINT workflow_activities_revision_requested_by_fkey FOREIGN KEY (revision_requested_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: workflow_activities workflow_activities_started_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activities
+    ADD CONSTRAINT workflow_activities_started_by_fkey FOREIGN KEY (started_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: workflow_activity_history workflow_activity_history_activity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activity_history
+    ADD CONSTRAINT workflow_activity_history_activity_id_fkey FOREIGN KEY (activity_id) REFERENCES public.workflow_activities(activity_id);
+
+
+--
+-- Name: workflow_activity_history workflow_activity_history_changed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_activity_history
+    ADD CONSTRAINT workflow_activity_history_changed_by_fkey FOREIGN KEY (changed_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: workflow_alerts workflow_alerts_acknowledged_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_alerts
+    ADD CONSTRAINT workflow_alerts_acknowledged_by_fkey FOREIGN KEY (acknowledged_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: workflow_alerts workflow_alerts_execution_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_alerts
+    ADD CONSTRAINT workflow_alerts_execution_id_fkey FOREIGN KEY (execution_id) REFERENCES public.workflow_executions(execution_id);
+
+
+--
+-- Name: workflow_executions workflow_executions_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_executions
+    ADD CONSTRAINT workflow_executions_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: workflow_executions workflow_executions_initiated_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_executions
+    ADD CONSTRAINT workflow_executions_initiated_by_fkey FOREIGN KEY (initiated_by) REFERENCES public.users(user_id);
+
+
+--
+-- Name: workflow_executions workflow_executions_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_executions
+    ADD CONSTRAINT workflow_executions_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: workflow_phases workflow_phases_cycle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_phases
+    ADD CONSTRAINT workflow_phases_cycle_id_fkey FOREIGN KEY (cycle_id) REFERENCES public.test_cycles(cycle_id);
+
+
+--
+-- Name: workflow_phases workflow_phases_report_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_phases
+    ADD CONSTRAINT workflow_phases_report_id_fkey FOREIGN KEY (report_id) REFERENCES public.reports(report_id);
+
+
+--
+-- Name: workflow_steps workflow_steps_execution_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_steps
+    ADD CONSTRAINT workflow_steps_execution_id_fkey FOREIGN KEY (execution_id) REFERENCES public.workflow_executions(execution_id);
+
+
+--
+-- Name: workflow_steps workflow_steps_parent_step_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_steps
+    ADD CONSTRAINT workflow_steps_parent_step_id_fkey FOREIGN KEY (parent_step_id) REFERENCES public.workflow_steps(step_id);
+
+
+--
+-- Name: workflow_transitions workflow_transitions_execution_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_transitions
+    ADD CONSTRAINT workflow_transitions_execution_id_fkey FOREIGN KEY (execution_id) REFERENCES public.workflow_executions(execution_id);
+
+
+--
+-- Name: workflow_transitions workflow_transitions_from_step_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_transitions
+    ADD CONSTRAINT workflow_transitions_from_step_id_fkey FOREIGN KEY (from_step_id) REFERENCES public.workflow_steps(step_id);
+
+
+--
+-- Name: workflow_transitions workflow_transitions_to_step_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflow_transitions
+    ADD CONSTRAINT workflow_transitions_to_step_id_fkey FOREIGN KEY (to_step_id) REFERENCES public.workflow_steps(step_id);
+
+
+--
+-- PostgreSQL database dump complete
+--
+

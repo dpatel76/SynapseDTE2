@@ -1,0 +1,439 @@
+import React from 'react';
+import {
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  Typography,
+  Box,
+  Chip,
+  Collapse,
+  Badge
+} from '@mui/material';
+import {
+  Dashboard,
+  Assignment,
+  Timeline,
+  People,
+  Assessment,
+  Settings,
+  Help,
+  ExpandLess,
+  ExpandMore,
+  CheckCircle,
+  Schedule,
+  Flag,
+  Description,
+  BugReport,
+  DataUsage,
+  SupervisorAccount,
+  Storage,
+  Analytics,
+  AssignmentTurnedIn,
+  AccountTree
+} from '@mui/icons-material';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { colors } from '../../styles/design-system';
+import { UserRole } from '../../types/api';
+
+interface NavigationItem {
+  id: string;
+  label: string;
+  path?: string;
+  icon: React.ReactNode;
+  badge?: number;
+  badgeColor?: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success';
+  children?: NavigationItem[];
+  roles?: string[];
+  dividerAfter?: boolean;
+}
+
+const navigationItems: NavigationItem[] = [
+  {
+    id: 'dashboard',
+    label: 'Dashboard',
+    path: '/dashboard',
+    icon: <Dashboard />,
+    roles: ['all']
+  },
+  {
+    id: 'testing-cycles',
+    label: 'Testing Cycles',
+    icon: <Timeline />,
+    roles: ['Tester', 'Test Executive', 'Report Owner', 'Report Executive'],
+    children: [
+      {
+        id: 'active-cycles',
+        label: 'Active Cycles',
+        path: '/cycles/active',
+        icon: <Schedule />,
+        badge: 3,
+        badgeColor: 'primary'
+      },
+      {
+        id: 'my-assignments',
+        label: 'My Assignments',
+        path: '/my-assignments',
+        icon: <Assignment />,
+        roles: ['Tester']
+      },
+      {
+        id: 'my-reports',
+        label: 'My Reports',
+        path: '/tester/assignments',
+        icon: <Description />,
+        roles: ['Tester']
+      },
+      {
+        id: 'all-cycles',
+        label: 'All Cycles',
+        path: '/cycles',
+        icon: <AccountTree />
+      }
+    ]
+  },
+  {
+    id: 'workflow-phases',
+    label: 'Workflow Phases',
+    icon: <AccountTree />,
+    roles: ['Tester', 'Test Executive'],
+    children: [
+      {
+        id: 'planning',
+        label: 'Planning',
+        path: '/phases/planning',
+        icon: <Description />
+      },
+      {
+        id: 'data-profiling',
+        label: 'Data Profiling',
+        path: '/phases/data-profiling',
+        icon: <Analytics />
+      },
+      {
+        id: 'scoping',
+        label: 'Scoping',
+        path: '/phases/scoping',
+        icon: <Assessment />
+      },
+      {
+        id: 'sample-selection',
+        label: 'Sample Selection',
+        path: '/phases/sample-selection',
+        icon: <DataUsage />
+      },
+      {
+        id: 'data-owner-id',
+        label: 'Data Owner ID',
+        path: '/phases/data-owner-identification',
+        icon: <People />
+      },
+      {
+        id: 'request-info',
+        label: 'Request Info',
+        path: '/phases/request-information',
+        icon: <Assignment />
+      },
+      {
+        id: 'test-execution',
+        label: 'Test Execution',
+        path: '/phases/test-execution',
+        icon: <CheckCircle />
+      },
+      {
+        id: 'observations',
+        label: 'Observations',
+        path: '/phases/observations',
+        icon: <BugReport />
+      },
+      {
+        id: 'testing-report',
+        label: 'Testing Report',
+        path: '/phases/testing-report',
+        icon: <Description />
+      }
+    ]
+  },
+  {
+    id: 'data-management',
+    label: 'Data Management',
+    icon: <Storage />,
+    roles: ['Data Owner', 'Data Executive'],
+    children: [
+      {
+        id: 'data-requests',
+        label: 'Data Requests',
+        path: '/data/requests',
+        icon: <Assignment />,
+        badge: 8,
+        badgeColor: 'error'
+      },
+      {
+        id: 'my-submissions',
+        label: 'My Submissions',
+        path: '/data/submissions',
+        icon: <AssignmentTurnedIn />
+      },
+      {
+        id: 'data-analytics',
+        label: 'Analytics',
+        path: '/data/analytics',
+        icon: <Analytics />
+      }
+    ]
+  },
+  {
+    id: 'cdo-operations',
+    label: 'Data Executive Ops',
+    icon: <SupervisorAccount />,
+    roles: ['Data Executive'],
+    children: [
+      {
+        id: 'assignments',
+        label: 'Assignments',
+        path: '/cdo/assignments',
+        icon: <People />,
+        badge: 12,
+        badgeColor: 'warning'
+      },
+      {
+        id: 'lob-overview',
+        label: 'LOB Overview',
+        path: '/cdo/lob-overview',
+        icon: <Assessment />
+      },
+      {
+        id: 'sla-tracking',
+        label: 'SLA Tracking',
+        path: '/cdo/sla',
+        icon: <Flag />,
+        badge: 2,
+        badgeColor: 'error'
+      }
+    ]
+  },
+  {
+    id: 'reports',
+    label: 'Reports',
+    path: '/reports',
+    icon: <Assessment />,
+    roles: ['Test Executive', 'Report Owner', 'Report Executive', 'Data Executive'],
+    dividerAfter: true
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
+    path: '/settings',
+    icon: <Settings />,
+    roles: ['all']
+  },
+  {
+    id: 'help',
+    label: 'Help & Support',
+    path: '/help',
+    icon: <Help />,
+    roles: ['all']
+  }
+];
+
+const RoleBasedNavigation: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
+  const [openItems, setOpenItems] = React.useState<Set<string>>(new Set());
+
+  const handleToggle = (itemId: string) => {
+    const newOpenItems = new Set(openItems);
+    if (newOpenItems.has(itemId)) {
+      newOpenItems.delete(itemId);
+    } else {
+      newOpenItems.add(itemId);
+    }
+    setOpenItems(newOpenItems);
+  };
+
+  const handleNavigation = (path?: string) => {
+    if (path) {
+      navigate(path);
+    }
+  };
+
+  const isItemActive = (item: NavigationItem): boolean => {
+    if (item.path) {
+      return location.pathname === item.path;
+    }
+    if (item.children) {
+      return item.children.some(child => child.path === location.pathname);
+    }
+    return false;
+  };
+
+  const hasAccess = (item: NavigationItem): boolean => {
+    if (!item.roles || item.roles.includes('all')) {
+      return true;
+    }
+    return item.roles.some(role => 
+      user?.role?.toLowerCase() === role.toLowerCase()
+    );
+  };
+
+  const renderNavigationItem = (item: NavigationItem, depth: number = 0) => {
+    if (!hasAccess(item)) {
+      return null;
+    }
+
+    const isActive = isItemActive(item);
+    const hasChildren = item.children && item.children.length > 0;
+    const isOpen = openItems.has(item.id);
+
+    return (
+      <React.Fragment key={item.id}>
+        <ListItem disablePadding sx={{ display: 'block' }}>
+          <ListItemButton
+            onClick={() => {
+              if (hasChildren) {
+                handleToggle(item.id);
+              } else {
+                handleNavigation(item.path);
+              }
+            }}
+            sx={{
+              minHeight: 48,
+              justifyContent: 'initial',
+              px: depth === 0 ? 2.5 : 4,
+              backgroundColor: isActive && !hasChildren ? colors.primary.light + '20' : 'transparent',
+              borderLeft: isActive && !hasChildren ? `4px solid ${colors.primary.main}` : 'none',
+              '&:hover': {
+                backgroundColor: colors.primary.light + '10'
+              }
+            }}
+          >
+            <ListItemIcon
+              sx={{
+                minWidth: 0,
+                mr: 3,
+                justifyContent: 'center',
+                color: isActive ? colors.primary.main : 'inherit'
+              }}
+            >
+              {item.badge ? (
+                <Badge 
+                  badgeContent={item.badge} 
+                  color={item.badgeColor || 'primary'}
+                  max={99}
+                >
+                  {item.icon}
+                </Badge>
+              ) : (
+                item.icon
+              )}
+            </ListItemIcon>
+            <ListItemText 
+              primary={item.label}
+              primaryTypographyProps={{
+                fontSize: depth === 0 ? 14 : 13,
+                fontWeight: isActive ? 600 : 400,
+                color: isActive ? colors.primary.main : 'inherit'
+              }}
+            />
+            {hasChildren && (
+              isOpen ? <ExpandLess /> : <ExpandMore />
+            )}
+          </ListItemButton>
+        </ListItem>
+
+        {hasChildren && (
+          <Collapse in={isOpen} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {item.children!.map(child => renderNavigationItem(child, depth + 1))}
+            </List>
+          </Collapse>
+        )}
+
+        {item.dividerAfter && <Divider sx={{ my: 1 }} />}
+      </React.Fragment>
+    );
+  };
+
+  return (
+    <Box>
+      {/* User Role Display */}
+      <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+        <Typography variant="caption" color="textSecondary">
+          Logged in as
+        </Typography>
+        <Box display="flex" alignItems="center" gap={1} mt={0.5}>
+          <Typography variant="subtitle2">
+            {user?.username}
+          </Typography>
+          <Chip 
+            label={user?.role || 'User'} 
+            size="small"
+            sx={{ 
+              backgroundColor: colors.primary.light + '20',
+              color: colors.primary.dark
+            }}
+          />
+        </Box>
+      </Box>
+
+      {/* Navigation Items */}
+      <List>
+        {navigationItems.map(item => renderNavigationItem(item))}
+      </List>
+
+      {/* Quick Actions */}
+      <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+        <Typography variant="caption" color="textSecondary" gutterBottom>
+          Quick Actions
+        </Typography>
+        <Box display="flex" flexDirection="column" gap={1} mt={1}>
+          {user?.role === UserRole.TESTER && (
+            <Chip
+              label="Start New Test"
+              size="small"
+              icon={<CheckCircle />}
+              onClick={() => navigate('/cycles/new')}
+              sx={{ 
+                justifyContent: 'flex-start',
+                cursor: 'pointer',
+                '&:hover': { backgroundColor: colors.primary.light + '20' }
+              }}
+            />
+          )}
+          {user?.role === UserRole.DATA_PROVIDER && (
+            <Chip
+              label="Submit Data"
+              size="small"
+              icon={<Storage />}
+              onClick={() => navigate('/data/submit')}
+              sx={{ 
+                justifyContent: 'flex-start',
+                cursor: 'pointer',
+                '&:hover': { backgroundColor: colors.primary.light + '20' }
+              }}
+            />
+          )}
+          {(user?.role === UserRole.TEST_MANAGER || user?.role === UserRole.DATA_EXECUTIVE) && (
+            <Chip
+              label="View SLA Alerts"
+              size="small"
+              icon={<Flag />}
+              onClick={() => navigate('/sla/alerts')}
+              sx={{ 
+                justifyContent: 'flex-start',
+                cursor: 'pointer',
+                '&:hover': { backgroundColor: colors.error.light + '20' }
+              }}
+            />
+          )}
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
+export default RoleBasedNavigation;

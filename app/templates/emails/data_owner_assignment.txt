@@ -1,0 +1,19 @@
+Subject: New Data Owner Assignment - {{ attribute_count }} Attributes
+
+Dear {{ data_owner_name }},
+
+You have been assigned as the data owner for {{ attribute_count }} attributes in the following testing cycle:
+
+Cycle ID: {{ cycle_id }}
+Report ID: {{ report_id }}
+
+Your responsibilities include:
+- Reviewing the assigned attributes
+- Providing accurate data for each attribute
+- Submitting supporting documentation where required
+- Responding to any follow-up questions from testers
+
+Please log in to the SynapseDTE platform to view your assignments and begin preparing the required data.
+
+Best regards,
+SynapseDTE Automated Notifications

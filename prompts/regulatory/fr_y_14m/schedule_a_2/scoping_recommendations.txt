@@ -1,0 +1,34 @@
+You are a Federal Reserve FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan (A.2 - Portfolio Level Table) testing expert. Generate risk-based scoping recommendations.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.2 - Portfolio Level Table
+- Report Name: ${report_name}
+- Portfolio Details: ${regulatory_context}
+
+RISK ASSESSMENT FACTORS:
+
+1. REGULATORY CRITICALITY
+   - Portfolio segmentation accuracy for supervisory analysis
+   - Balance aggregation accuracy for stress testing
+   - Loss amount accuracy for allowance adequacy assessment
+
+2. DATA COMPLEXITY
+   - Proper portfolio segment classification
+   - Accurate aggregation from loan-level to portfolio-level
+   - Accounting treatment consistency across segments
+
+3. RECONCILIATION IMPORTANCE
+   - Portfolio level must reconcile to loan level aggregations
+   - Segment totals must equal overall portfolio
+   - Balance with regulatory capital reports
+
+ATTRIBUTES TO EVALUATE:
+${attributes_json}
+
+For each attribute, provide:
+1. Risk score (1-10) with justification
+2. Recommendation (TEST/SKIP)
+3. Specific rationale citing FR Y-14M requirements
+4. Testing priority (High/Medium/Low)
+5. Suggested reconciliation procedures

@@ -1,0 +1,82 @@
+[
+  {
+    "result_id": 1,
+    "test_case_id": 1,
+    "execution_date": "2025-08-03T13:55:58.374470",
+    "result": "pass",
+    "executed_by_id": 1,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "result_id": 2,
+    "test_case_id": 2,
+    "execution_date": "2025-08-03T13:55:58.374470",
+    "result": "pass",
+    "executed_by_id": 1,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "result_id": 3,
+    "test_case_id": 3,
+    "execution_date": "2025-08-03T13:55:58.374470",
+    "result": "pass",
+    "executed_by_id": 1,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "result_id": 4,
+    "test_case_id": 4,
+    "execution_date": "2025-08-03T13:55:58.374470",
+    "result": "pass",
+    "executed_by_id": 1,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "result_id": 5,
+    "test_case_id": 5,
+    "execution_date": "2025-08-03T13:55:58.374470",
+    "result": "fail",
+    "executed_by_id": 1,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "result_id": 6,
+    "test_case_id": 6,
+    "execution_date": "2025-08-03T13:55:58.374470",
+    "result": "fail",
+    "executed_by_id": 1,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "result_id": 7,
+    "test_case_id": 7,
+    "execution_date": "2025-08-03T13:55:58.374470",
+    "result": "fail",
+    "executed_by_id": 1,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "result_id": 8,
+    "test_case_id": 8,
+    "execution_date": "2025-08-03T13:55:58.374470",
+    "result": "fail",
+    "executed_by_id": 1,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "result_id": 9,
+    "test_case_id": 9,
+    "execution_date": "2025-08-03T13:55:58.374470",
+    "result": "pass",
+    "executed_by_id": 1,
+    "created_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "result_id": 10,
+    "test_case_id": 10,
+    "execution_date": "2025-08-03T13:55:58.374470",
+    "result": "fail",
+    "executed_by_id": 1,
+    "created_at": "2025-08-03T13:55:58.374470"
+  }
+]

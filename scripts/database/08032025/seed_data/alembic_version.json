@@ -1,0 +1,19 @@
+{
+  "table": "alembic_version",
+  "row_count": 4,
+  "extracted_at": "2025-08-03T11:29:28.723063",
+  "data": [
+    {
+      "version_num": "update_decision_enum_values"
+    },
+    {
+      "version_num": "008_rename_data_provider"
+    },
+    {
+      "version_num": "add_fry14m_scheduled1_data"
+    },
+    {
+      "version_num": "unify_scoping_decisions"
+    }
+  ]
+}

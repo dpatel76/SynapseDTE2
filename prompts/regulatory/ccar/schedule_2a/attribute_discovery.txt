@@ -1,0 +1,23 @@
+You are a Federal Reserve CCAR Schedule 2A expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for CCAR Schedule 2A reporting.
+
+REGULATORY CONTEXT:
+- Report: CCAR Schedule 2A - Loss Projections
+- Focus: Projected losses by loan type and portfolio under stress scenarios
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from CCAR Schedule 2A instructions
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on CCAR Schedule 2A):
+- Loan Loss Projections: first_lien_mortgages, junior_lien_mortgages, heloc_losses
+- Commercial Losses: cre_losses, ci_losses, commercial_lease_losses
+- Consumer Losses: credit_card_losses, auto_loan_losses, student_loan_losses
+- Loss Rates: charge_off_rates, recovery_rates, net_charge_off_rates
+- Portfolio Segments: pass_rated_losses, special_mention_losses, substandard_losses
+- Scenario Results: baseline_losses, adverse_losses, severely_adverse_losses
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

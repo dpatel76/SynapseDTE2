@@ -1,0 +1,392 @@
+"""
+DEPRECATED: This file is deprecated in favor of metrics_clean.py
+Please use metrics_clean.py for all new development.
+
+Simple metrics endpoints to match frontend expectations
+"""
+from typing import Optional, Dict, Any
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
+from app.core.dependencies import get_current_user
+from app.models.user import User
+
+router = APIRouter()
+
+
+@router.get("/tester/{user_id}")
+async def get_tester_metrics(
+    user_id: int,
+    cycle_id: Optional[int] = Query(None),
+    report_id: Optional[int] = Query(None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """Get tester metrics - simplified version"""
+    
+    # Return mock data that matches frontend expectations
+    return {
+        "data": {
+            "aggregate_metrics": {
+                "reports_assigned": 8,
+                "reports_completed": 3,
+                "reports_in_progress": 4,
+                "reports_trend": 12.5,
+                "avg_completion_time": 14.5,
+                "completion_rate": 37.5,
+                "sla_compliance_rate": 92.5,
+                "observations_confirmed": 15
+            },
+            "phase_performance": [
+                {
+                    "phase_name": "Planning",
+                    "total": 8,
+                    "completed": 6,
+                    "completion_rate": 75.0
+                },
+                {
+                    "phase_name": "Scoping",
+                    "total": 8,
+                    "completed": 5,
+                    "completion_rate": 62.5
+                },
+                {
+                    "phase_name": "Testing",
+                    "total": 8,
+                    "completed": 3,
+                    "completion_rate": 37.5
+                },
+                {
+                    "phase_name": "Observation Management",
+                    "total": 8,
+                    "completed": 2,
+                    "completion_rate": 25.0
+                }
+            ],
+            "lob_distribution": [
+                {
+                    "lob_name": "Retail Banking",
+                    "report_count": 3,
+                    "attribute_count": 145
+                },
+                {
+                    "lob_name": "Commercial Banking",
+                    "report_count": 2,
+                    "attribute_count": 98
+                },
+                {
+                    "lob_name": "Investment Banking",
+                    "report_count": 3,
+                    "attribute_count": 167
+                }
+            ],
+            "report_summaries": [
+                {
+                    "lob_name": "Retail Banking",
+                    "total_samples": 45,
+                    "total_attributes": 145,
+                    "total_test_cases": 290,
+                    "avg_progress": 68.5
+                },
+                {
+                    "lob_name": "Commercial Banking",
+                    "total_samples": 32,
+                    "total_attributes": 98,
+                    "total_test_cases": 196,
+                    "avg_progress": 55.0
+                },
+                {
+                    "lob_name": "Investment Banking",
+                    "total_samples": 58,
+                    "total_attributes": 167,
+                    "total_test_cases": 334,
+                    "avg_progress": 42.0
+                }
+            ]
+        }
+    }
+
+
+@router.get("/dashboard/{user_id}")
+async def get_dashboard_metrics(
+    user_id: int,
+    cycle_id: Optional[int] = Query(None),
+    time_period: str = Query("current_cycle"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """Get dashboard metrics"""
+    
+    return {
+        "aggregate_metrics": {
+            "reports_assigned": 8,
+            "reports_completed": 3,
+            "reports_in_progress": 4,
+            "reports_trend": 12.5,
+            "avg_completion_time": 14.5,
+            "completion_rate": 37.5,
+            "sla_compliance_rate": 92.5,
+            "observations_confirmed": 15
+        },
+        "time_period": time_period,
+        "cycle_id": cycle_id
+    }
+
+
+@router.get("/report-owner/{user_id}")
+async def get_report_owner_metrics(
+    user_id: int,
+    cycle_id: Optional[int] = Query(None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """Get report owner metrics"""
+    
+    return {
+        "pending_approvals": 12,
+        "approved_items": 45,
+        "rejected_items": 3,
+        "average_review_time": 2.5,
+        "approval_rate": 93.75,
+        "sla_compliance": 89.5
+    }
+
+
+@router.get("/data-provider/{user_id}")
+async def get_data_provider_metrics(
+    user_id: int,
+    cycle_id: Optional[int] = Query(None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """Get data provider metrics"""
+    
+    return {
+        "assigned_attributes": 67,
+        "data_provided": 52,
+        "pending_requests": 15,
+        "sla_compliance": 91.5,
+        "average_response_time": 3.2,
+        "completion_rate": 77.6
+    }
+
+
+@router.get("/phases/{phase_name}")
+async def get_phase_metrics(
+    phase_name: str,
+    cycle_id: Optional[int] = Query(None),
+    report_id: Optional[int] = Query(None),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """Get phase-specific metrics"""
+    
+    # Mock data for different phases
+    phase_data = {
+        "planning": {
+            "total_attributes": 156,
+            "approved_attributes": 142,
+            "attributes_trend": "up",
+            "cde_count": 28,
+            "cde_percentage": 18,
+            "historical_issues_count": 12,
+            "issues_resolved": 8,
+            "phase_completion": 91,
+            "completion_trend": "up",
+            "days_in_phase": 5,
+            "is_overdue": False,
+            "mandatory_count": 89,
+            "conditional_count": 34,
+            "optional_count": 33,
+            "pending_approval": 2,
+            "rejected_count": 1,
+            "approval_rate": 94,
+            "approval_trend": "stable",
+            "avg_time_to_approval": 3.5,
+            "resubmission_count": 1,
+            "first_pass_rate": 92,
+            "time_trend": "down"
+        },
+        "scoping": {
+            "recommendations_generated": 125,
+            "recommendations_accepted": 108,
+            "acceptance_rate": 86.4,
+            "attributes_included": 98,
+            "attributes_excluded": 27,
+            "mandatory_coverage": 100,
+            "overall_coverage": 78.4,
+            "coverage_trend": "up",
+            "submission_status": "Approved",
+            "revision_count": 1,
+            "high_risk_attributes": 18,
+            "high_risk_coverage": 100,
+            "avg_risk_score": 62,
+            "risk_trend": "down",
+            "lobs_covered": 8,
+            "lob_balance_score": 87,
+            "time_to_decision": 2.8,
+            "efficiency_trend": "up",
+            "automation_rate": 72,
+            "first_pass_approval": 88
+        },
+        "data-provider-id": {
+            "total_lobs": 10,
+            "assigned_lobs": 9,
+            "pending_lobs": 1,
+            "total_providers": 24,
+            "active_providers": 22,
+            "response_rate": 91.7,
+            "response_trend": "up",
+            "on_time_assignments": 96.5,
+            "overdue_items": 2,
+            "avg_assignment_time": 4.2,
+            "time_trend": "down",
+            "completed_assignments": 21,
+            "total_assignments": 24,
+            "in_progress": 2,
+            "not_started": 1,
+            "cycle_over_cycle": 8.5,
+            "avg_historical_time": 5.1,
+            "improvement_score": 92,
+            "correct_assignments": 98.2,
+            "reassignment_rate": 1.8,
+            "first_pass_accuracy": 96.5,
+            "accuracy_trend": "up",
+            "automation_rate": 68,
+            "manual_interventions": 5,
+            "throughput_rate": 12,
+            "throughput_trend": "stable"
+        },
+        "sample-selection": {
+            "total_samples": 450,
+            "unique_samples": 445,
+            "sample_coverage": 93.5,
+            "random_samples": 200,
+            "stratified_samples": 150,
+            "judgmental_samples": 75,
+            "systematic_samples": 25,
+            "lob_distribution": [
+                {"lob_name": "Retail", "sample_count": 125, "percentage": 27.8},
+                {"lob_name": "Commercial", "sample_count": 98, "percentage": 21.8},
+                {"lob_name": "Investment", "sample_count": 112, "percentage": 24.9},
+                {"lob_name": "Wealth", "sample_count": 115, "percentage": 25.6}
+            ],
+            "validated_samples": 438,
+            "invalid_samples": 7,
+            "validation_rate": 97.3,
+            "validation_trend": "up",
+            "high_risk_coverage": 100,
+            "medium_risk_coverage": 95,
+            "low_risk_coverage": 88,
+            "selection_time": 6.5,
+            "time_trend": "down",
+            "automation_rate": 82,
+            "reselection_rate": 3.2,
+            "transaction_samples": 280,
+            "balance_samples": 85,
+            "exception_samples": 45,
+            "control_samples": 40
+        },
+        "request-info": {
+            "total_requests": 156,
+            "requests_sent": 156,
+            "pending_requests": 12,
+            "responses_received": 144,
+            "response_rate": 92.3,
+            "response_trend": "up",
+            "incomplete_responses": 5,
+            "avg_response_time": 18.5,
+            "time_trend": "down",
+            "fastest_response": 2.5,
+            "slowest_response": 48,
+            "documents_submitted": 312,
+            "avg_documents_per_request": 2.2,
+            "document_compliance": 94.5,
+            "completeness_score": 96.8,
+            "accuracy_score": 98.2,
+            "accuracy_trend": "up",
+            "timeliness_score": 91.5,
+            "overall_quality": 95.5,
+            "follow_up_requests": 8,
+            "clarifications_needed": 5,
+            "resubmission_rate": 3.2,
+            "sla_compliance_rate": 97.4,
+            "sla_breaches": 4,
+            "escalations": 1,
+            "automated_requests": 78,
+            "manual_processing": 22,
+            "throughput": 28,
+            "throughput_trend": "up"
+        },
+        "test-execution": {
+            "total_test_cases": 850,
+            "executed_tests": 742,
+            "execution_rate": 87.3,
+            "execution_trend": "up",
+            "passed_tests": 698,
+            "failed_tests": 44,
+            "pass_rate": 94.1,
+            "pass_trend": "stable",
+            "total_issues": 28,
+            "critical_issues": 2,
+            "high_issues": 8,
+            "avg_execution_time": 12.5,
+            "time_trend": "down",
+            "tests_per_day": 85,
+            "efficiency_score": 91.2,
+            "database_tests": 420,
+            "data_quality_score": 93.5,
+            "data_anomalies": 5,
+            "document_tests": 322,
+            "format_compliance": 98.2,
+            "content_accuracy": 96.5,
+            "regression_tests": 108,
+            "regression_failures": 3,
+            "stability_score": 97.2
+        },
+        "observation-management": {
+            "total_observations": 68,
+            "observation_trend": "down",
+            "new_observations": 42,
+            "recurring_observations": 26,
+            "confirmed_observations": 45,
+            "disputed_observations": 8,
+            "resolved_observations": 35,
+            "critical_count": 3,
+            "high_count": 12,
+            "medium_count": 28,
+            "low_count": 25,
+            "resolved_count": 35,
+            "in_progress_count": 15,
+            "resolution_rate": 51.5,
+            "resolution_trend": "up",
+            "avg_resolution_time": 8.5,
+            "resolution_time_trend": "down",
+            "fastest_resolution": 1,
+            "longest_resolution": 28,
+            "pending_approval": 6,
+            "approved_count": 32,
+            "rejected_count": 3,
+            "approval_rate": 91.4,
+            "observation_groups": 22,
+            "grouping_efficiency": 68,
+            "avg_group_size": 3.1,
+            "ungrouped_observations": 8,
+            "observations_0_30_days": 45,
+            "observations_31_60_days": 18,
+            "observations_61_90_days": 5,
+            "observations_over_90_days": 0,
+            "remediation_plans": 28,
+            "completed_remediations": 18,
+            "overdue_remediations": 2,
+            "remediation_effectiveness": 92.5,
+            "repeat_observation_rate": 15.2,
+            "repeat_trend": "down",
+            "root_cause_identified": 85,
+            "preventive_actions": 22
+        }
+    }
+    
+    # Return data for the requested phase
+    return phase_data.get(phase_name, {})

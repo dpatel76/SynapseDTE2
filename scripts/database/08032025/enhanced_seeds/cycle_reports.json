@@ -1,0 +1,34 @@
+[
+  {
+    "cycle_report_id": 1,
+    "cycle_id": 1,
+    "report_id": 1,
+    "status": "in_progress",
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "cycle_report_id": 2,
+    "cycle_id": 1,
+    "report_id": 2,
+    "status": "in_progress",
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "cycle_report_id": 3,
+    "cycle_id": 1,
+    "report_id": 3,
+    "status": "in_progress",
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "cycle_report_id": 4,
+    "cycle_id": 1,
+    "report_id": 4,
+    "status": "in_progress",
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  }
+]

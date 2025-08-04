@@ -1,0 +1,364 @@
+import React, { useState } from 'react';
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Chip,
+  IconButton,
+  Alert,
+  CircularProgress,
+  Breadcrumbs,
+  Link,
+  Tabs,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Divider,
+  LinearProgress,
+} from '@mui/material';
+import {
+  ArrowBack as ArrowBackIcon,
+  CheckCircle as CheckCircleIcon,
+  Visibility as ViewIcon,
+} from '@mui/icons-material';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useApiCache } from '../hooks/useApiCache';
+import WorkflowProgress from '../components/WorkflowProgress';
+import apiClient from '../api/client';
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
+
+interface ReportTestingDetail {
+  cycle_id: number;
+  cycle_name: string;
+  report_id: number;
+  report_name: string;
+  lob_name: string;
+  tester_name?: string;
+  report_owner_name?: string;
+  overall_progress: number;
+  current_phase: string;
+  started_at: string;
+  estimated_completion?: string;
+  recent_activity: Array<{
+    action: string;
+    user: string;
+    timestamp: string;
+    phase: string;
+  }>;
+  issues: Array<{
+    id: number;
+    title: string;
+    severity: string;
+    status: string;
+    phase: string;
+  }>;
+}
+
+const ReportTestingPage: React.FC = () => {
+  const { cycleId, reportId } = useParams<{ cycleId: string; reportId: string }>();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [tabValue, setTabValue] = useState(0);
+  
+  // Initialize API cache
+  const apiCache = useApiCache<any>({
+    ttl: 15000, // 15 seconds cache
+    dedupeWindow: 3000 // 3 seconds deduplication
+  });
+
+  // Fetch report details with caching and sequential calls
+  const { data: reportDetail, isLoading, error } = useQuery({
+    queryKey: ['report-testing', cycleId, reportId],
+    queryFn: async (): Promise<ReportTestingDetail> => {
+      try {
+        // Get cycle report details first (primary data)
+        const cycleReportCacheKey = `report-info-${cycleId}-${reportId}`;
+        const cycleReportResponse = await apiCache.executeCachedRequest(
+          cycleReportCacheKey,
+          () => apiClient.get(`/cycle-reports/${cycleId}/reports/${reportId}`)
+        );
+        const cycleReport = cycleReportResponse.data;
+
+        // Add small delays between requests to prevent rate limiting
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Get recent activity
+        const activityCacheKey = `activity-${cycleId}-${reportId}`;
+        const activityResponse = await apiCache.executeCachedRequest(
+          activityCacheKey,
+          () => apiClient.get(`/cycle-reports/${cycleId}/reports/${reportId}/activity`)
+        );
+        const recentActivity = activityResponse.data || [];
+
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Get issues/observations
+        const observationsCacheKey = `observations-${cycleId}-${reportId}`;
+        const issuesResponse = await apiCache.executeCachedRequest(
+          observationsCacheKey,
+          () => apiClient.get(`/cycle-reports/${cycleId}/reports/${reportId}/observations`)
+        );
+        const issues = issuesResponse.data || [];
+
+        return {
+          cycle_id: parseInt(cycleId || '1'),
+          cycle_name: cycleReport.cycle_name || 'Unknown Cycle',
+          report_id: parseInt(reportId || '1'),
+          report_name: cycleReport.report_name || 'Unknown Report',
+          lob_name: cycleReport.lob_name || 'Unknown LOB',
+          tester_name: cycleReport.tester_name,
+          report_owner_name: cycleReport.report_owner_name,
+          overall_progress: cycleReport.overall_progress || 0,
+          current_phase: cycleReport.current_phase || 'planning',
+          started_at: cycleReport.started_at || new Date().toISOString(),
+          estimated_completion: cycleReport.estimated_completion,
+          recent_activity: recentActivity,
+          issues: issues,
+        };
+      } catch (error) {
+        console.error('Error fetching report details:', error);
+        throw error;
+      }
+    },
+    enabled: !!cycleId && !!reportId,
+    retry: 2, // Reduced retries
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backoff
+    staleTime: 30000, // 30 seconds - don't refetch if data is fresh
+    gcTime: 60000, // 1 minute garbage collection
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    refetchOnMount: false, // Don't refetch on component mount if data exists
+    refetchInterval: false, // Disable automatic interval refetching
+  });
+
+  if (isLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error || !reportDetail) {
+    return (
+      <Alert severity="error">
+        Failed to load report details. Please try again.
+      </Alert>
+    );
+  }
+
+  return (
+    <Box p={3}>
+      {/* Breadcrumbs */}
+      <Breadcrumbs sx={{ mb: 3 }}>
+        <Link
+          component="button"
+          variant="body1"
+          onClick={() => navigate('/cycles')}
+          sx={{ textDecoration: 'none' }}
+        >
+          Test Cycles
+        </Link>
+        <Link
+          component="button"
+          variant="body1"
+          onClick={() => navigate(`/cycles/${cycleId}`)}
+          sx={{ textDecoration: 'none' }}
+        >
+          {reportDetail.cycle_name}
+        </Link>
+        <Typography variant="body1" color="text.primary">
+          {reportDetail.report_name}
+        </Typography>
+      </Breadcrumbs>
+
+      {/* Header */}
+      <Box display="flex" alignItems="center" gap={2} mb={3}>
+        <IconButton onClick={() => navigate(`/cycles/${cycleId}`)}>
+          <ArrowBackIcon />
+        </IconButton>
+        <Box flex={1}>
+          <Typography variant="h4">
+            {reportDetail.report_name}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {reportDetail.lob_name} • Testing Progress: {reportDetail.overall_progress}%
+          </Typography>
+        </Box>
+        <Chip 
+          label={reportDetail.current_phase} 
+          color="primary" 
+        />
+      </Box>
+
+      {/* Progress Overview */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Overall Progress
+          </Typography>
+          <Box display="flex" alignItems="center" gap={2} mb={2}>
+            <LinearProgress
+              variant="determinate"
+              value={reportDetail.overall_progress}
+              sx={{ flex: 1, height: 8, borderRadius: 4 }}
+            />
+            <Typography variant="h6" color="primary">
+              {reportDetail.overall_progress}%
+            </Typography>
+          </Box>
+          <Box display="flex" gap={4}>
+            <Box>
+              <Typography variant="caption" color="text.secondary">Tester</Typography>
+              <Typography variant="body2">
+                {reportDetail.tester_name || 'Unassigned'}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary">Report Owner</Typography>
+              <Typography variant="body2">
+                {reportDetail.report_owner_name || 'Unassigned'}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary">Started</Typography>
+              <Typography variant="body2">
+                {new Date(reportDetail.started_at).toLocaleDateString()}
+              </Typography>
+            </Box>
+            {reportDetail.estimated_completion && (
+              <Box>
+                <Typography variant="caption" color="text.secondary">Est. Completion</Typography>
+                <Typography variant="body2">
+                  {new Date(reportDetail.estimated_completion).toLocaleDateString()}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Workflow Progress - Real Implementation */}
+      <WorkflowProgress
+        cycleId={parseInt(cycleId || '0')}
+        reportId={parseInt(reportId || '0')}
+        onStatusChange={(status) => {
+          // Refresh the report data when workflow status changes
+          queryClient.invalidateQueries({ queryKey: ['report-testing', cycleId, reportId] });
+        }}
+      />
+
+      {/* Activity and Issues Tabs */}
+      <Card sx={{ mb: 3, mt: 3 }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
+            <Tab label="Activity Timeline" />
+            <Tab label="All Issues & Observations" />
+          </Tabs>
+        </Box>
+
+        <TabPanel value={tabValue} index={0}>
+          {/* Activity Timeline */}
+          <List>
+            {reportDetail.recent_activity.map((activity, index) => (
+              <React.Fragment key={index}>
+                <ListItem alignItems="flex-start">
+                  <ListItemIcon>
+                    <CheckCircleIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={activity.action}
+                    secondary={
+                      <React.Fragment>
+                        <Typography component="span" variant="body2" color="text.primary">
+                          by {activity.user}
+                        </Typography>
+                        {` • ${activity.phase} • ${new Date(activity.timestamp).toLocaleString()}`}
+                      </React.Fragment>
+                    }
+                  />
+                </ListItem>
+                {index < reportDetail.recent_activity.length - 1 && <Divider variant="inset" component="li" />}
+              </React.Fragment>
+            ))}
+          </List>
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={1}>
+          {/* Issues & Observations */}
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Issue</TableCell>
+                  <TableCell>Severity</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Phase</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {reportDetail.issues.map((issue) => (
+                  <TableRow key={issue.id}>
+                    <TableCell>{issue.title}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={issue.severity} 
+                        size="small"
+                        color={issue.severity === 'High' ? 'error' : issue.severity === 'Medium' ? 'warning' : 'default'}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={issue.status} size="small" />
+                    </TableCell>
+                    <TableCell>{issue.phase}</TableCell>
+                    <TableCell>
+                      <IconButton size="small">
+                        <ViewIcon fontSize="small" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </TabPanel>
+      </Card>
+    </Box>
+  );
+};
+
+export default ReportTestingPage; 

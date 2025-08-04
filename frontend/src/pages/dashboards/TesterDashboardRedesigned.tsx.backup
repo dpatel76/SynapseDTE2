@@ -1,0 +1,486 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Paper,
+  Typography,
+  Card,
+  CardContent,
+  Button,
+  Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  LinearProgress,
+  Alert,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  CircularProgress,
+  Stack,
+  Grid,
+  Divider,
+  useTheme,
+  alpha,
+} from '@mui/material';
+import {
+  Dashboard as DashboardIcon,
+  TrendingUp,
+  TrendingDown,
+  Warning,
+  CheckCircle,
+  Schedule,
+  Assignment,
+  Speed,
+  Assessment,
+  Timer,
+  BugReport,
+  AssignmentTurnedIn,
+  AccountTree,
+  CalendarToday,
+  PlayArrow,
+} from '@mui/icons-material';
+import { useAuth } from '../../contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import apiClient from '../../api/client';
+import { reportsApi } from '../../api/reports';
+import { AssignedReport } from '../../types/api';
+import { cyclesApi } from '../../api/cycles';
+
+const TesterDashboardRedesigned: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const [selectedCycleId, setSelectedCycleId] = useState<number | null>(null);
+
+  console.log('TesterDashboardRedesigned loaded for user:', user?.email, 'role:', user?.role);
+
+  // Get cycles where tester has assignments
+  const { data: cyclesData, isLoading: cyclesLoading } = useQuery({
+    queryKey: ['tester-cycles', user?.user_id],
+    queryFn: async () => {
+      try {
+        // Get all assigned reports for this tester
+        const reports = await reportsApi.getByTester(user?.user_id || 0);
+        
+        // Extract unique cycle IDs
+        const cycleIds = Array.from(new Set(reports.map((r: AssignedReport) => r.cycle_id)));
+        
+        // Get cycle details for each unique cycle
+        const cyclePromises = cycleIds.map(id => apiClient.get(`/cycles/${id}`));
+        const cycleResponses = await Promise.all(cyclePromises);
+        
+        return cycleResponses.map(res => res.data).filter(cycle => 
+          cycle.status === 'Active' || cycle.status === 'active'
+        );
+      } catch (error) {
+        console.error('Error fetching tester cycles:', error);
+        return [];
+      }
+    },
+    enabled: !!user?.user_id,
+  });
+
+  // Set default to first available cycle
+  useEffect(() => {
+    if (cyclesData && cyclesData.length > 0 && !selectedCycleId) {
+      setSelectedCycleId(cyclesData[0].cycle_id);
+    }
+  }, [cyclesData, selectedCycleId]);
+
+  // Get reports filtered by selected cycle
+  const { data: assignedReports, isLoading: reportsLoading } = useQuery({
+    queryKey: ['tester-assigned-reports', user?.user_id, selectedCycleId],
+    queryFn: async () => {
+      try {
+        const reports = await reportsApi.getByTester(user?.user_id || 0);
+        
+        // Filter by selected cycle if specified
+        if (selectedCycleId) {
+          return reports.filter((r: AssignedReport) => r.cycle_id === selectedCycleId);
+        }
+        
+        return reports;
+      } catch (error) {
+        console.error('Error fetching reports:', error);
+        throw error;
+      }
+    },
+    enabled: !!user?.user_id,
+  });
+
+  // Get tester-specific metrics
+  const { data: metricsData, isLoading: metricsLoading } = useQuery({
+    queryKey: ['tester-metrics-redesigned', user?.user_id, selectedCycleId],
+    queryFn: async () => {
+      if (!selectedCycleId) return null;
+      
+      try {
+        const response = await apiClient.get('/api/v1/metrics/tester-redesigned', {
+          params: {
+            cycle_id: selectedCycleId,
+            user_id: user?.user_id
+          }
+        });
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching tester metrics:', error);
+        // Return mock data for now
+        return {
+          summary: {
+            total_assigned: assignedReports?.length || 0,
+            completed: 0,
+            in_progress: 0,
+            not_started: assignedReports?.length || 0,
+            completion_rate: 0,
+            avg_time_per_report: 0,
+          },
+          phase_breakdown: [],
+          sla_status: {
+            on_track: 0,
+            at_risk: 0,
+            overdue: 0,
+          },
+          recent_activities: [],
+        };
+      }
+    },
+    enabled: !!user?.user_id && !!selectedCycleId,
+  });
+
+  const hasNoReports = !assignedReports || assignedReports.length === 0;
+
+  if (cyclesLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const selectedCycle = cyclesData?.find(c => c.cycle_id === selectedCycleId);
+
+  // Calculate metrics
+  const totalReports = assignedReports?.length || 0;
+  const completedReports = assignedReports?.filter(r => r.phase_status === 'completed').length || 0;
+  const inProgressReports = assignedReports?.filter(r => r.phase_status === 'in_progress').length || 0;
+  const notStartedReports = totalReports - completedReports - inProgressReports;
+  const completionRate = totalReports > 0 ? (completedReports / totalReports) * 100 : 0;
+
+  // Group reports by phase
+  const reportsByPhase = assignedReports?.reduce((acc: any, report: AssignedReport) => {
+    const phase = report.current_phase || 'Not Started';
+    if (!acc[phase]) acc[phase] = [];
+    acc[phase].push(report);
+    return acc;
+  }, {}) || {};
+
+  return (
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          My Testing Dashboard
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Track your assigned reports and testing progress
+        </Typography>
+      </Box>
+
+      {/* Cycle Selector */}
+      {cyclesData && cyclesData.length > 0 && (
+        <Card sx={{ mb: 3, backgroundColor: alpha(theme.palette.primary.main, 0.05) }}>
+          <CardContent>
+            <Stack direction="row" spacing={3} alignItems="center">
+              <CalendarToday color="primary" />
+              <FormControl sx={{ minWidth: 300 }}>
+                <InputLabel>Test Cycle</InputLabel>
+                <Select
+                  value={selectedCycleId || ''}
+                  onChange={(e) => setSelectedCycleId(Number(e.target.value))}
+                  label="Test Cycle"
+                >
+                  {cyclesData.map((cycle: any) => (
+                    <MenuItem key={cycle.cycle_id} value={cycle.cycle_id}>
+                      {cycle.cycle_name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {selectedCycle && (
+                <Chip
+                  label={selectedCycle.status}
+                  color="success"
+                  size="small"
+                />
+              )}
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* No Active Cycles Message */}
+      {(!cyclesData || cyclesData.length === 0) && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Typography variant="h6" gutterBottom>No Active Test Cycles</Typography>
+          <Typography variant="body2">
+            You don't have any assigned reports at this time. Reports will appear here once:
+          </Typography>
+          <ul style={{ marginTop: 8, marginBottom: 0 }}>
+            <li>A Test Executive starts a test cycle (changes status from Planning to Active)</li>
+            <li>You are assigned to reports within an active test cycle</li>
+          </ul>
+        </Alert>
+      )}
+
+      {/* Metrics Cards */}
+      {selectedCycleId && (
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent>
+                <Stack spacing={2}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Assignment color="primary" />
+                    <Typography variant="h4">{totalReports}</Typography>
+                  </Stack>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Total Assigned
+                  </Typography>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+          
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent>
+                <Stack spacing={2}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Timer color="warning" />
+                    <Typography variant="h4">{inProgressReports}</Typography>
+                  </Stack>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    In Progress
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={totalReports > 0 ? (inProgressReports / totalReports) * 100 : 0}
+                    color="warning"
+                  />
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+          
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent>
+                <Stack spacing={2}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <CheckCircle color="success" />
+                    <Typography variant="h4">{completedReports}</Typography>
+                  </Stack>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Completed
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={completionRate}
+                    color="success"
+                  />
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+          
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent>
+                <Stack spacing={2}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Schedule color="info" />
+                    <Typography variant="h4">{notStartedReports}</Typography>
+                  </Stack>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Not Started
+                  </Typography>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {/* Quick Actions */}
+      <Card sx={{ mb: 4 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Quick Actions
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <Card 
+                sx={{ 
+                  height: '100%', 
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    boxShadow: theme.shadows[4],
+                    transform: 'translateY(-2px)'
+                  }
+                }}
+                onClick={() => navigate('/tester/assignments')}
+              >
+                <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                  <Assignment sx={{ fontSize: 40, color: 'primary.main', mb: 2 }} />
+                  <Typography variant="h6" gutterBottom>
+                    My Reports
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    View all your assigned reports and their current status
+                  </Typography>
+                  <Button 
+                    variant="outlined" 
+                    sx={{ mt: 2 }}
+                    startIcon={<PlayArrow />}
+                  >
+                    View Reports
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+
+      {/* Phase Progress */}
+      {selectedCycleId && !hasNoReports && (
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Testing Progress by Phase
+            </Typography>
+            <Box sx={{ mt: 3 }}>
+              {Object.entries(reportsByPhase).map(([phase, reports]: [string, any]) => (
+                <Box key={phase} sx={{ mb: 3 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                    <Typography variant="subtitle2">{phase}</Typography>
+                    <Chip label={`${reports.length} reports`} size="small" />
+                  </Stack>
+                  <LinearProgress
+                    variant="determinate"
+                    value={totalReports > 0 ? (reports.length / totalReports) * 100 : 0}
+                    sx={{ height: 8, borderRadius: 4 }}
+                  />
+                </Box>
+              ))}
+            </Box>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Reports Table */}
+      {selectedCycleId && !hasNoReports && (
+        <Card>
+          <CardContent>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+              <Typography variant="h6">
+                My Assigned Reports
+              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<PlayArrow />}
+                onClick={() => navigate('/tester/assignments')}
+              >
+                View All Assignments
+              </Button>
+            </Stack>
+            
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Report Name</TableCell>
+                    <TableCell>LOB</TableCell>
+                    <TableCell>Current Phase</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Progress</TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {assignedReports?.slice(0, 5).map((report: AssignedReport) => (
+                    <TableRow key={`${report.cycle_id}-${report.report_id}`} hover>
+                      <TableCell>
+                        <Typography variant="subtitle2">{report.report_name}</Typography>
+                      </TableCell>
+                      <TableCell>{report.lob_name}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={report.current_phase || 'Not Started'}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={report.phase_status || 'not_started'}
+                          size="small"
+                          color={
+                            report.phase_status === 'completed' ? 'success' :
+                            report.phase_status === 'in_progress' ? 'warning' :
+                            'default'
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <LinearProgress
+                            variant="determinate"
+                            value={report.overall_progress || 0}
+                            sx={{ width: 100, height: 6 }}
+                          />
+                          <Typography variant="caption">
+                            {report.overall_progress || 0}%
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={() => navigate(`/tester/assignments?report=${report.report_id}`)}
+                        >
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            
+            {assignedReports && assignedReports.length > 5 && (
+              <Box sx={{ mt: 2, textAlign: 'center' }}>
+                <Button
+                  variant="text"
+                  onClick={() => navigate('/tester/assignments')}
+                >
+                  View all {assignedReports.length} reports
+                </Button>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </Box>
+  );
+};
+
+export default TesterDashboardRedesigned;

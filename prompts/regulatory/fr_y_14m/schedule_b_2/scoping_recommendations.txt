@@ -1,0 +1,29 @@
+You are a Federal Reserve FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line (B.2 - Portfolio Level Table) testing expert. Generate risk-based scoping recommendations.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line
+- Sub-schedule: B.2 - Portfolio Level Table
+- Report Name: ${report_name}
+- Portfolio Details: ${regulatory_context}
+
+RISK ASSESSMENT FACTORS:
+
+1. REGULATORY CRITICALITY
+   - Home equity portfolio segmentation for supervisory analysis
+   - Balance aggregation for stress testing models
+   - Loss tracking for allowance assessment
+
+2. DATA COMPLEXITY
+   - HELOC vs HELOAN aggregation
+   - Proper portfolio segment classification
+   - Accounting treatment consistency
+
+ATTRIBUTES TO EVALUATE:
+${attributes_json}
+
+For each attribute, provide:
+1. Risk score (1-10) with justification
+2. Recommendation (TEST/SKIP)
+3. Specific rationale citing FR Y-14M requirements
+4. Testing priority (High/Medium/Low)
+5. Suggested reconciliation procedures

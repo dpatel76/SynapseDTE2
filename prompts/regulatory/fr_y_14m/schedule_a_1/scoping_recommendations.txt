@@ -1,0 +1,48 @@
+You are a Federal Reserve FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan (A.1 - Loan Level Table) testing expert. Generate risk-based scoping recommendations.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.1 - Loan Level Table
+- Report Name: ${report_name}
+- Portfolio Details: ${regulatory_context}
+
+RISK ASSESSMENT FACTORS:
+
+1. REGULATORY CRITICALITY (based on FR Y-14M instructions)
+   - Fields used in supervisory stress testing models
+   - Fields subject to Federal Reserve data quality checks
+   - Fields with regulatory thresholds or validation rules
+   - Cross-reference fields required for consistency
+
+2. DATA COMPLEXITY (based on field specifications)
+   - Calculated fields (LTV, DTI ratios)
+   - Multi-source fields requiring data integration
+   - Conditional logic fields based on loan characteristics
+   - Fields with complex validation rules from FR Y-14M
+
+3. COMMON ISSUES (industry knowledge)
+   - Fields prone to errors in mortgage data reporting
+   - Fields with frequent Federal Reserve examination findings
+   - Fields affected by core system limitations
+   - Fields requiring manual intervention or judgment
+
+HIGH RISK FIELDS (Recommend TEST):
+- loan_number (unique identifier criticality)
+- unpaid_principal_balance (stress testing model input)
+- current_interest_rate (model input, complex calculations)
+- original_ltv, original_combined_ltv (underwriting ratios)
+- property_state, property_zip_code (geographic risk factors)
+- loan_status, days_past_due (performance indicators)
+- modification_type, workout_type_completed (loss mitigation tracking)
+
+ATTRIBUTES TO EVALUATE:
+${attributes_json}
+
+For each attribute, provide:
+1. Risk score (1-10) with justification citing FR Y-14M requirements
+2. Recommendation (TEST/SKIP)
+3. Specific rationale referencing FR Y-14M instructions and regulatory importance
+4. Testing priority (High/Medium/Low)
+5. Suggested sample size based on portfolio size and risk
+
+Include specific references to FR Y-14M instructions where applicable.

@@ -1,0 +1,49 @@
+{
+  "table": "cycle_report_rfi_query_validations",
+  "row_count": 2,
+  "extracted_at": "2025-08-03T11:29:28.846492",
+  "data": [
+    {
+      "validation_id": "9abad1fb-af24-44af-bf9d-ede4fef702f0",
+      "test_case_id": 434,
+      "data_source_id": "b182079f-b2ce-473d-bda0-fd08de2e2ec6",
+      "query_text": "SELECT bank_id as \"Bank ID\", customer_id as \"Customer ID\", period_id as \"Period ID\", reference_number as \"Reference Number\", current_credit_limit as \"Current Credit limit\"\nfrom public.fry14m_scheduled1_data\nwhere\nbank_id = '5184712966' and\ncustomer_id = 'FNV1K1A5D71Q9QIL49' and\nperiod_id = '20240127' and \nreference_number = 'AAHL8R2OPQWWHIZMDH'",
+      "query_parameters": "{}",
+      "validation_status": "success",
+      "validation_timestamp": "2025-07-30T05:44:47.052243+00:00",
+      "execution_time_ms": 20,
+      "row_count": 1,
+      "column_names": "[\"Bank ID\", \"Customer ID\", \"Period ID\", \"Reference Number\", \"Current Credit limit\"]",
+      "sample_rows": "[{\"Bank ID\": \"5184712966\", \"Period ID\": \"20240127\", \"Customer ID\": \"FNV1K1A5D71Q9QIL49\", \"Reference Number\": \"AAHL8R2OPQWWHIZMDH\", \"Current Credit limit\": 49976.19}]",
+      "error_message": null,
+      "has_primary_keys": true,
+      "has_target_attribute": true,
+      "missing_columns": "[]",
+      "validated_by": 6,
+      "validation_warnings": "[]",
+      "created_at": "2025-07-30T01:44:47.010102+00:00",
+      "updated_at": "2025-07-30T01:44:47.010102+00:00"
+    },
+    {
+      "validation_id": "e0e3536a-e9a3-4fad-a583-cedbf702e8c1",
+      "test_case_id": 435,
+      "data_source_id": "b182079f-b2ce-473d-bda0-fd08de2e2ec6",
+      "query_text": "SELECT bank_id as \"Bank ID\", customer_id as \"Customer ID\", period_id as \"Period ID\", reference_number as \"Reference Number\", current_credit_limit as \"Current Credit limit\"\nfrom public.fry14m_scheduled1_data\nwhere\nbank_id = '5538581236' and\ncustomer_id = '8J1GIXNFOR5BHSFVHO' and\nperiod_id = '20230526' and \nreference_number = '6ZJZ6GFL7ERBN6HA28'",
+      "query_parameters": "{}",
+      "validation_status": "success",
+      "validation_timestamp": "2025-07-30T06:04:27.602609+00:00",
+      "execution_time_ms": 62,
+      "row_count": 1,
+      "column_names": "[\"Bank ID\", \"Customer ID\", \"Period ID\", \"Reference Number\", \"Current Credit limit\"]",
+      "sample_rows": "[{\"Bank ID\": \"5538581236\", \"Period ID\": \"20230526\", \"Customer ID\": \"8J1GIXNFOR5BHSFVHO\", \"Reference Number\": \"6ZJZ6GFL7ERBN6HA28\", \"Current Credit limit\": -4935.28}]",
+      "error_message": null,
+      "has_primary_keys": true,
+      "has_target_attribute": true,
+      "missing_columns": "[]",
+      "validated_by": 6,
+      "validation_warnings": "[]",
+      "created_at": "2025-07-30T02:04:27.512778+00:00",
+      "updated_at": "2025-07-30T02:04:27.512778+00:00"
+    }
+  ]
+}

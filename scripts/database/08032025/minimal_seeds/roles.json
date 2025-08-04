@@ -1,0 +1,49 @@
+{
+  "table": "roles",
+  "row_count": 6,
+  "extracted_at": "2025-08-03T15:23:44.570867",
+  "data": [
+    {
+      "role_id": 1,
+      "role_name": "Admin",
+      "description": "System administrator with full access",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "role_id": 2,
+      "role_name": "Report Owner",
+      "description": "Owns and manages reports",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "role_id": 3,
+      "role_name": "Tester",
+      "description": "Performs testing activities",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "role_id": 4,
+      "role_name": "Data Owner",
+      "description": "Owns and manages data sources",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "role_id": 5,
+      "role_name": "Data Executive",
+      "description": "Executive oversight of data",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "role_id": 6,
+      "role_name": "Viewer",
+      "description": "Read-only access",
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    }
+  ]
+}

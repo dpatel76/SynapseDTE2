@@ -1,0 +1,91 @@
+{
+  "table": "rbac_roles",
+  "row_count": 7,
+  "extracted_at": "2025-08-03T11:29:28.912712",
+  "data": [
+    {
+      "role_id": 1,
+      "role_name": "Admin",
+      "description": "System Administrator - Full Access",
+      "is_system": true,
+      "is_active": true,
+      "created_at": "2025-06-07T17:03:29.121592+00:00",
+      "updated_at": "2025-06-07T17:03:29.121592+00:00",
+      "created_by_id": null,
+      "updated_by_id": null,
+      "can_classify_pdes": true
+    },
+    {
+      "role_id": 3,
+      "role_name": "Tester",
+      "description": "Tester - Execute testing workflows",
+      "is_system": true,
+      "is_active": true,
+      "created_at": "2025-06-07T17:03:29.121592+00:00",
+      "updated_at": "2025-06-07T17:03:29.121592+00:00",
+      "created_by_id": null,
+      "updated_by_id": null,
+      "can_classify_pdes": true
+    },
+    {
+      "role_id": 4,
+      "role_name": "Report Owner",
+      "description": "Report Owner - Review and approve reports",
+      "is_system": true,
+      "is_active": true,
+      "created_at": "2025-06-07T17:03:29.121592+00:00",
+      "updated_at": "2025-06-07T17:03:29.121592+00:00",
+      "created_by_id": null,
+      "updated_by_id": null,
+      "can_classify_pdes": true
+    },
+    {
+      "role_id": 2,
+      "role_name": "Test Executive",
+      "description": "Test Manager - Manage testing cycles and assignments",
+      "is_system": true,
+      "is_active": true,
+      "created_at": "2025-06-07T17:03:29.121592+00:00",
+      "updated_at": "2025-06-07T17:03:29.121592+00:00",
+      "created_by_id": null,
+      "updated_by_id": null,
+      "can_classify_pdes": true
+    },
+    {
+      "role_id": 6,
+      "role_name": "Data Owner",
+      "description": "Data Provider - Provide data for testing",
+      "is_system": true,
+      "is_active": true,
+      "created_at": "2025-06-07T17:03:29.121592+00:00",
+      "updated_at": "2025-06-07T17:03:29.121592+00:00",
+      "created_by_id": null,
+      "updated_by_id": null,
+      "can_classify_pdes": true
+    },
+    {
+      "role_id": 7,
+      "role_name": "Data Executive",
+      "description": "Chief Data Officer - Manage LOBs and data providers",
+      "is_system": true,
+      "is_active": true,
+      "created_at": "2025-06-07T17:03:29.121592+00:00",
+      "updated_at": "2025-06-07T17:03:29.121592+00:00",
+      "created_by_id": null,
+      "updated_by_id": null,
+      "can_classify_pdes": true
+    },
+    {
+      "role_id": 5,
+      "role_name": "Report Executive",
+      "description": "Report Owner Executive - Executive oversight",
+      "is_system": true,
+      "is_active": true,
+      "created_at": "2025-06-07T17:03:29.121592+00:00",
+      "updated_at": "2025-06-07T17:03:29.121592+00:00",
+      "created_by_id": null,
+      "updated_by_id": null,
+      "can_classify_pdes": true
+    }
+  ]
+}

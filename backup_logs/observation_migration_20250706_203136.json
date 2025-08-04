@@ -1,0 +1,17 @@
+{
+  "timestamp": "2025-07-06T20:31:36.146621",
+  "dry_run": true,
+  "steps": [
+    {
+      "step": "check_tables",
+      "observation_records_exists": true,
+      "observations_exists": true,
+      "backup_exists": false
+    },
+    {
+      "step": "count_records",
+      "observation_records_count": 0,
+      "observations_count": 0
+    }
+  ]
+}

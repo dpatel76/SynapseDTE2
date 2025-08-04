@@ -1,0 +1,110 @@
+You are a Federal Reserve FR Y-14M Schedule C.1 commercial loan data mapping expert. Suggest appropriate PDE (Primary Data Element) mapping for the given attribute.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule C - Commercial and Industrial Loans
+- Sub-schedule: C.1 - Loan Level Table
+- Report: ${report_name}
+- Regulatory Context: ${regulatory_context}
+- Total Attributes: 140 fields per commercial loan
+
+ATTRIBUTE TO MAP:
+- Name: ${attribute_name}
+- Description: ${attribute_description}
+- Data Type: ${data_type}
+- Mandatory Flag: ${mandatory_flag}
+- Is Primary Key: ${is_primary_key}
+- Is CDE: ${cde_flag}
+- Validation Rules: ${validation_rules}
+
+AVAILABLE DATA SOURCES:
+${data_sources}
+
+FR Y-14M C.1 SPECIFIC MAPPING GUIDELINES:
+1. Loan/Facility Identifiers:
+   - LOAN_ID -> Unique loan/facility identifier
+   - COMMIT_ID -> Commitment identifier
+   - OBLIG_ID -> Obligor identifier
+   - CUSIP -> CUSIP if securitized
+
+2. Obligor Information:
+   - OBLIG_NAME -> Obligor legal name
+   - DUNS_NUM -> D&B DUNS number
+   - TICKER -> Public company ticker
+   - NAICS -> Industry classification code
+
+3. Facility Details:
+   - COMMIT_AMT -> Total commitment amount
+   - OUT_BAL -> Outstanding balance
+   - AVAIL_AMT -> Available/undrawn amount
+   - ORIG_DT -> Origination date
+
+4. Financial Metrics:
+   - REVENUE -> Obligor revenue
+   - EBITDA -> Obligor EBITDA
+   - DEBT_SVC_COV -> Debt service coverage ratio
+   - LEV_RATIO -> Leverage ratio
+
+5. Credit Information:
+   - INT_RATE -> Current interest rate
+   - SPRD -> Spread over index
+   - INT_RATE_TYPE -> Fixed/floating indicator
+   - RATING_INT -> Internal risk rating
+
+6. Collateral/Security:
+   - COLL_TYPE -> Collateral type code
+   - COLL_VAL -> Collateral value
+   - LTV -> Loan-to-value ratio
+   - GUAR_AMT -> Guarantee amount
+
+7. Risk Metrics:
+   - PD -> Probability of default
+   - LGD -> Loss given default
+   - EAD -> Exposure at default
+   - EXPC_LOSS -> Expected loss
+
+MAPPING REQUIREMENTS:
+- Use exact FR Y-14M field names where applicable
+- Map to commercial loan system primary sources
+- Consider data transformations for regulatory format
+- Identify calculation requirements for financial ratios
+- Note any data quality considerations
+
+Please suggest:
+1. PDE name following FR Y-14M naming convention
+2. PDE code (schedule prefix: C1_)
+3. Source system and field mapping
+4. Required transformations
+5. Business process association
+6. Data quality checks needed
+7. Confidence score (0-100)
+
+Return as JSON:
+{
+    "pde_name": "FR Y-14M field name",
+    "pde_code": "C1_XXX format",
+    "pde_description": "Official FR Y-14M description",
+    "data_source_id": number or null,
+    "source_system": "Commercial loan system/Credit risk platform",
+    "source_field": "Exact source field name",
+    "transformation_rule": {
+        "type": "direct|calculated|lookup|conditional",
+        "logic": "Transformation details",
+        "format": "Output format requirements"
+    },
+    "mapping_type": "direct|calculated|lookup|conditional",
+    "business_process": "Loan origination|Credit monitoring|Risk assessment|Portfolio management",
+    "data_quality_checks": [
+        "Check 1",
+        "Check 2"
+    ],
+    "regulatory_notes": "FR Y-14M specific requirements",
+    "confidence_score": number,
+    "rationale": "Mapping rationale",
+    "alternative_mappings": [
+        {
+            "source_field": "Alternative field",
+            "confidence_score": number,
+            "notes": "When to use"
+        }
+    ]
+}

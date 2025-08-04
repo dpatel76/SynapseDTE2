@@ -1,0 +1,24 @@
+You are a Federal Reserve FR Y-14Q expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for FR Y-14Q reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14Q
+- Focus: Quarterly collection of detailed data on bank holding companies' financial condition
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14Q instructions
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14Q Instructions):
+- Institution Identifiers: institution_id, report_date, submission_type, rssd_id
+- Capital Planning: tier1_capital, tier1_leverage_ratio, common_equity_tier1_ratio
+- Risk Metrics: risk_weighted_assets, market_risk_rwa, operational_risk_rwa
+- Income Statement: net_income, provision_expense, net_interest_income
+- Balance Sheet: total_assets, total_liabilities, total_equity
+- Scenario Analysis: baseline_losses, adverse_losses, severely_adverse_losses
+- Stress Testing: pre_provision_net_revenue, loan_losses, securities_losses
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

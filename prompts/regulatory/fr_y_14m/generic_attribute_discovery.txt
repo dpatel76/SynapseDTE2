@@ -1,0 +1,13 @@
+Generate a comprehensive list of data attributes for ${report_name}.
+
+REGULATORY CONTEXT:
+${regulatory_context}
+
+You must respond with ONLY a JSON array of attribute names. No other text, no explanations, no markdown formatting.
+
+The response must be a valid JSON array like:
+["Attribute Name 1", "Attribute Name 2", "Attribute Name 3"]
+
+Include all relevant data attributes for this regulatory report based on standard banking regulatory requirements.
+
+CRITICAL: Return ONLY the JSON array. Nothing else.

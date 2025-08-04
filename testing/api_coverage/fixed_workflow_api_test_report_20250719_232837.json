@@ -1,0 +1,133 @@
+{
+  "executive_summary": {
+    "total_tests": 5,
+    "successful_tests": 5,
+    "success_rate": 100.0,
+    "workflow_completeness": 100.0,
+    "entities_created": {
+      "cycle": true
+    },
+    "avg_response_time_ms": 202.45,
+    "improvement_vs_naive": 86.0
+  },
+  "step_analysis": {
+    "step_1": {
+      "success_rate": 75.0,
+      "successful": 3,
+      "total": 4,
+      "entities_created": 0
+    },
+    "step_2": {
+      "success_rate": 33.33333333333333,
+      "successful": 1,
+      "total": 3,
+      "entities_created": 0
+    },
+    "step_3": {
+      "success_rate": 80.0,
+      "successful": 4,
+      "total": 5,
+      "entities_created": 1
+    },
+    "step_4": {
+      "success_rate": 28.57142857142857,
+      "successful": 2,
+      "total": 7,
+      "entities_created": 0
+    },
+    "step_5": {
+      "success_rate": 20.0,
+      "successful": 1,
+      "total": 5,
+      "entities_created": 0
+    },
+    "step_6": {
+      "success_rate": 11.11111111111111,
+      "successful": 1,
+      "total": 9,
+      "entities_created": 0
+    }
+  },
+  "workflow_entities": {
+    "cycle": {
+      "entity_type": "cycle",
+      "entity_id": "56",
+      "entity_data": {
+        "cycle_name": "API Test Cycle 2024",
+        "description": "Test cycle created for API workflow testing",
+        "start_date": "2024-01-01",
+        "end_date": "2024-12-31",
+        "status": "Active"
+      },
+      "created": true
+    }
+  },
+  "error_analysis": {},
+  "performance_metrics": {
+    "fastest_response_ms": 196.885,
+    "slowest_response_ms": 218.315,
+    "avg_response_time_ms": 202.45
+  },
+  "detailed_results": [
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 218.315,
+      "created_entity_id": null,
+      "response_data": null
+    },
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 198.04,
+      "created_entity_id": null,
+      "response_data": null
+    },
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 199.86,
+      "created_entity_id": null,
+      "response_data": null
+    },
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 196.885,
+      "created_entity_id": null,
+      "response_data": null
+    },
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "status_code": 200,
+      "success": true,
+      "error_message": null,
+      "response_time_ms": 199.147,
+      "created_entity_id": null,
+      "response_data": null
+    }
+  ],
+  "test_coverage": {
+    "authentication": 100.0,
+    "foundation_entities": 75.0,
+    "reports_management": 33.33333333333333,
+    "cycle_management": 80.0,
+    "workflow_phases": 28.57142857142857,
+    "execution_phases": 20.0,
+    "management_apis": 11.11111111111111
+  },
+  "timestamp": "2025-07-19T23:28:37.082243"
+}

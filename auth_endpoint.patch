@@ -1,0 +1,30 @@
+--- a/app/api/v1/endpoints/auth.py
++++ b/app/api/v1/endpoints/auth.py
+@@ -30,18 +30,17 @@
+ async def login(
+     login_data: UserLoginDTO,
+     db: AsyncSession = Depends(get_db),
+-    container = Depends(get_container)
+ ):
+     """Authenticate user and return access token - Clean Architecture Only"""
+     
+-    # Get authentication use case from container
+-    auth_use_case: AuthenticateUserUseCase = container.get("auth.authenticate_user")
++    # Create use case directly - container is not working properly in Docker
++    from app.infrastructure.repositories.user_repository import UserRepositoryImpl
++    from app.infrastructure.external_services.auth_service_impl import AuthServiceImpl
+     
+-    if not auth_use_case:
+-        # Create use case directly if not in container
+-        from app.infrastructure.repositories.user_repository import UserRepositoryImpl
+-        from app.infrastructure.external_services.auth_service_impl import AuthServiceImpl
+-        
+-        user_repo = UserRepositoryImpl(db)
+-        auth_service = AuthServiceImpl()
+-        auth_use_case = AuthenticateUserUseCase(user_repo, auth_service)
++    user_repo = UserRepositoryImpl(db)
++    auth_service = AuthServiceImpl()
++    auth_use_case = AuthenticateUserUseCase(user_repo, auth_service)
+     
+     try:
+         result = await auth_use_case.execute(login_data)

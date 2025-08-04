@@ -1,0 +1,209 @@
+import React from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Box,
+  Typography,
+  Paper,
+  Chip,
+  Divider,
+  IconButton,
+  Grid
+} from '@mui/material';
+import {
+  Close,
+  CompareArrows,
+  Add,
+  Remove,
+  Edit
+} from '@mui/icons-material';
+
+interface VersionComparison {
+  field: string;
+  oldValue: any;
+  newValue: any;
+  changeType: 'added' | 'removed' | 'modified';
+}
+
+interface VersionComparisonDialogProps {
+  open: boolean;
+  onClose: () => void;
+  version1: {
+    number: number;
+    date: string;
+    changedBy: string;
+  };
+  version2: {
+    number: number;
+    date: string;
+    changedBy: string;
+  };
+  comparisons: VersionComparison[];
+  entityType: string;
+}
+
+export const VersionComparisonDialog: React.FC<VersionComparisonDialogProps> = ({
+  open,
+  onClose,
+  version1,
+  version2,
+  comparisons,
+  entityType
+}) => {
+  const getChangeIcon = (changeType: string) => {
+    switch (changeType) {
+      case 'added': return <Add fontSize="small" />;
+      case 'removed': return <Remove fontSize="small" />;
+      case 'modified': return <Edit fontSize="small" />;
+      default: return undefined;
+    }
+  };
+
+  const getChangeColor = (changeType: string) => {
+    switch (changeType) {
+      case 'added': return 'success';
+      case 'removed': return 'error';
+      case 'modified': return 'warning';
+      default: return 'default';
+    }
+  };
+
+  const formatValue = (value: any): string => {
+    if (value === null || value === undefined) return 'N/A';
+    if (typeof value === 'object') return JSON.stringify(value, null, 2);
+    return String(value);
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="lg"
+      fullWidth
+      PaperProps={{
+        sx: { minHeight: '70vh' }
+      }}
+    >
+      <DialogTitle>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <CompareArrows />
+            <Typography variant="h6">Version Comparison</Typography>
+            <Chip label={entityType} size="small" variant="outlined" />
+          </Box>
+          <IconButton onClick={onClose}>
+            <Close />
+          </IconButton>
+        </Box>
+      </DialogTitle>
+
+      <DialogContent dividers>
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid size={6}>
+            <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Version {version1.number}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {version1.date} by {version1.changedBy}
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid size={6}>
+            <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Version {version2.number}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {version2.date} by {version2.changedBy}
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+
+        <Typography variant="subtitle2" sx={{ mb: 2 }}>
+          {comparisons.length} differences found
+        </Typography>
+
+        {comparisons.map((comparison, index) => (
+          <Box key={index} sx={{ mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <Chip
+                icon={getChangeIcon(comparison.changeType)}
+                label={comparison.changeType}
+                size="small"
+                color={getChangeColor(comparison.changeType)}
+              />
+              <Typography variant="subtitle2">
+                {comparison.field}
+              </Typography>
+            </Box>
+
+            <Grid container spacing={2}>
+              <Grid size={6}>
+                <Paper
+                  sx={{
+                    p: 2,
+                    bgcolor: comparison.changeType === 'removed' ? 'error.50' : 'background.paper',
+                    border: '1px solid',
+                    borderColor: comparison.changeType === 'removed' ? 'error.200' : 'divider'
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary" gutterBottom>
+                    Previous Value
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontFamily: 'monospace',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      textDecoration: comparison.changeType === 'removed' ? 'line-through' : 'none'
+                    }}
+                  >
+                    {formatValue(comparison.oldValue)}
+                  </Typography>
+                </Paper>
+              </Grid>
+              <Grid size={6}>
+                <Paper
+                  sx={{
+                    p: 2,
+                    bgcolor: comparison.changeType === 'added' ? 'success.50' : 'background.paper',
+                    border: '1px solid',
+                    borderColor: comparison.changeType === 'added' ? 'success.200' : 'divider'
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary" gutterBottom>
+                    New Value
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontFamily: 'monospace',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word'
+                    }}
+                  >
+                    {formatValue(comparison.newValue)}
+                  </Typography>
+                </Paper>
+              </Grid>
+            </Grid>
+
+            {index < comparisons.length - 1 && <Divider sx={{ mt: 3 }} />}
+          </Box>
+        ))}
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+export default VersionComparisonDialog;

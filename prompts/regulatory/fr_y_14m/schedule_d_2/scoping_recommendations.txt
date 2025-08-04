@@ -1,0 +1,42 @@
+You are a Federal Reserve FR Y-14M Schedule D - Domestic Credit Card Data Collection (D.2 - Portfolio Level Table) testing expert. Generate risk-based scoping recommendations.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.2 - Portfolio Level Table
+- Report Name: ${report_name}
+- Portfolio Details: ${regulatory_context}
+
+RISK ASSESSMENT FACTORS:
+
+1. REGULATORY CRITICALITY
+   - Portfolio segmentation accuracy for supervisory analysis
+   - Managed vs booked distinction for off-balance sheet tracking
+   - Loss and provision reporting for allowance adequacy
+   - Income and expense reporting for profitability analysis
+
+2. DATA COMPLEXITY
+   - Credit card type and lending type segment combinations
+   - Managed vs booked reconciliation
+   - Fee income categorization and allocation
+   - Provision expense components and relationships
+
+3. RECONCILIATION IMPORTANCE
+   - Portfolio level must reconcile to account-level aggregations
+   - Managed totals must include securitized assets
+   - Income and expense items must tie to general ledger
+
+HIGH RISK FIELDS (Recommend TEST):
+- credit_card_type, lending_type (segment definition)
+- end_of_month_managed_receivables, end_of_month_book_receivables (balance accuracy)
+- managed_gross_charge_offs_current_month, booked_gross_charge_offs_current_month (loss tracking)
+- loan_loss_provision_expense (allowance adequacy)
+
+ATTRIBUTES TO EVALUATE:
+${attributes_json}
+
+For each attribute, provide:
+1. Risk score (1-10) with justification
+2. Recommendation (TEST/SKIP)
+3. Specific rationale citing FR Y-14M requirements
+4. Testing priority (High/Medium/Low)
+5. Suggested reconciliation procedures

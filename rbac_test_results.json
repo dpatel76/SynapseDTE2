@@ -1,0 +1,359 @@
+{
+  "summary": {
+    "total": 35,
+    "passed": 35,
+    "failed": 0
+  },
+  "results": [
+    {
+      "endpoint": "GET /cycles",
+      "description": "List test cycles",
+      "user": "admin@synapsedt.com",
+      "role": "Admin",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 200,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /cycles",
+      "description": "List test cycles",
+      "user": "john.manager@synapsedt.com",
+      "role": "Test Manager",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 200,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /cycles",
+      "description": "List test cycles",
+      "user": "jane.tester@synapsedt.com",
+      "role": "Tester",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 200,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /cycles",
+      "description": "List test cycles",
+      "user": "bob.owner@synapsedt.com",
+      "role": "Report Owner",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 200,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /cycles",
+      "description": "List test cycles",
+      "user": "charlie.provider@synapsedt.com",
+      "role": "Data Provider",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /cycles",
+      "description": "Create test cycle",
+      "user": "admin@synapsedt.com",
+      "role": "Admin",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 400,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /cycles",
+      "description": "Create test cycle",
+      "user": "john.manager@synapsedt.com",
+      "role": "Test Manager",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 400,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /cycles",
+      "description": "Create test cycle",
+      "user": "jane.tester@synapsedt.com",
+      "role": "Tester",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /cycles",
+      "description": "Create test cycle",
+      "user": "bob.owner@synapsedt.com",
+      "role": "Report Owner",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /cycles",
+      "description": "Create test cycle",
+      "user": "charlie.provider@synapsedt.com",
+      "role": "Data Provider",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /reports",
+      "description": "List reports",
+      "user": "admin@synapsedt.com",
+      "role": "Admin",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 200,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /reports",
+      "description": "List reports",
+      "user": "john.manager@synapsedt.com",
+      "role": "Test Manager",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 200,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /reports",
+      "description": "List reports",
+      "user": "jane.tester@synapsedt.com",
+      "role": "Tester",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 200,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /reports",
+      "description": "List reports",
+      "user": "bob.owner@synapsedt.com",
+      "role": "Report Owner",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 200,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /reports",
+      "description": "List reports",
+      "user": "charlie.provider@synapsedt.com",
+      "role": "Data Provider",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /reports",
+      "description": "Create report",
+      "user": "admin@synapsedt.com",
+      "role": "Admin",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 500,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /reports",
+      "description": "Create report",
+      "user": "john.manager@synapsedt.com",
+      "role": "Test Manager",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 500,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /reports",
+      "description": "Create report",
+      "user": "jane.tester@synapsedt.com",
+      "role": "Tester",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /reports",
+      "description": "Create report",
+      "user": "bob.owner@synapsedt.com",
+      "role": "Report Owner",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /reports",
+      "description": "Create report",
+      "user": "charlie.provider@synapsedt.com",
+      "role": "Data Provider",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /users",
+      "description": "List users",
+      "user": "admin@synapsedt.com",
+      "role": "Admin",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 200,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /users",
+      "description": "List users",
+      "user": "john.manager@synapsedt.com",
+      "role": "Test Manager",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 200,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /users",
+      "description": "List users",
+      "user": "jane.tester@synapsedt.com",
+      "role": "Tester",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /users",
+      "description": "List users",
+      "user": "bob.owner@synapsedt.com",
+      "role": "Report Owner",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /users",
+      "description": "List users",
+      "user": "charlie.provider@synapsedt.com",
+      "role": "Data Provider",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /users",
+      "description": "Create user",
+      "user": "admin@synapsedt.com",
+      "role": "Admin",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 400,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /users",
+      "description": "Create user",
+      "user": "john.manager@synapsedt.com",
+      "role": "Test Manager",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /users",
+      "description": "Create user",
+      "user": "jane.tester@synapsedt.com",
+      "role": "Tester",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /users",
+      "description": "Create user",
+      "user": "bob.owner@synapsedt.com",
+      "role": "Report Owner",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "POST /users",
+      "description": "Create user",
+      "user": "charlie.provider@synapsedt.com",
+      "role": "Data Provider",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /data-sources",
+      "description": "List data sources",
+      "user": "admin@synapsedt.com",
+      "role": "Admin",
+      "expected": "ALLOW",
+      "actual": "ALLOW",
+      "status_code": 200,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /data-sources",
+      "description": "List data sources",
+      "user": "john.manager@synapsedt.com",
+      "role": "Test Manager",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /data-sources",
+      "description": "List data sources",
+      "user": "jane.tester@synapsedt.com",
+      "role": "Tester",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /data-sources",
+      "description": "List data sources",
+      "user": "bob.owner@synapsedt.com",
+      "role": "Report Owner",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    },
+    {
+      "endpoint": "GET /data-sources",
+      "description": "List data sources",
+      "user": "charlie.provider@synapsedt.com",
+      "role": "Data Provider",
+      "expected": "DENY",
+      "actual": "DENY",
+      "status_code": 403,
+      "passed": true
+    }
+  ]
+}

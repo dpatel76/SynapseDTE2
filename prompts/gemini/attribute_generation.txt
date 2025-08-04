@@ -1,0 +1,48 @@
+REGULATORY ATTRIBUTE GENERATION TASK
+
+Extract comprehensive data attributes from regulatory requirements for testing compliance.
+
+INPUTS:
+- Regulation: ${regulation}
+- Report: ${report_name}  
+- Context: ${regulatory_context}
+- CDE List: ${cde_list}
+- Historical Issues: ${historical_issues}
+
+TASK: Extract ALL testable data elements for comprehensive regulatory compliance testing.
+
+CRITICAL: Each attribute needs EXACTLY 8 fields:
+1. attribute_name: Clear name
+2. data_type: String|Integer|Decimal|Date|Boolean
+3. mandatory_flag: Mandatory|Optional|Conditional
+4. description: What it represents
+5. validation_rules: Business rules/constraints
+6. typical_source_documents: Where data comes from
+7. keywords_to_look_for: Search keywords
+8. testing_approach: How to test/validate
+
+OUTPUT JSON ARRAY ONLY:
+[
+  {
+    "attribute_name": "borrower_id",
+    "data_type": "String",
+    "mandatory_flag": "Mandatory",
+    "description": "Unique borrower identifier",
+    "validation_rules": "Non-empty, alphanumeric, 8-12 chars",
+    "typical_source_documents": "Loan application, Credit file",
+    "keywords_to_look_for": "borrower ID, customer number",
+    "testing_approach": "Verify uniqueness, format validation"
+  }
+]
+
+REQUIREMENTS:
+- ALL 8 fields for EVERY attribute
+- NO missing fields
+- Comprehensive coverage (50-200+ attributes)
+- Include mandatory, optional, calculated fields
+- Cover dates, amounts, flags, identifiers
+- Provide defaults if unsure about source docs/keywords
+
+FOCUS: Complete regulatory compliance coverage.
+
+Extract now: 

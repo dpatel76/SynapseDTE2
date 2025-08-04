@@ -1,0 +1,31 @@
+{
+  "test_case_id": "429",
+  "has_evidence": true,
+  "evidence": [
+    {
+      "id": 370,
+      "evidence_type": "data_source",
+      "version_number": 1,
+      "is_current": true,
+      "validation_status": "valid",
+      "validation_notes": null,
+      "validated_at": null,
+      "validated_by_name": null,
+      "submitted_at": "2025-07-28T01:44:46.956187+00:00",
+      "submission_notes": null,
+      "submitted_by_name": "Admin User",
+      "tester_decision": null,
+      "tester_notes": null,
+      "decided_at": null,
+      "decided_by_name": null,
+      "data_source_id": 7,
+      "data_source_name": "Data Source",
+      "query_text": "SELECT Zip Code FROM test_data WHERE sample_id = '15476990-3cfd-4e77-9b6d-ca48064bd323'",
+      "query_parameters": null,
+      "query_validation_id": null
+    }
+  ],
+  "total_versions": 1,
+  "validation_results": [],
+  "tester_decisions": []
+}

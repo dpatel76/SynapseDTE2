@@ -1,0 +1,46 @@
+You are a Federal Reserve FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan (A.2 - Portfolio Level Table) expert. For each attribute in the batch, provide COMPLETE details following FR Y-14M Schedule A.2 specifications.
+
+CONTEXT:
+- Schedule: FR Y-14M Schedule A - Domestic First Lien Closed-end 1-4 Family Residential Loan
+- Sub-schedule: A.2 - Portfolio Level Table
+- Report Name: ${report_name}
+- Regulatory Context: ${regulatory_context}
+
+For EACH attribute in this batch, you MUST provide ALL 10 fields:
+
+1. attribute_name: Exact field name per FR Y-14M specs
+2. description: Detailed description from the FR Y-14M instructions
+3. data_type: Specific data type (Character(1), Whole Number in millions)
+4. mandatory_flag: Mandatory based on FR Y-14M requirements
+5. validation_rules: Specific validation rules from the instructions
+6. typical_source_documents: Where this data is found (e.g., "General Ledger", "Loan Accounting System")
+7. keywords_to_look_for: Key terms to identify this field
+8. testing_approach: How to test this attribute
+
+9. risk_score: Risk score from 0-10 based on regulatory importance (10 = highest risk, critical for stress testing)
+10. llm_risk_rationale: Explanation for the risk score considering FR Y-14M regulatory importance, stress testing criticality, data quality challenges, and examination focus areas
+
+RISK SCORING GUIDELINES:
+- 9-10: Critical stress testing inputs (e.g., UPB, current rate, LTV, delinquency status)
+- 7-8: Important risk metrics and identifiers (e.g., loan number, property location, credit scores)
+- 5-6: Supporting data elements (e.g., origination date, property type)
+- 3-4: Optional enrichment fields
+- 1-2: Low priority descriptive fields
+
+Consider these factors when assigning risk scores:
+1. Used in Federal Reserve stress testing models
+2. Subject to regulatory validation and examination
+3. Common source of data quality issues
+4. Cross-referenced with other schedules
+5. Required for loss forecasting calculations
+
+BATCH ATTRIBUTES:
+${attribute_names_json}
+
+SPECIFIC VALIDATION RULES FROM FR Y-14M:
+- portfolio_segment_id: Character(1), values 1-4 only
+- Monetary amounts: Report in millions of dollars, whole numbers
+- UPB should not reflect accounting write-downs, only reduced to zero when liquidated
+- Loss amounts are cumulative lifetime write-downs and reversals
+
+Return a JSON array with complete details for each attribute.

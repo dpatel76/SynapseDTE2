@@ -1,0 +1,436 @@
+"""
+Enhanced Test Cycle Workflow V2 with Dynamic Activity Execution
+Supports sequential dependencies and parallel execution paths
+"""
+
+from temporalio import workflow
+from temporalio.common import RetryPolicy
+from datetime import timedelta, datetime
+from typing import List, Dict, Any, Optional, Set
+import uuid
+import logging
+import asyncio
+
+from app.temporal.shared import (
+    TestCycleWorkflowInput, PhaseResult,
+    WorkflowStatus, PhaseStatus, WORKFLOW_PHASES
+)
+from app.temporal.retry_policies import (
+    WorkflowRetryManager,
+    CompensationManager,
+    execute_with_compensation,
+    CompensableActivityResult
+)
+from app.temporal.workflow_versioning import VersionedWorkflowMixin
+from app.temporal.activities.tracking_activities import (
+    record_workflow_start_activity,
+    record_workflow_complete_activity,
+    record_step_start_activity,
+    record_step_complete_activity,
+    record_transition_activity,
+    calculate_workflow_metrics_activity
+)
+from app.temporal.activities.dynamic_activities import (
+    get_activities_for_phase_activity,
+    execute_workflow_activity,
+    check_manual_activity_completed_activity,
+    get_parallel_instances_activity,
+    check_phase_completion_dependencies_activity,
+    create_workflow_activity_record_activity
+)
+
+logger = logging.getLogger(__name__)
+
+
+@workflow.defn
+class EnhancedTestCycleWorkflowV2(VersionedWorkflowMixin):
+    """Enhanced workflow with dynamic activity execution"""
+    
+    def __init__(self):
+        self.execution_id = str(uuid.uuid4())
+        self.status = WorkflowStatus.PENDING
+        self.completed_phases: Set[str] = set()
+        self.phase_results: Dict[str, PhaseResult] = {}
+        self.workflow_start_time: Optional[datetime] = None
+        self.current_phase: Optional[str] = None
+        self.retry_manager = WorkflowRetryManager()
+        self.compensation_manager = CompensationManager()
+        self.manual_activities_pending: Dict[str, bool] = {}
+    
+    @workflow.run
+    async def run(self, input_data: TestCycleWorkflowInput) -> Dict[str, Any]:
+        """Execute the enhanced test cycle workflow with dynamic activities"""
+        
+        # Record workflow start
+        self.workflow_start_time = datetime.utcnow()
+        await self._record_workflow_start(input_data)
+        
+        # Set workflow status
+        self.status = WorkflowStatus.RUNNING
+        workflow.logger.info(f"Starting enhanced test cycle workflow V2 {self.execution_id} for cycle {input_data.cycle_id}")
+        
+        # Define retry policy
+        retry_policy = RetryPolicy(
+            maximum_attempts=3,
+            initial_interval=timedelta(seconds=2),
+            maximum_interval=timedelta(seconds=60),
+            backoff_coefficient=2
+        )
+        
+        try:
+            # Sequential phases that must complete in order
+            sequential_phases = [
+                "Planning", 
+                "Data Profiling", 
+                "Scoping", 
+                "Sample Selection",
+                "Data Owner Identification"
+            ]
+            
+            # Execute sequential phases
+            for phase_name in sequential_phases:
+                if phase_name in input_data.skip_phases:
+                    workflow.logger.info(f"Skipping phase {phase_name} as requested")
+                    continue
+                
+                await self._execute_phase_with_dynamic_activities(
+                    phase_name, 
+                    input_data, 
+                    retry_policy,
+                    is_parallel=False
+                )
+                self.completed_phases.add(phase_name)
+            
+            # Execute parallel phases
+            # Request for Information - parallel by data owner
+            if "Request for Information" not in input_data.skip_phases:
+                await self._execute_phase_with_dynamic_activities(
+                    "Request for Information",
+                    input_data,
+                    retry_policy,
+                    is_parallel=True
+                )
+                self.completed_phases.add("Request for Information")
+            
+            # Test Execution - parallel by document
+            if "Test Execution" not in input_data.skip_phases:
+                await self._execute_phase_with_dynamic_activities(
+                    "Test Execution",
+                    input_data,
+                    retry_policy,
+                    is_parallel=True
+                )
+                self.completed_phases.add("Test Execution")
+            
+            # Observation Management - parallel by test execution
+            if "Observation Management" not in input_data.skip_phases:
+                await self._execute_phase_with_dynamic_activities(
+                    "Observation Management",
+                    input_data,
+                    retry_policy,
+                    is_parallel=True
+                )
+                self.completed_phases.add("Observation Management")
+            
+            # Finalize Test Report - only after ALL observations complete
+            if "Finalize Test Report" not in input_data.skip_phases:
+                # Wait for all observations to complete
+                await workflow.wait_condition(
+                    lambda: self._check_all_observations_complete(input_data)
+                )
+                
+                await self._execute_phase_with_dynamic_activities(
+                    "Finalize Test Report",
+                    input_data,
+                    retry_policy,
+                    is_parallel=False
+                )
+                self.completed_phases.add("Finalize Test Report")
+            
+            # Set final status
+            self.status = WorkflowStatus.COMPLETED
+            
+            # Record workflow completion
+            await self._record_workflow_complete()
+            
+            # Calculate final metrics
+            metrics = await workflow.execute_activity(
+                calculate_workflow_metrics_activity,
+                args=[self.execution_id],
+                start_to_close_timeout=timedelta(seconds=60)
+            )
+            
+            return {
+                "status": self.status,
+                "execution_id": self.execution_id,
+                "cycle_id": input_data.cycle_id,
+                "report_ids": input_data.report_ids,
+                "completed_phases": list(self.completed_phases),
+                "phase_results": self.phase_results,
+                "metrics": metrics.data if metrics.success else {},
+                "duration_seconds": (datetime.utcnow() - self.workflow_start_time).total_seconds()
+            }
+            
+        except Exception as e:
+            workflow.logger.error(f"Workflow failed: {str(e)}")
+            self.status = WorkflowStatus.FAILED
+            
+            # Execute compensation
+            await self._execute_compensation()
+            raise
+    
+    async def _execute_phase_with_dynamic_activities(
+        self,
+        phase_name: str,
+        input_data: TestCycleWorkflowInput,
+        retry_policy: RetryPolicy,
+        is_parallel: bool = False
+    ):
+        """Execute a phase with dynamic activity loading"""
+        
+        self.current_phase = phase_name
+        workflow.logger.info(f"Starting phase: {phase_name} (parallel={is_parallel})")
+        
+        # Record phase start
+        phase_step_id = await self._record_phase_start(phase_name, input_data)
+        
+        try:
+            if is_parallel:
+                # Get instances for parallel execution
+                instances_result = await workflow.execute_activity(
+                    get_parallel_instances_activity,
+                    args=[input_data.cycle_id, input_data.report_ids[0], phase_name],
+                    start_to_close_timeout=timedelta(seconds=60),
+                    retry_policy=retry_policy
+                )
+                
+                instances = instances_result if instances_result else []
+                
+                if instances:
+                    # Execute activities for each instance in parallel
+                    parallel_tasks = []
+                    for instance in instances:
+                        task = self._execute_phase_activities_for_instance(
+                            phase_name,
+                            input_data,
+                            retry_policy,
+                            instance["instance_id"],
+                            instance["instance_data"]
+                        )
+                        parallel_tasks.append(task)
+                    
+                    # Wait for all parallel executions
+                    results = await asyncio.gather(*parallel_tasks, return_exceptions=True)
+                    
+                    # Check for failures
+                    for i, result in enumerate(results):
+                        if isinstance(result, Exception):
+                            workflow.logger.error(f"Instance {instances[i]['instance_id']} failed: {result}")
+                else:
+                    # No instances, execute normally
+                    await self._execute_phase_activities(
+                        phase_name, input_data, retry_policy
+                    )
+            else:
+                # Sequential execution
+                await self._execute_phase_activities(
+                    phase_name, input_data, retry_policy
+                )
+            
+            # Record phase completion
+            await self._record_phase_complete(phase_step_id, phase_name)
+            
+            # Update phase results
+            self.phase_results[phase_name] = PhaseResult(
+                phase_name=phase_name,
+                status=PhaseStatus.COMPLETED,
+                completed_at=datetime.utcnow()
+            )
+            
+        except Exception as e:
+            workflow.logger.error(f"Phase {phase_name} failed: {str(e)}")
+            self.phase_results[phase_name] = PhaseResult(
+                phase_name=phase_name,
+                status=PhaseStatus.FAILED,
+                error=str(e)
+            )
+            raise
+    
+    async def _execute_phase_activities(
+        self,
+        phase_name: str,
+        input_data: TestCycleWorkflowInput,
+        retry_policy: RetryPolicy,
+        instance_id: Optional[str] = None,
+        instance_data: Optional[Dict[str, Any]] = None
+    ):
+        """Execute all activities for a phase"""
+        
+        # Get activities for the phase
+        activities_result = await workflow.execute_activity(
+            get_activities_for_phase_activity,
+            args=[input_data.cycle_id, input_data.report_ids[0], phase_name],
+            start_to_close_timeout=timedelta(seconds=60),
+            retry_policy=retry_policy
+        )
+        
+        activities = activities_result if activities_result else []
+        
+        for activity_config in activities:
+            # Skip optional activities if configured
+            if activity_config.get("is_optional") and not input_data.metadata.get("include_optional", True):
+                continue
+            
+            # Prepare metadata
+            metadata = activity_config.get("metadata", {})
+            metadata["is_manual"] = activity_config.get("is_manual", False)
+            if instance_data:
+                metadata["instance_data"] = instance_data
+            
+            # Execute activity
+            result = await workflow.execute_activity(
+                execute_workflow_activity,
+                args=[
+                    input_data.cycle_id,
+                    input_data.report_ids[0],
+                    phase_name,
+                    activity_config["name"],
+                    activity_config["type"],
+                    metadata,
+                    instance_id
+                ],
+                start_to_close_timeout=timedelta(seconds=activity_config.get("timeout", 300)),
+                retry_policy=retry_policy
+            )
+            
+            # Handle manual activities
+            if result.data and result.data.get("requires_user_action"):
+                activity_key = f"{phase_name}:{activity_config['name']}:{instance_id or 'default'}"
+                self.manual_activities_pending[activity_key] = True
+                
+                # Wait for manual completion
+                await workflow.wait_condition(
+                    lambda: self._check_manual_activity_complete(
+                        input_data.cycle_id,
+                        input_data.report_ids[0],
+                        phase_name,
+                        activity_config["name"],
+                        instance_id
+                    ),
+                    timeout=timedelta(hours=24)  # 24 hour timeout for manual activities
+                )
+                
+                self.manual_activities_pending[activity_key] = False
+    
+    async def _execute_phase_activities_for_instance(
+        self,
+        phase_name: str,
+        input_data: TestCycleWorkflowInput,
+        retry_policy: RetryPolicy,
+        instance_id: str,
+        instance_data: Dict[str, Any]
+    ):
+        """Execute phase activities for a specific instance"""
+        try:
+            await self._execute_phase_activities(
+                phase_name,
+                input_data,
+                retry_policy,
+                instance_id,
+                instance_data
+            )
+        except Exception as e:
+            workflow.logger.error(f"Failed to execute {phase_name} for instance {instance_id}: {str(e)}")
+            raise
+    
+    async def _check_manual_activity_complete(
+        self,
+        cycle_id: int,
+        report_id: int,
+        phase_name: str,
+        activity_name: str,
+        instance_id: Optional[str] = None
+    ) -> bool:
+        """Check if a manual activity is complete"""
+        result = await workflow.execute_activity(
+            check_manual_activity_completed_activity,
+            args=[cycle_id, report_id, phase_name, activity_name, instance_id],
+            start_to_close_timeout=timedelta(seconds=30)
+        )
+        return result
+    
+    async def _check_all_observations_complete(self, input_data: TestCycleWorkflowInput) -> bool:
+        """Check if all observations are complete before finalizing report"""
+        result = await workflow.execute_activity(
+            check_phase_completion_dependencies_activity,
+            args=[input_data.cycle_id, input_data.report_ids[0], "Finalize Test Report"],
+            start_to_close_timeout=timedelta(seconds=60)
+        )
+        return result
+    
+    async def _record_workflow_start(self, input_data: TestCycleWorkflowInput):
+        """Record workflow start in tracking system"""
+        await workflow.execute_activity(
+            record_workflow_start_activity,
+            args=[
+                self.execution_id,
+                "test_cycle",
+                input_data.cycle_id,
+                {
+                    "report_ids": input_data.report_ids,
+                    "initiated_by": input_data.initiated_by_user_id,
+                    "skip_phases": input_data.skip_phases
+                }
+            ],
+            start_to_close_timeout=timedelta(seconds=60)
+        )
+    
+    async def _record_workflow_complete(self):
+        """Record workflow completion"""
+        await workflow.execute_activity(
+            record_workflow_complete_activity,
+            args=[self.execution_id, self.status],
+            start_to_close_timeout=timedelta(seconds=60)
+        )
+    
+    async def _record_phase_start(self, phase_name: str, input_data: TestCycleWorkflowInput) -> str:
+        """Record phase start and return step ID"""
+        result = await workflow.execute_activity(
+            record_step_start_activity,
+            args=[
+                self.execution_id,
+                phase_name,
+                "phase",
+                {"cycle_id": input_data.cycle_id, "report_ids": input_data.report_ids}
+            ],
+            start_to_close_timeout=timedelta(seconds=60)
+        )
+        return result.data["step_id"] if result.success else str(uuid.uuid4())
+    
+    async def _record_phase_complete(self, step_id: str, phase_name: str):
+        """Record phase completion"""
+        await workflow.execute_activity(
+            record_step_complete_activity,
+            args=[step_id, WorkflowStatus.COMPLETED, {}],
+            start_to_close_timeout=timedelta(seconds=60)
+        )
+    
+    async def _execute_compensation(self):
+        """Execute compensation for failed workflow"""
+        workflow.logger.info("Executing workflow compensation")
+        # Compensation logic would go here
+        pass
+    
+    @workflow.signal
+    async def complete_manual_activity(
+        self,
+        phase_name: str,
+        activity_name: str,
+        instance_id: Optional[str] = None,
+        completion_data: Optional[Dict[str, Any]] = None
+    ):
+        """Signal to mark a manual activity as complete"""
+        activity_key = f"{phase_name}:{activity_name}:{instance_id or 'default'}"
+        if activity_key in self.manual_activities_pending:
+            self.manual_activities_pending[activity_key] = False
+            workflow.logger.info(f"Manual activity completed: {activity_key}")

@@ -1,0 +1,246 @@
+{
+  "extraction_date": "2025-08-03T11:29:28.677347",
+  "database": "synapse_dt",
+  "tables": {
+    "activity_definitions": {
+      "status": "extracted",
+      "row_count": 47,
+      "file": "activity_definitions.json"
+    },
+    "activity_states": {
+      "status": "extracted",
+      "row_count": 173,
+      "file": "activity_states.json"
+    },
+    "alembic_version": {
+      "status": "extracted",
+      "row_count": 4,
+      "file": "alembic_version.json"
+    },
+    "audit_logs": {
+      "status": "extracted",
+      "row_count": 83,
+      "file": "audit_logs.json"
+    },
+    "cycle_report_data_owner_lob_mapping": {
+      "status": "extracted",
+      "row_count": 1,
+      "file": "cycle_report_data_owner_lob_mapping.json"
+    },
+    "cycle_report_data_profiling_results": {
+      "status": "extracted",
+      "row_count": 655,
+      "file": "cycle_report_data_profiling_results.json"
+    },
+    "cycle_report_data_profiling_rule_versions": {
+      "status": "extracted",
+      "row_count": 29,
+      "file": "cycle_report_data_profiling_rule_versions.json"
+    },
+    "cycle_report_data_profiling_rules": {
+      "status": "skipped",
+      "reason": "too_many_rows",
+      "row_count": 1548
+    },
+    "cycle_report_observation_mgmt_observation_records": {
+      "status": "extracted",
+      "row_count": 2,
+      "file": "cycle_report_observation_mgmt_observation_records.json"
+    },
+    "cycle_report_planning_attributes": {
+      "status": "extracted",
+      "row_count": 237,
+      "file": "cycle_report_planning_attributes.json"
+    },
+    "cycle_report_planning_data_sources": {
+      "status": "extracted",
+      "row_count": 10,
+      "file": "cycle_report_planning_data_sources.json"
+    },
+    "cycle_report_planning_pde_mappings": {
+      "status": "extracted",
+      "row_count": 232,
+      "file": "cycle_report_planning_pde_mappings.json"
+    },
+    "cycle_report_request_info_audit_logs": {
+      "status": "extracted",
+      "row_count": 8,
+      "file": "cycle_report_request_info_audit_logs.json"
+    },
+    "cycle_report_request_info_testcase_source_evidence": {
+      "status": "extracted",
+      "row_count": 363,
+      "file": "cycle_report_request_info_testcase_source_evidence.json"
+    },
+    "cycle_report_request_info_tester_decisions": {
+      "status": "extracted",
+      "row_count": 1,
+      "file": "cycle_report_request_info_tester_decisions.json"
+    },
+    "cycle_report_rfi_data_sources": {
+      "status": "extracted",
+      "row_count": 1,
+      "file": "cycle_report_rfi_data_sources.json"
+    },
+    "cycle_report_rfi_query_validations": {
+      "status": "extracted",
+      "row_count": 2,
+      "file": "cycle_report_rfi_query_validations.json"
+    },
+    "cycle_report_sample_selection_samples": {
+      "status": "extracted",
+      "row_count": 63,
+      "file": "cycle_report_sample_selection_samples.json"
+    },
+    "cycle_report_sample_selection_versions": {
+      "status": "extracted",
+      "row_count": 9,
+      "file": "cycle_report_sample_selection_versions.json"
+    },
+    "cycle_report_scoping_attributes": {
+      "status": "skipped",
+      "reason": "too_many_rows",
+      "row_count": 1129
+    },
+    "cycle_report_scoping_versions": {
+      "status": "extracted",
+      "row_count": 34,
+      "file": "cycle_report_scoping_versions.json"
+    },
+    "cycle_report_test_cases": {
+      "status": "extracted",
+      "row_count": 433,
+      "file": "cycle_report_test_cases.json"
+    },
+    "cycle_report_test_cases_document_submissions": {
+      "status": "extracted",
+      "row_count": 2,
+      "file": "cycle_report_test_cases_document_submissions.json"
+    },
+    "cycle_report_test_cases_evidence": {
+      "status": "extracted",
+      "row_count": 12,
+      "file": "cycle_report_test_cases_evidence.json"
+    },
+    "cycle_report_test_execution_audit": {
+      "status": "extracted",
+      "row_count": 49,
+      "file": "cycle_report_test_execution_audit.json"
+    },
+    "cycle_report_test_execution_results": {
+      "status": "extracted",
+      "row_count": 22,
+      "file": "cycle_report_test_execution_results.json"
+    },
+    "cycle_report_test_execution_reviews": {
+      "status": "extracted",
+      "row_count": 8,
+      "file": "cycle_report_test_execution_reviews.json"
+    },
+    "cycle_report_test_report_generation": {
+      "status": "extracted",
+      "row_count": 1,
+      "file": "cycle_report_test_report_generation.json"
+    },
+    "cycle_report_test_report_sections": {
+      "status": "extracted",
+      "row_count": 27,
+      "file": "cycle_report_test_report_sections.json"
+    },
+    "cycle_reports": {
+      "status": "extracted",
+      "row_count": 2,
+      "file": "cycle_reports.json"
+    },
+    "fry14m_scheduled1_data": {
+      "status": "skipped",
+      "reason": "too_many_rows",
+      "row_count": 1001
+    },
+    "lobs": {
+      "status": "extracted",
+      "row_count": 8,
+      "file": "lobs.json"
+    },
+    "rbac_permission_audit_logs": {
+      "status": "extracted",
+      "row_count": 1,
+      "file": "rbac_permission_audit_logs.json"
+    },
+    "rbac_permissions": {
+      "status": "extracted",
+      "row_count": 87,
+      "file": "rbac_permissions.json"
+    },
+    "rbac_role_permissions": {
+      "status": "extracted",
+      "row_count": 219,
+      "file": "rbac_role_permissions.json"
+    },
+    "rbac_roles": {
+      "status": "extracted",
+      "row_count": 7,
+      "file": "rbac_roles.json"
+    },
+    "rbac_user_permissions": {
+      "status": "extracted",
+      "row_count": 8,
+      "file": "rbac_user_permissions.json"
+    },
+    "rbac_user_roles": {
+      "status": "extracted",
+      "row_count": 20,
+      "file": "rbac_user_roles.json"
+    },
+    "regulatory_data_dictionaries": {
+      "status": "extracted",
+      "row_count": 407,
+      "file": "regulatory_data_dictionaries.json"
+    },
+    "reports": {
+      "status": "extracted",
+      "row_count": 21,
+      "file": "reports.json"
+    },
+    "test_cycles": {
+      "status": "extracted",
+      "row_count": 4,
+      "file": "test_cycles.json"
+    },
+    "universal_assignment_histories": {
+      "status": "extracted",
+      "row_count": 9,
+      "file": "universal_assignment_histories.json"
+    },
+    "universal_assignment_history": {
+      "status": "extracted",
+      "row_count": 61,
+      "file": "universal_assignment_history.json"
+    },
+    "universal_assignments": {
+      "status": "extracted",
+      "row_count": 52,
+      "file": "universal_assignments.json"
+    },
+    "users": {
+      "status": "extracted",
+      "row_count": 10,
+      "file": "users.json"
+    },
+    "workflow_activity_dependencies": {
+      "status": "extracted",
+      "row_count": 17,
+      "file": "workflow_activity_dependencies.json"
+    },
+    "workflow_activity_templates": {
+      "status": "extracted",
+      "row_count": 50,
+      "file": "workflow_activity_templates.json"
+    },
+    "workflow_phases": {
+      "status": "extracted",
+      "row_count": 18,
+      "file": "workflow_phases.json"
+    }
+  }
+}

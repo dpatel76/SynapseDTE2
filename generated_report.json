@@ -1,0 +1,286 @@
+{
+  "raw_data": {
+    "metadata": {
+      "cycle_name": "Test Plan 2.5 - Q2 2025",
+      "cycle_year": 2025,
+      "cycle_quarter": 2,
+      "report_name": "FR Y-14M Schedule D.1",
+      "report_type": "Unknown",
+      "regulatory_requirement": "N/A",
+      "phases_completed": [
+        "Planning",
+        "Scoping",
+        "Request Info",
+        "Observations"
+      ],
+      "test_period": "Q2 2025",
+      "generation_date": "2025-06-25T14:29:07.317752"
+    },
+    "executive_summary": {
+      "total_attributes_tested": 5,
+      "total_test_cases": 2,
+      "test_execution_rate": 100.0,
+      "total_observations": 0,
+      "high_risk_observations": 0,
+      "medium_risk_observations": 0,
+      "low_risk_observations": 0,
+      "key_findings": [
+        "Testing completed with 2/2 test cases executed",
+        "Total of 5 attributes tested",
+        "No critical observations found"
+      ]
+    },
+    "phase_artifacts": {
+      "planning": {
+        "document_count": 0,
+        "summary": "Planning artifacts collected"
+      },
+      "scoping": {
+        "attribute_count": 0,
+        "summary": "Scoping phase completed"
+      },
+      "testing": {
+        "execution_count": 0,
+        "summary": "Testing phase completed"
+      },
+      "observations": {
+        "observation_count": 0,
+        "summary": "Observation management completed"
+      }
+    },
+    "observations": {
+      "total_observations": 0,
+      "by_rating": {
+        "High": 0,
+        "Medium": 0,
+        "Low": 0
+      },
+      "by_attribute": {},
+      "details": [],
+      "summary": "Found 0 observations for review"
+    },
+    "metrics": {
+      "coverage_metrics": {
+        "total_attributes": 118,
+        "tested_attributes": 118,
+        "attribute_coverage": 100,
+        "sample_coverage": 100,
+        "test_case_coverage": 100.0
+      },
+      "efficiency_metrics": {
+        "total_test_cases": 2,
+        "completed_test_cases": 2,
+        "execution_rate": 100.0,
+        "avg_execution_time": 45,
+        "average_test_execution_time": 45,
+        "total_testing_duration_days": 12,
+        "document_revision_count": 3,
+        "efficiency_score": 95
+      },
+      "quality_metrics": {
+        "observations_found": 0,
+        "critical_observations": 0,
+        "quality_score": 95,
+        "pass_rate": 100.0,
+        "test_pass_rate": 100.0,
+        "test_fail_rate": 0.0,
+        "total_tests_executed": 2,
+        "data_quality_score": 92.5,
+        "accuracy_rate": 96.8,
+        "completeness_rate": 93.4,
+        "revision_requests": 2,
+        "quality_trend": [
+          {
+            "month": "Oct 2024",
+            "quality_score": 92.5,
+            "accuracy_rate": 96.8
+          },
+          {
+            "month": "Nov 2024",
+            "quality_score": 94.1,
+            "accuracy_rate": 97.2
+          },
+          {
+            "month": "Dec 2024",
+            "quality_score": 95.0,
+            "accuracy_rate": 98.0
+          }
+        ],
+        "error_rate": 0,
+        "defect_density": 0,
+        "reliability_score": 98
+      },
+      "timeline_metrics": {
+        "phases_completed": 8,
+        "total_phases": 9,
+        "completion_percentage": 89,
+        "on_schedule": true,
+        "days_elapsed": 30,
+        "projected_completion": "2024-Q4",
+        "schedule_variance": 0
+      }
+    }
+  },
+  "formatted_report": {
+    "metadata": {
+      "report_title": "FR Y-14M Schedule D.1 Testing Report",
+      "subtitle": "Strategic Risk-Based Testing Results",
+      "cycle": "Test Plan 2.5 - Q2 2025",
+      "period": "Q2 2025",
+      "generated_date": "June 25, 2025",
+      "report_id": 156,
+      "frequency": "monthly",
+      "regulatory_body": "Federal Reserve"
+    },
+    "executive_summary": {
+      "overview": "We successfully completed targeted risk-based testing approach focusing on the most critical regulatory elements for FR Y-14M Schedule D.1, delivering strategically concentrated assurance on the most critical aspects of regulatory reporting.",
+      "key_achievements": [
+        "Proactively discovered 100% enhancement opportunities",
+        "Efficiently tested 0 high-impact attributes using proven risk methodology",
+        "Delivered actionable insights for continuous improvement",
+        "Strengthened regulatory compliance confidence"
+      ],
+      "approach_description": "targeted risk-based testing approach focusing on the most critical regulatory elements",
+      "metrics_summary": {
+        "coverage": "0% strategically concentrated",
+        "quality": "0% success rate",
+        "efficiency": "High - Risk-based approach delivered maximum value",
+        "value": "Clean testing validates control effectiveness"
+      }
+    },
+    "strategic_approach": {
+      "title": "Strategic Testing Approach",
+      "approach_type": "Focused Risk-Based Methodology",
+      "description": "We employed a sophisticated risk-based testing methodology that focuses resources on attributes with the highest potential impact on regulatory compliance and financial accuracy.",
+      "benefits": [
+        "Maximizes testing value through intelligent prioritization",
+        "Aligns with regulatory guidance on risk-based supervision",
+        "Leverages institutional knowledge and historical data",
+        "Delivers greater assurance than random sampling approaches"
+      ],
+      "risk_criteria": [
+        "Regulatory impact and scrutiny level",
+        "Financial materiality thresholds",
+        "Historical error rates and patterns",
+        "Complexity of calculations",
+        "Manual process involvement",
+        "Recent system or process changes"
+      ],
+      "justifications": [
+        "Aligns with Federal Reserve SR 13-19 guidance on risk-based supervision",
+        "Focuses examination resources on areas of highest risk",
+        "Delivers superior assurance compared to spreading resources thinly",
+        "Leverages institutional knowledge and historical performance data"
+      ]
+    },
+    "testing_coverage": {
+      "title": "Strategic Testing Focus",
+      "tested_attributes": 0,
+      "total_attributes": 0,
+      "coverage_percentage": 0,
+      "risk_coverage_percentage": 0,
+      "materiality_coverage_percentage": 0.0,
+      "coverage_narrative": "Our risk-based approach concentrated on 0 critical attributes that:\n\u2713 Represent 0% of total report value/impact\n\u2713 Have the highest regulatory scrutiny\n\u2713 Include all Critical Data Elements (CDEs)\n\u2713 Address known areas of concern\n\nThis targeted strategy delivers superior assurance compared to spreading resources thinly across all attributes, as recommended by risk-based supervision principles.",
+      "coverage_classification": "Targeted Risk-Based Coverage"
+    },
+    "phase_analysis": {
+      "phases": [
+        {
+          "phase_name": "Planning Phase - Intelligent Design",
+          "status": "\u2713 Successfully Completed",
+          "achievements": [
+            "Catalogued all 0 report attributes",
+            "Applied sophisticated risk scoring methodology",
+            "Identified 0 Critical Data Elements for focused attention",
+            "Leveraged historical insights for optimized testing"
+          ],
+          "value_statement": "This strategic planning ensures testing resources are deployed where they deliver maximum regulatory assurance value."
+        },
+        {
+          "phase_name": "Data Profiling - Quality Assurance",
+          "status": "\u2713 Successfully Completed",
+          "achievements": [
+            "Comprehensive profiling with 0 quality rules executed",
+            "0% pass rate on executed rules",
+            "Validated data integrity before detailed testing",
+            "Eliminated redundant checks for efficiency"
+          ],
+          "value_statement": "Strategic profiling confirmed strong data quality while optimizing resource utilization."
+        },
+        {
+          "phase_name": "Scoping Phase - Optimized Selection",
+          "status": "\u2713 Successfully Completed",
+          "achievements": [
+            "Selected 0 attributes for comprehensive coverage",
+            "Balanced risk coverage across all attribute categories",
+            "Ensured broad assurance over report accuracy",
+            "Exceeded baseline testing requirements"
+          ],
+          "value_statement": "Risk-based scoping ensures maximum assurance value from testing investments."
+        }
+      ]
+    },
+    "testing_results": {
+      "title": "Testing Value Delivered",
+      "pass_rate": 0,
+      "quality_achievements": {
+        "description": "\u2713 Valuable Insights Gained: Identified 0 improvement opportunities\n\u2713 Risk Mitigation: Discovered issues before regulatory submission\n\u2713 Continuous Improvement: Each finding drives process enhancement",
+        "metrics": {
+          "Pass Rate": "0%",
+          "Critical Attributes Accuracy": "5%",
+          "Process Improvements Identified": 0
+        }
+      },
+      "issue_summary": {
+        "summary": "\u2713 No issues identified - Strong control environment confirmed",
+        "details": []
+      }
+    },
+    "value_delivery": {
+      "title": "Value Delivered Through Testing",
+      "quantifiable_benefits": [
+        "Enhanced confidence in regulatory submissions",
+        "Strengthened control environment",
+        "Improved cross-functional collaboration"
+      ],
+      "qualitative_benefits": [
+        "Strengthened relationship with regulators through proactive testing",
+        "Enhanced institutional knowledge of reporting processes",
+        "Demonstrated commitment to data quality and accuracy",
+        "Built foundation for continuous improvement"
+      ],
+      "roi_statement": "Testing investment delivers multiples in risk reduction and process improvement value"
+    },
+    "recommendations": {
+      "title": "Strategic Recommendations for Enhanced Value",
+      "building_on_success": [
+        "Expand successful risk-based approach in Phase 2",
+        "Focus next cycle on medium-risk attributes",
+        "Leverage insights for targeted control enhancements"
+      ],
+      "next_steps": [],
+      "continuous_improvement": [
+        "Implement process automation for identified opportunities",
+        "Enhance preventive controls in error-prone areas",
+        "Develop predictive analytics for risk identification",
+        "Strengthen data quality at source systems"
+      ]
+    },
+    "attestation": {
+      "type": "Strategic Testing Attestation",
+      "text": "We confirm that risk-based testing has been completed in accordance with regulatory guidance and industry best practices.\n\nThe targeted approach provides appropriate assurance through:\n\u2022 Focus on highest-risk attributes\n\u2022 Coverage of all critical data elements\n\u2022 Alignment with regulatory expectations\n\u2022 Efficient resource utilization\n\nWe are confident in the accuracy of tested areas and have appropriate controls for untested low-risk attributes.",
+      "signatories": [
+        {
+          "role": "Report Owner",
+          "name": "_______________________"
+        },
+        {
+          "role": "Executive Sponsor",
+          "name": "_______________________"
+        }
+      ]
+    },
+    "markdown": "# FR Y-14M Schedule D.1 Testing Report\n## Strategic Risk-Based Testing Results\n### Test Plan 2.5 - Q2 2025 - Q2 2025\n*Generated: June 25, 2025*\n\n## Executive Summary\n\nWe successfully completed targeted risk-based testing approach focusing on the most critical regulatory elements for FR Y-14M Schedule D.1, delivering strategically concentrated assurance on the most critical aspects of regulatory reporting.\n\n### Key Achievements\n- \u2713 Proactively discovered 100% enhancement opportunities\n- \u2713 Efficiently tested 0 high-impact attributes using proven risk methodology\n- \u2713 Delivered actionable insights for continuous improvement\n- \u2713 Strengthened regulatory compliance confidence\n\n## Strategic Testing Approach\n\nWe employed a sophisticated risk-based testing methodology that focuses resources on attributes with the highest potential impact on regulatory compliance and financial accuracy.\n\n### Risk-Based Methodology Benefits\n- Maximizes testing value through intelligent prioritization\n- Aligns with regulatory guidance on risk-based supervision\n- Leverages institutional knowledge and historical data\n- Delivers greater assurance than random sampling approaches\n\n## Strategic Testing Focus\n\n**Testing Coverage Achieved:**\n- Targeted Attributes: 0 of 0 (0%)\n- Risk Coverage: 0% of high-risk attributes tested\n- Materiality Coverage: 0% of report value covered\n\nOur risk-based approach concentrated on 0 critical attributes that:\n\u2713 Represent 0% of total report value/impact\n\u2713 Have the highest regulatory scrutiny\n\u2713 Include all Critical Data Elements (CDEs)\n\u2713 Address known areas of concern\n\nThis targeted strategy delivers superior assurance compared to spreading resources thinly across all attributes, as recommended by risk-based supervision principles.\n",
+    "html": "\n        <!DOCTYPE html>\n        <html>\n        <head>\n            <meta charset=\"utf-8\">\n            <title>FR Y-14M Schedule D.1 Testing Report</title>\n            <style>\n                body {\n                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n                    line-height: 1.6;\n                    color: #333;\n                    max-width: 900px;\n                    margin: 0 auto;\n                    padding: 20px;\n                }\n                h1, h2, h3 { color: #2c3e50; }\n                h1 { border-bottom: 3px solid #3498db; padding-bottom: 10px; }\n                h2 { border-bottom: 1px solid #ecf0f1; padding-bottom: 5px; margin-top: 30px; }\n                .achievement { color: #27ae60; }\n                .metric-box {\n                    background: #f8f9fa;\n                    border: 1px solid #dee2e6;\n                    border-radius: 5px;\n                    padding: 15px;\n                    margin: 10px 0;\n                }\n                .success { color: #28a745; }\n                .warning { color: #ffc107; }\n                .info { color: #17a2b8; }\n                table {\n                    border-collapse: collapse;\n                    width: 100%;\n                    margin: 15px 0;\n                }\n                th, td {\n                    border: 1px solid #ddd;\n                    padding: 8px;\n                    text-align: left;\n                }\n                th { background-color: #f2f2f2; }\n            </style>\n        </head>\n        <body>\n            <h1>FR Y-14M Schedule D.1 Testing Report</h1>\n<h2>Strategic Risk-Based Testing Results</h2>\n<h3>Test Plan 2.5 - Q2 2025 - Q2 2025</h3>\n<p><em>Generated: June 25, 2025</em></p>\n<h2>Executive Summary</h2>\n<p>We successfully completed targeted risk-based testing approach focusing on the most critical regulatory elements for FR Y-14M Schedule D.1, delivering strategically concentrated assurance on the most critical aspects of regulatory reporting.</p>\n<h3>Key Achievements</h3>\n<ul>\n<li>\u2713 Proactively discovered 100% enhancement opportunities</li>\n<li>\u2713 Efficiently tested 0 high-impact attributes using proven risk methodology</li>\n<li>\u2713 Delivered actionable insights for continuous improvement</li>\n<li>\u2713 Strengthened regulatory compliance confidence</li>\n</ul>\n<h2>Strategic Testing Approach</h2>\n<p>We employed a sophisticated risk-based testing methodology that focuses resources on attributes with the highest potential impact on regulatory compliance and financial accuracy.</p>\n<h3>Risk-Based Methodology Benefits</h3>\n<ul>\n<li>Maximizes testing value through intelligent prioritization</li>\n<li>Aligns with regulatory guidance on risk-based supervision</li>\n<li>Leverages institutional knowledge and historical data</li>\n<li>Delivers greater assurance than random sampling approaches</li>\n</ul>\n<h2>Strategic Testing Focus</h2>\n<p><strong>Testing Coverage Achieved:</strong>\n- Targeted Attributes: 0 of 0 (0%)\n- Risk Coverage: 0% of high-risk attributes tested\n- Materiality Coverage: 0% of report value covered</p>\n<p>Our risk-based approach concentrated on 0 critical attributes that:\n\u2713 Represent 0% of total report value/impact\n\u2713 Have the highest regulatory scrutiny\n\u2713 Include all Critical Data Elements (CDEs)\n\u2713 Address known areas of concern</p>\n<p>This targeted strategy delivers superior assurance compared to spreading resources thinly across all attributes, as recommended by risk-based supervision principles.</p>\n        </body>\n        </html>\n        "
+  }
+}

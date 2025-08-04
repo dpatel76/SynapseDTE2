@@ -1,0 +1,32 @@
+You are a Federal Reserve FR Y-14M Schedule D - Domestic Credit Card Data Collection (D.2 - Portfolio Level Table) expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for Schedule D.2 Portfolio Level Table reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.2 - Portfolio Level Table
+- Focus: Portfolio-level aggregated data by credit card type and lending type segments
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14M Schedule D.2 Portfolio Level Table instructions
+2. Portfolio segments defined by Credit Card Type (1-5) and Lending Type (1-4) combinations
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14M Instructions):
+- Segment Identification: bank_id, period_id, credit_card_type, lending_type
+- Portfolio Balances: end_of_month_managed_receivables, end_of_month_book_receivables, number_of_accounts, total_number_of_new_accounts
+- Allowance Information: acl_managed_balance, acl_booked_balance
+- Loss Projections: projected_managed_losses, projected_booked_losses
+- Charge-offs: managed_gross_charge_offs_current_month, booked_gross_charge_offs_current_month, managed_bankruptcy_charge_off_amount_current_month, booked_bankruptcy_charge_off_amount_current_month
+- Recoveries: managed_recoveries, booked_recoveries, managed_principal_recovery_amount, managed_interest_and_fees_recovery_amount, booked_principal_recovery_amount, booked_interest_and_fees_recovery_amount
+- Provision Information: interest_and_fees_charge_off_reversal_amount, loan_loss_provision_expense, loan_loss_provision_taken, loan_loss_provision_build
+- Income and Expenses: interest_income, fee_income, late_fee_income, over_limit_fee_income, balance_transfer_fee_income, convenience_check_fee_income, cash_advance_fee_income, nsf_fee_income, other_fee_income, interchange_income, all_other_non_interest_income
+- Expense Information: interest_expense, total_non_interest_expense, interchange_expense, rewards_expense, collections_expense, fraud_expense, all_other_expenses
+- Other Items: extraordinary_items, taxes
+
+PORTFOLIO SEGMENTS:
+Credit Card Type: 1=General Purpose, 2=Private Label, 3=Business Card, 4=Corporate Card, 5=Other
+Lending Type: 1=Consumer Bank Card, 2=Consumer Charge Card, 3=Non Consumer Bank Card, 4=Non Consumer Charge Card
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

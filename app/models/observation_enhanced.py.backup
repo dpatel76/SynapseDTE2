@@ -1,0 +1,303 @@
+"""
+Enhanced Observation Management Models
+Includes document versioning, observation grouping, and approval workflow
+"""
+
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Float, JSON, ForeignKey, Enum as SQLEnum, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
+from datetime import datetime
+import enum
+import uuid
+
+from app.models.base import CustomPKModel
+from app.models.audit_mixin import AuditMixin
+
+
+class ObservationRatingEnum(enum.Enum):
+    """Observation rating by tester"""
+    HIGH = "High"
+    MEDIUM = "Medium"
+    LOW = "Low"
+
+
+class ObservationApprovalStatusEnum(enum.Enum):
+    """Approval status for observations"""
+    PENDING_REVIEW = "Pending Review"
+    PENDING_REPORT_OWNER_APPROVAL = "Pending Report Owner Approval"
+    PENDING_DATA_EXECUTIVE_APPROVAL = "Pending Data Executive Approval"
+    APPROVED_BY_REPORT_OWNER = "Approved by Report Owner"
+    APPROVED_BY_DATA_EXECUTIVE = "Approved by Data Executive"
+    FULLY_APPROVED = "Fully Approved"
+    REJECTED_BY_REPORT_OWNER = "Rejected by Report Owner"
+    REJECTED_BY_DATA_EXECUTIVE = "Rejected by Data Executive"
+    NEEDS_CLARIFICATION = "Needs Clarification"
+    FINALIZED = "Finalized"
+
+
+class ObservationGroup(CustomPKModel, AuditMixin):
+    """Group observations by attribute and issue type"""
+    __tablename__ = "cycle_report_observation_groups"
+    
+    group_id = Column(Integer, primary_key=True)
+    phase_id = Column(Integer, ForeignKey('workflow_phases.phase_id'), nullable=False)
+    
+    # Grouping criteria
+    attribute_id = Column(UUID(as_uuid=True), ForeignKey("cycle_report_planning_attributes.id"), nullable=False)
+    issue_type = Column(String, nullable=False)  # e.g., "Missing Documentation", "Incorrect Value", etc.
+    
+    # Group metadata
+    first_detected_at = Column(DateTime, default=datetime.utcnow)
+    last_updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Aggregated data
+    total_test_cases = Column(Integer, default=0)
+    total_samples = Column(Integer, default=0)
+    
+    # Rating and status
+    rating = Column(SQLEnum(ObservationRatingEnum))
+    approval_status = Column(SQLEnum(ObservationApprovalStatusEnum), default=ObservationApprovalStatusEnum.PENDING_REVIEW)
+    
+    # Approval tracking
+    report_owner_approved = Column(Boolean, default=False)
+    report_owner_approved_by = Column(Integer, ForeignKey('users.user_id'))
+    report_owner_approved_at = Column(DateTime)
+    report_owner_comments = Column(Text)
+    
+    data_executive_approved = Column(Boolean, default=False)
+    data_executive_approved_by = Column(Integer, ForeignKey('users.user_id'))
+    data_executive_approved_at = Column(DateTime)
+    data_executive_comments = Column(Text)
+    
+    # Finalization
+    finalized = Column(Boolean, default=False)
+    finalized_by = Column(Integer, ForeignKey('users.user_id'))
+    finalized_at = Column(DateTime)
+    
+    # Relationships
+    workflow_phase = relationship("WorkflowPhase", foreign_keys=[phase_id])
+    attribute = relationship("ReportAttribute", foreign_keys=[attribute_id])
+    observations = relationship("Observation", back_populates="observation_group")
+    clarifications = relationship("ObservationClarification", back_populates="observation_group")
+    
+    # Hybrid properties to access cycle_id and report_id through phase relationship
+    @hybrid_property
+    def cycle_id(self):
+        """Get cycle_id from phase relationship for UI compatibility"""
+        return self.workflow_phase.cycle_id if self.workflow_phase else None
+    
+    @cycle_id.expression
+    def cycle_id(cls):
+        """SQL expression for cycle_id via join"""
+        from sqlalchemy import select
+        from app.models.workflow import WorkflowPhase
+        return select(WorkflowPhase.cycle_id).where(WorkflowPhase.phase_id == cls.phase_id).scalar_subquery()
+    
+    @hybrid_property
+    def report_id(self):
+        """Get report_id from phase relationship for UI compatibility"""
+        return self.workflow_phase.report_id if self.workflow_phase else None
+    
+    @report_id.expression
+    def report_id(cls):
+        """SQL expression for report_id via join"""
+        from sqlalchemy import select
+        from app.models.workflow import WorkflowPhase
+        return select(WorkflowPhase.report_id).where(WorkflowPhase.phase_id == cls.phase_id).scalar_subquery()
+    
+    # Note: cycle and report properties return objects, not suitable for hybrid properties in SQL context
+    # Use get_cycle() and get_report() methods instead for object access
+    def get_cycle(self):
+        """Get test cycle through phase relationship"""
+        return self.workflow_phase.cycle if self.workflow_phase else None
+    
+    def get_report(self):
+        """Get report through phase relationship"""
+        return self.workflow_phase.report if self.workflow_phase else None
+    
+    # Unique constraint to ensure one group per attribute/issue combination
+    __table_args__ = (
+        UniqueConstraint('phase_id', 'attribute_id', 'issue_type', name='_observation_group_uc'),
+    )
+
+
+class Observation(CustomPKModel, AuditMixin):
+    """Enhanced observation model linking to groups"""
+    __tablename__ = "observations"
+    __table_args__ = {'extend_existing': True}
+    
+    observation_id = Column(Integer, primary_key=True)
+    group_id = Column(Integer, ForeignKey('cycle_report_observation_groups.group_id'), nullable=False)
+    
+    # Source information
+    test_execution_id = Column(Integer, ForeignKey('cycle_report_test_execution_results.id'), nullable=False)
+    test_case_id = Column(Integer, ForeignKey('cycle_report_test_cases.id'), nullable=False)
+    sample_id = Column(Integer, ForeignKey('cycle_report_sample_records.record_id'), nullable=False)
+    
+    # Foreign keys for relationships
+    phase_id = Column(Integer, ForeignKey('workflow_phases.phase_id'), nullable=False)
+    attribute_id = Column(UUID(as_uuid=True), ForeignKey("cycle_report_planning_attributes.id"), nullable=False)
+    
+    # Observation details
+    description = Column(Text, nullable=False)
+    evidence_files = Column(JSON)  # List of file references
+    
+    # Metadata
+    created_by = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Status tracking
+    status = Column(String, default="Active")  # Active, Resolved, Superseded
+    
+    # Relationships
+    observation_group = relationship("ObservationGroup", back_populates="observations")
+    workflow_phase = relationship("WorkflowPhase", foreign_keys=[phase_id])
+    test_execution = relationship("app.models.test_execution.TestExecution")
+    test_case = relationship("app.models.request_info.CycleReportTestCase")
+    # sample = relationship("app.models.sample_selection.SampleRecord")  # Disabled - SampleRecord class doesn't exist
+    creator = relationship("User", foreign_keys=[created_by])
+    attribute = relationship("ReportAttribute", foreign_keys=[attribute_id])
+    
+    # Hybrid properties to access cycle_id and report_id through phase relationship
+    @hybrid_property
+    def cycle_id(self):
+        """Get cycle_id from phase relationship for UI compatibility"""
+        return self.workflow_phase.cycle_id if self.workflow_phase else None
+    
+    @cycle_id.expression
+    def cycle_id(cls):
+        """SQL expression for cycle_id via join"""
+        from sqlalchemy import select
+        from app.models.workflow import WorkflowPhase
+        return select(WorkflowPhase.cycle_id).where(WorkflowPhase.phase_id == cls.phase_id).scalar_subquery()
+    
+    @hybrid_property
+    def report_id(self):
+        """Get report_id from phase relationship for UI compatibility"""
+        return self.workflow_phase.report_id if self.workflow_phase else None
+    
+    @report_id.expression
+    def report_id(cls):
+        """SQL expression for report_id via join"""
+        from sqlalchemy import select
+        from app.models.workflow import WorkflowPhase
+        return select(WorkflowPhase.report_id).where(WorkflowPhase.phase_id == cls.phase_id).scalar_subquery()
+    
+    # Note: cycle and report properties return objects, not suitable for hybrid properties in SQL context
+    # Use get_cycle() and get_report() methods instead for object access
+    def get_cycle(self):
+        """Get test cycle through phase relationship"""
+        return self.workflow_phase.cycle if self.workflow_phase else None
+    
+    def get_report(self):
+        """Get report through phase relationship"""
+        return self.workflow_phase.report if self.workflow_phase else None
+
+
+class ObservationClarification(CustomPKModel, AuditMixin):
+    """Track clarifications for rejected observations"""
+    __tablename__ = "observation_clarifications"
+    
+    clarification_id = Column(Integer, primary_key=True)
+    group_id = Column(Integer, ForeignKey('cycle_report_observation_groups.group_id'), nullable=False)
+    
+    # Clarification details
+    clarification_text = Column(Text, nullable=False)
+    supporting_documents = Column(JSON)  # Additional documents
+    
+    # Who requested clarification
+    requested_by_role = Column(String, nullable=False)  # "Report Owner" or "Data Executive"
+    requested_by_user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    requested_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Response
+    response_text = Column(Text)
+    response_documents = Column(JSON)
+    responded_by = Column(Integer, ForeignKey('users.user_id'))
+    responded_at = Column(DateTime)
+    
+    # Status
+    status = Column(String, default="Pending Response")  # Pending Response, Responded, Resolved
+    
+    # Relationships
+    observation_group = relationship("ObservationGroup", back_populates="clarifications")
+    requester = relationship("User", foreign_keys=[requested_by_user_id])
+    responder = relationship("User", foreign_keys=[responded_by])
+
+
+# DEPRECATED: Using unified WorkflowPhase instead
+# class TestReportPhase(CustomPKModel, AuditMixin):
+#     """New phase for preparing test report"""
+#     __tablename__ = "test_report_phases"
+#     
+#     phase_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+#     cycle_id = Column(Integer, ForeignKey('test_cycles.cycle_id'), nullable=False)
+#     report_id = Column(Integer, ForeignKey('reports.id'), nullable=False)
+#     phase_id = Column(Integer, ForeignKey('workflow_phases.phase_id'), nullable=False)
+#     
+#     # Phase timing
+#     started_at = Column(DateTime, default=datetime.utcnow)
+#     completed_at = Column(DateTime)
+#     
+#     # Report configuration
+#     include_executive_summary = Column(Boolean, default=True)
+#     include_phase_artifacts = Column(Boolean, default=True)
+#     include_detailed_observations = Column(Boolean, default=True)
+#     include_metrics_dashboard = Column(Boolean, default=True)
+#     
+#     # Report metadata
+#     report_title = Column(String)
+#     report_period = Column(String)
+#     regulatory_references = Column(JSON)
+#     
+#     # Generated report
+#     final_report_document_id = Column(Integer, ForeignKey('documents.document_id'))
+#     report_generated_at = Column(DateTime)
+#     report_approved_by = Column(JSON)  # List of approver user IDs
+#     
+#     # Status
+#     status = Column(String, default="In Progress")  # In Progress, Under Review, Approved, Published
+#     
+#     # Relationships
+#     cycle = relationship("TestCycle")
+#     report = relationship("Report")
+#     # final_report_document = relationship("CycleReportDocument", foreign_keys=[final_report_document_id])  # Use cycle report documents
+#     report_sections = relationship("TestReportSection", back_populates="test_report_phase")
+
+
+# class TestReportSection(CustomPKModel, AuditMixin):
+#     """Sections of the final test report"""
+#     __tablename__ = "cycle_report_test_report_sections_enhanced"
+#     
+#     section_id = Column(Integer, primary_key=True)
+#     phase_id = Column(Integer, ForeignKey('workflow_phases.phase_id'), nullable=False)
+#     
+#     # Section details
+#     section_name = Column(String, nullable=False)
+#     section_order = Column(Integer, nullable=False)
+#     section_type = Column(String, nullable=False)  # Summary, PhaseDetail, Metrics, Observations
+#     
+#     # Content
+#     content_text = Column(Text)
+#     content_data = Column(JSON)  # Structured data for charts/tables
+#     artifacts = Column(JSON)  # Reference to phase artifacts
+#     
+#     # Metrics for this section
+#     metrics_summary = Column(JSON)
+#     
+#     # Relationships
+#     phase = relationship("app.models.workflow.WorkflowPhase", back_populates="report_sections")
+# Commented out - TestReportSection is now imported from test_report.py to avoid duplicate class conflicts
+
+
+# Update existing models with new relationships
+def update_existing_models():
+    """Add relationships to existing models"""
+    from app.models.test_cycle import TestCycle
+    from app.models.report import Report
+    from app.models.request_info import CycleReportTestCase
+    from app.models.sample_selection import SampleSelection
+    from app.models.test_execution import TestExecution
+    
+    # document_revisions relationship is already defined in TestCase model

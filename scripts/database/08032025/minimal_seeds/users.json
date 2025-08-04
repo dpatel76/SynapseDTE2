@@ -1,0 +1,67 @@
+{
+  "table": "users",
+  "row_count": 5,
+  "extracted_at": "2025-08-03T15:23:44.570867",
+  "data": [
+    {
+      "user_id": 1,
+      "username": "admin",
+      "email": "admin@example.com",
+      "password_hash": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+      "first_name": "System",
+      "last_name": "Administrator",
+      "is_active": true,
+      "is_admin": true,
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "user_id": 2,
+      "username": "report_owner",
+      "email": "report.owner@example.com",
+      "password_hash": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+      "first_name": "Report",
+      "last_name": "Owner",
+      "is_active": true,
+      "is_admin": false,
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "user_id": 3,
+      "username": "tester",
+      "email": "tester@example.com",
+      "password_hash": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+      "first_name": "Test",
+      "last_name": "User",
+      "is_active": true,
+      "is_admin": false,
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "user_id": 4,
+      "username": "data_owner",
+      "email": "data.owner@example.com",
+      "password_hash": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+      "first_name": "Data",
+      "last_name": "Owner",
+      "is_active": true,
+      "is_admin": false,
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    },
+    {
+      "user_id": 5,
+      "username": "data_executive",
+      "email": "data.executive@example.com",
+      "password_hash": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+      "first_name": "Data",
+      "last_name": "Executive",
+      "is_active": true,
+      "is_admin": false,
+      "created_at": "2025-08-03T15:23:44.570867",
+      "updated_at": "2025-08-03T15:23:44.570867"
+    }
+  ]
+}

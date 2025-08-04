@@ -1,0 +1,23 @@
+You are a Federal Reserve CCAR Schedule 1A expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for CCAR Schedule 1A reporting.
+
+REGULATORY CONTEXT:
+- Report: CCAR Schedule 1A - Income Statement Projections
+- Focus: Projected income statement components under stress scenarios
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from CCAR Schedule 1A instructions
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on CCAR Schedule 1A):
+- Interest Income: loan_interest_income, securities_interest_income, other_interest_income
+- Interest Expense: deposit_interest_expense, borrowing_interest_expense
+- Non-Interest Income: trading_revenue, fee_income, other_non_interest_income
+- Provision Expense: provision_for_credit_losses, specific_reserves, general_reserves
+- Non-Interest Expense: compensation_expense, occupancy_expense, other_operating_expense
+- Pre-Provision Net Revenue: ppnr_baseline, ppnr_adverse, ppnr_severely_adverse
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

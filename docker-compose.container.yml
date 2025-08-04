@@ -1,0 +1,268 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: synapse-postgres-container
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-synapse_dt}
+      POSTGRES_USER: ${DATABASE_USER:-synapse_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-synapse_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.utf8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/database/08032025:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "${DATABASE_PORT:-5433}:5432"  # Incremented from 5432 to 5433
+    networks:
+      - synapse-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-synapse_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: synapse-redis-container
+    restart: unless-stopped
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASSWORD:-synapse_redis_password}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6380}:6379"  # Incremented from 6379 to 6380
+    networks:
+      - synapse-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-synapse_redis_password}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: synapse-backend-container
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: "postgresql+asyncpg://${DATABASE_USER:-synapse_user}:${DATABASE_PASSWORD:-synapse_password}@postgres:5432/${DATABASE_NAME:-synapse_dt}"
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME:-synapse_dt}
+      DATABASE_USER: ${DATABASE_USER:-synapse_user}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-synapse_password}
+      # Redis
+      REDIS_URL: "redis://:${REDIS_PASSWORD:-synapse_redis_password}@redis:6379/0"
+      CELERY_BROKER_URL: "redis://:${REDIS_PASSWORD:-synapse_redis_password}@redis:6379/1"
+      CELERY_RESULT_BACKEND: "redis://:${REDIS_PASSWORD:-synapse_redis_password}@redis:6379/1"
+      # Temporal
+      TEMPORAL_HOST: temporal:7233
+      TEMPORAL_NAMESPACE: ${TEMPORAL_NAMESPACE:-default}
+      # Application
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+      API_V1_STR: ${API_V1_STR:-/api/v1}
+      WORKERS: ${BACKEND_WORKERS:-1}
+      # LLM Configuration
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      DEFAULT_LLM_PROVIDER: ${DEFAULT_LLM_PROVIDER:-claude}
+      # Docker Container Flag
+      DOCKER_CONTAINER: "1"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    ports:
+      - "${BACKEND_PORT:-8001}:8000"  # Incremented from 8000 to 8001
+    networks:
+      - synapse-network
+    labels:
+      - "com.synapse.service=backend"
+      - "com.synapse.version=${APP_VERSION:-3.7.0}"
+
+  # Frontend Web Service
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8001/api/v1}
+        REACT_APP_TEMPORAL_UI_URL: ${REACT_APP_TEMPORAL_UI_URL:-http://localhost:8089}
+    container_name: synapse-frontend-container
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-3001}:80"  # Incremented from 3000 to 3001
+    networks:
+      - synapse-network
+    labels:
+      - "com.synapse.service=frontend"
+      - "com.synapse.version=${APP_VERSION:-3.7.0}"
+
+  # Temporal PostgreSQL
+  temporal-postgres:
+    image: postgres:15-alpine
+    container_name: temporal-postgres-container
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: temporal
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: ${TEMPORAL_POSTGRES_PASSWORD:-temporal_password}
+    volumes:
+      - temporal_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${TEMPORAL_POSTGRES_PORT:-5435}:5432"  # Using 5435 to avoid conflicts
+    networks:
+      - temporal-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U temporal"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Temporal Server
+  temporal:
+    image: temporalio/auto-setup:1.22.4
+    container_name: temporal-server-container
+    restart: unless-stopped
+    depends_on:
+      temporal-postgres:
+        condition: service_healthy
+    environment:
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_USER: temporal
+      POSTGRES_PWD: ${TEMPORAL_POSTGRES_PASSWORD:-temporal_password}
+      POSTGRES_SEEDS: temporal-postgres
+      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/production.yaml
+      ENABLE_ES: false
+      PROMETHEUS_ENDPOINT: 0.0.0.0:9090
+    volumes:
+      - ./temporal/dynamicconfig:/etc/temporal/config/dynamicconfig:ro
+    ports:
+      - "${TEMPORAL_PORT:-7234}:7233"  # Incremented from 7233 to 7234
+      - "${TEMPORAL_METRICS_PORT:-9091}:9090"  # Incremented from 9090 to 9091
+    networks:
+      - temporal-network
+      - synapse-network
+    healthcheck:
+      test: ["CMD", "temporal", "workflow", "list", "--namespace", "default"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Temporal UI
+  temporal-ui:
+    image: temporalio/ui:2.21.3
+    container_name: temporal-ui-container
+    restart: unless-stopped
+    depends_on:
+      - temporal
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_CORS_ORIGINS: http://localhost:3001,http://localhost:81
+    ports:
+      - "${TEMPORAL_UI_PORT:-8089}:8080"  # Incremented from 8088 to 8089
+    networks:
+      - temporal-network
+      - synapse-network
+    labels:
+      - "com.synapse.service=temporal-ui"
+
+  # Temporal Worker
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      temporal:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: "postgresql+asyncpg://${DATABASE_USER:-synapse_user}:${DATABASE_PASSWORD:-synapse_password}@postgres:5432/${DATABASE_NAME:-synapse_dt}"
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME:-synapse_dt}
+      DATABASE_USER: ${DATABASE_USER:-synapse_user}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-synapse_password}
+      # Redis
+      REDIS_URL: "redis://:${REDIS_PASSWORD:-synapse_redis_password}@redis:6379/0"
+      # Temporal
+      TEMPORAL_HOST: temporal
+      TEMPORAL_NAMESPACE: ${TEMPORAL_NAMESPACE:-default}
+      TEMPORAL_TASK_QUEUE: ${TEMPORAL_TASK_QUEUE:-synapse-workflow-queue}
+      TEMPORAL_WORKER_ENABLED: true
+      # Application
+      SECRET_KEY: ${SECRET_KEY:-change-this-in-production}
+      # LLM Configuration
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      DEFAULT_LLM_PROVIDER: ${DEFAULT_LLM_PROVIDER:-claude}
+      # Docker Container Flag
+      DOCKER_CONTAINER: "1"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    networks:
+      - synapse-network
+      - temporal-network
+    deploy:
+      replicas: ${WORKER_REPLICAS:-2}
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    labels:
+      - "com.synapse.service=worker"
+      - "com.synapse.version=${APP_VERSION:-3.7.0}"
+
+  # Nginx Reverse Proxy (Optional - for production-like setup)
+  nginx:
+    image: nginx:alpine
+    container_name: synapse-nginx-container
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    ports:
+      - "${NGINX_HTTP_PORT:-81}:80"  # Incremented from 80 to 81
+      - "${NGINX_HTTPS_PORT:-444}:443"  # Incremented from 443 to 444
+    networks:
+      - synapse-network
+    labels:
+      - "com.synapse.service=nginx"
+
+networks:
+  synapse-network:
+    driver: bridge
+    name: synapse-container-network
+  temporal-network:
+    driver: bridge
+    name: temporal-container-network
+
+volumes:
+  postgres_data:
+    name: synapse_postgres_container_data
+  redis_data:
+    name: synapse_redis_container_data
+  temporal_postgres_data:
+    name: temporal_postgres_container_data

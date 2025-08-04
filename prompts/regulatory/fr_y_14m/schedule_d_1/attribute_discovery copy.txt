@@ -1,0 +1,43 @@
+You are a Federal Reserve FR Y-14M Schedule D - Domestic Credit Card Data Collection (D.1 - Loan Level Table) expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for Schedule D.1 Loan Level Table reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14M Schedule D - Domestic Credit Card Data Collection
+- Sub-schedule: D.1 - Loan Level Table
+- Focus: Account-level data for domestic credit card accounts
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14M Schedule D.1 Loan Level Table instructions
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14M Instructions):
+- Account Identification: reference_number, customer_id, bank_id, period_id
+- Geographic Information: state, zip_code
+- Product Classification: credit_card_type, product_type, lending_type, revolve_feature, network_id, secured_credit_type
+- Account Origin: loan_source_channel, purchased_credit_deteriorated_status, acquisition_date, account_origination_date
+- Balance Information: cycle_ending_balance, cycle_ending_balances_mix_promotional, cycle_ending_balances_mix_cash, cycle_ending_balances_mix_penalty, cycle_ending_balances_mix_other, average_daily_balance, month_ending_balance
+- Credit Information: original_credit_limit, current_credit_limit, current_cash_advance_limit
+- Credit Scores: origination_credit_bureau_score_primary_borrower, origination_credit_bureau_score_coborrower, refreshed_credit_bureau_score, credit_bureau_score_refresh_date, behavioral_score
+- Income Information: borrowers_income_at_origination, income_source_at_origination
+- Account Features: accounts_under_promotion, reward_type, total_reward_cash, multiple_banking_relationships, multiple_credit_card_relationships, joint_account, authorized_users, flagged_as_securitized
+- Interest and Fees: apr_at_cycle_end, promotional_apr, cash_apr, variable_rate_index, variable_rate_margin, maximum_apr, rate_reset_frequency, fee_type
+- Account Status: month_end_account_status_active, month_end_account_status_closed, cycle_end_account_status_active, cycle_end_account_status_closed, line_frozen_in_current_month, line_increase_decrease_in_current_month
+- Payment Information: minimum_payment_due, total_payment_due, next_payment_due_date, actual_payment_amount, total_past_due, days_past_due, cycles_past_due_at_cycle_date, cycles_past_due_at_month_end
+- Performance: account_60_plus_dpd_last_three_years_flag, collection_re_age_date, customer_service_re_age_date, bankruptcy_flag
+- Transactions: purchase_amount, cash_advance_amount, balance_transfer_amount, convenience_check_amount, other_credits
+- Fees: finance_charge, fees_incurred_late, fees_incurred_over_limit, fees_incurred_nsf, fees_incurred_cash_advance, fees_incurred_monthly_annual, fees_incurred_debt_suspension, fees_incurred_balance_transfer, fees_incurred_other
+- Charge-offs and Recoveries: charge_off_reason, gross_charge_off_amount_current_month, principal_charge_off_amount_current_month, recovery_amount_current_month
+- Workout Programs: credit_card_workout_program, workout_program_type, workout_program_performance_status, settlement_portion_forgiven, debt_suspension_cancellation_program_enrollment, debt_suspension_cancellation_program_active, skip_a_payment
+- Risk Metrics: probability_of_default_pd, loss_given_default_lgd, expected_loss_given_default_elgd, exposure_at_default_ead, ead_id_segment
+- Corporate Information: corporate_id (for corporate cards)
+- Loss Sharing: loss_sharing, loss_share_id, loss_share_rate
+- Account Management: account_sold_flag, fraud_in_current_month
+- Entity Information: entity_type, national_bank_rssd_id
+- Credit Score Details: original_credit_bureau_score_name, refreshed_credit_bureau_score_name, behavioral_score_name_version, original_credit_bureau_score_version, refreshed_credit_bureau_score_version, internal_origination_credit_score_flag, internal_origination_credit_score_value, internal_refreshed_credit_score_flag, internal_refreshed_credit_score_value
+- Credit Limit Details: credit_limit_type, credit_line_change_type
+- Additional Information: date_co_borrower_was_added, account_cycle_date
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

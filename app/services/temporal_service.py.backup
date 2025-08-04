@@ -1,0 +1,187 @@
+"""Temporal client service for interacting with workflows"""
+
+from temporalio.client import Client
+from typing import Optional, Dict, Any
+import logging
+from datetime import datetime
+
+from app.core.config import get_settings
+from app.temporal.shared import (
+    TASK_QUEUE_WORKFLOW, TASK_QUEUE_LLM,
+    WORKFLOW_TEST_CYCLE, WORKFLOW_REPORT_TESTING, WORKFLOW_LLM_ANALYSIS,
+    TestCycleWorkflowInput, ReportTestingWorkflowInput, LLMAnalysisWorkflowInput
+)
+
+logger = logging.getLogger(__name__)
+
+
+class TemporalService:
+    """Service for interacting with Temporal workflows"""
+    
+    def __init__(self):
+        self._client: Optional[Client] = None
+        self.settings = get_settings()
+    
+    async def get_client(self) -> Client:
+        """Get or create Temporal client"""
+        if not self._client:
+            self._client = await Client.connect(
+                self.settings.TEMPORAL_HOST or "localhost:7233",
+                namespace=self.settings.TEMPORAL_NAMESPACE or "default"
+            )
+        return self._client
+    
+    async def start_test_cycle_workflow(
+        self,
+        cycle_id: int,
+        user_id: int,
+        auto_assign: bool = True,
+        auto_generate: bool = True,
+        skip_phases: Optional[list] = None
+    ) -> str:
+        """Start a test cycle workflow"""
+        try:
+            client = await self.get_client()
+            
+            workflow_id = f"test-cycle-{cycle_id}-{datetime.utcnow().timestamp()}"
+            
+            handle = await client.start_workflow(
+                WORKFLOW_TEST_CYCLE,
+                TestCycleWorkflowInput(
+                    cycle_id=cycle_id,
+                    initiated_by_user_id=user_id,
+                    auto_assign_testers=auto_assign,
+                    auto_generate_attributes=auto_generate,
+                    skip_phases=skip_phases or []
+                ),
+                id=workflow_id,
+                task_queue=TASK_QUEUE_WORKFLOW
+            )
+            
+            logger.info(f"Started test cycle workflow: {workflow_id}")
+            return workflow_id
+            
+        except Exception as e:
+            logger.error(f"Failed to start test cycle workflow: {str(e)}")
+            raise
+    
+    async def start_report_testing_workflow(
+        self,
+        cycle_report_id: int,
+        report_id: int,
+        tester_id: int,
+        start_from_phase: Optional[str] = None
+    ) -> str:
+        """Start a report testing workflow"""
+        try:
+            client = await self.get_client()
+            
+            workflow_id = f"report-testing-{cycle_report_id}-{datetime.utcnow().timestamp()}"
+            
+            handle = await client.start_workflow(
+                WORKFLOW_REPORT_TESTING,
+                ReportTestingWorkflowInput(
+                    cycle_report_id=cycle_report_id,
+                    report_id=report_id,
+                    tester_id=tester_id,
+                    start_from_phase=start_from_phase
+                ),
+                id=workflow_id,
+                task_queue=TASK_QUEUE_WORKFLOW
+            )
+            
+            logger.info(f"Started report testing workflow: {workflow_id}")
+            return workflow_id
+            
+        except Exception as e:
+            logger.error(f"Failed to start report testing workflow: {str(e)}")
+            raise
+    
+    async def start_llm_analysis_workflow(
+        self,
+        document_text: str,
+        document_type: str,
+        analysis_type: str,
+        metadata: Dict[str, Any],
+        notify_user_id: Optional[int] = None
+    ) -> str:
+        """Start an LLM analysis workflow"""
+        try:
+            client = await self.get_client()
+            
+            workflow_id = f"llm-analysis-{analysis_type}-{datetime.utcnow().timestamp()}"
+            
+            if notify_user_id:
+                metadata["notify_user_id"] = notify_user_id
+            
+            handle = await client.start_workflow(
+                WORKFLOW_LLM_ANALYSIS,
+                LLMAnalysisWorkflowInput(
+                    document_text=document_text,
+                    document_type=document_type,
+                    analysis_type=analysis_type,
+                    metadata=metadata
+                ),
+                id=workflow_id,
+                task_queue=TASK_QUEUE_LLM
+            )
+            
+            logger.info(f"Started LLM analysis workflow: {workflow_id}")
+            return workflow_id
+            
+        except Exception as e:
+            logger.error(f"Failed to start LLM analysis workflow: {str(e)}")
+            raise
+    
+    async def get_workflow_status(self, workflow_id: str) -> Dict[str, Any]:
+        """Get workflow status"""
+        try:
+            client = await self.get_client()
+            handle = client.get_workflow_handle(workflow_id)
+            
+            # Get workflow description
+            description = await handle.describe()
+            
+            return {
+                "workflow_id": workflow_id,
+                "status": description.status.name,
+                "started_at": description.start_time,
+                "close_time": description.close_time,
+                "execution_time": description.execution_time
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get workflow status: {str(e)}")
+            raise
+    
+    async def cancel_workflow(self, workflow_id: str) -> bool:
+        """Cancel a running workflow"""
+        try:
+            client = await self.get_client()
+            handle = client.get_workflow_handle(workflow_id)
+            
+            await handle.cancel()
+            logger.info(f"Cancelled workflow: {workflow_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to cancel workflow: {str(e)}")
+            return False
+    
+    async def close(self):
+        """Close Temporal client connection"""
+        if self._client:
+            await self._client.close()
+            self._client = None
+
+
+# Singleton instance
+_temporal_service: Optional[TemporalService] = None
+
+
+def get_temporal_service() -> TemporalService:
+    """Get or create Temporal service instance"""
+    global _temporal_service
+    if not _temporal_service:
+        _temporal_service = TemporalService()
+    return _temporal_service

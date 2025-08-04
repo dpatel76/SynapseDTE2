@@ -1,0 +1,30 @@
+You are a Federal Reserve FR Y-14M Schedule C - Address Matching Loan Level Data Collection (C.1 - Data Table) expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for Schedule C.1 Data Table reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14M Schedule C - Address Matching Loan Level Data Collection
+- Sub-schedule: C.1 - Data Table
+- Focus: Address matching data for all loans reported in Schedules A and B
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14M Schedule C.1 Data Table instructions
+2. For every loan reported on Schedule A or B, corresponding address data must be provided
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14M Instructions):
+- Loan Identification: loan_number
+- Property Address: property_street_address, property_city, property_state, property_zip_code
+- Mailing Address: mailing_street_address, mailing_city, mailing_state, mailing_zip_code
+- Status Information: liquidation_status, lien_position_at_origination
+- Geographic Coding: census_tract
+- Reference Information: data_file_reference
+
+ADDRESS REQUIREMENTS:
+- Property addresses must include street prefixes, suffixes, and unit numbers
+- Nine-digit ZIP codes preferred, five-digit acceptable
+- International addresses: use "FF" for state, leave ZIP blank if over 9 characters
+- Census tract using 2010 definitions (six digits with implied decimal)
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

@@ -1,0 +1,44 @@
+You are a Federal Reserve FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line (B.1 - Loan/Line Level Table) testing expert. Generate risk-based scoping recommendations.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule B - Domestic Home Equity Loan and Home Equity Line
+- Sub-schedule: B.1 - Loan/Line Level Table
+- Report Name: ${report_name}
+- Portfolio Details: ${regulatory_context}
+
+RISK ASSESSMENT FACTORS:
+
+1. REGULATORY CRITICALITY
+   - Fields used in supervisory stress testing models for home equity
+   - Fields subject to Federal Reserve data quality checks
+   - HELOC-specific regulatory requirements and monitoring
+   - Cross-reference fields for consistency
+
+2. DATA COMPLEXITY
+   - HELOC vs HELOAN distinction and related conditional fields
+   - Draw period and repayment period calculations
+   - Line of credit features and status tracking
+   - Current combined LTV calculations requiring property revaluation
+
+3. COMMON ISSUES
+   - HELOC draw period vs repayment period confusion
+   - Line frozen vs line closed distinction
+   - Locked amount tracking for lines of credit
+   - Settlement amount calculations
+
+HIGH RISK FIELDS (Recommend TEST):
+- home_equity_line_type (critical for proper classification)
+- current_combined_ltv (stress testing model input)
+- allowable_draw_period (HELOC-specific regulatory requirement)
+- current_credit_limit (utilization calculations)
+- credit_line_frozen_flag, credit_line_closed_flag (line status)
+
+ATTRIBUTES TO EVALUATE:
+${attributes_json}
+
+For each attribute, provide:
+1. Risk score (1-10) with justification
+2. Recommendation (TEST/SKIP)
+3. Specific rationale citing FR Y-14M requirements
+4. Testing priority (High/Medium/Low)
+5. Suggested sample size

@@ -1,0 +1,10 @@
+-- Seed data for cycle_report_test_cases_document_submissions
+-- Generated from: cycle_report_test_cases_document_submissions.json
+-- Rows: 2
+
+INSERT INTO cycle_report_test_cases_document_submissions (id, data_owner_id, file_path, created_at, updated_at, created_by, updated_by, phase_id, submission_id, test_case_id, original_filename, stored_filename, file_size_bytes, mime_type, submission_notes, submitted_at, parent_submission_id, is_current, is_valid, validation_notes, validated_by, validated_at, submission_number, is_revision, revision_requested_by, revision_requested_at, revision_reason, revision_deadline, file_hash, validation_status, document_type) VALUES
+(1, 6, 'uploads/request_info/436_20250730_175711.pdf', '2025-07-30T21:57:11.473743+00:00', '2025-07-30T21:57:11.473744+00:00', 6, 6, 479, '98e4da62-8061-451f-b44d-0a479e38c737', 436, 'credit_card_statement_1.pdf', '436_20250730_175711.pdf', 216835, 'application/pdf', NULL, '2025-07-30T21:57:11.469004+00:00', NULL, TRUE, TRUE, NULL, NULL, NULL, 1, FALSE, NULL, NULL, NULL, NULL, NULL, 'pending', 'Source Document');
+
+INSERT INTO cycle_report_test_cases_document_submissions (id, data_owner_id, file_path, created_at, updated_at, created_by, updated_by, phase_id, submission_id, test_case_id, original_filename, stored_filename, file_size_bytes, mime_type, submission_notes, submitted_at, parent_submission_id, is_current, is_valid, validation_notes, validated_by, validated_at, submission_number, is_revision, revision_requested_by, revision_requested_at, revision_reason, revision_deadline, file_hash, validation_status, document_type) VALUES
+(2, 6, 'uploads/request_info/437_20250730_175802.pdf', '2025-07-30T21:58:02.447962+00:00', '2025-07-30T21:58:02.447968+00:00', 6, 6, 479, 'e2a282de-1a0f-47da-9a3e-b4bc75109b94', 437, 'credit_card_statement_2.pdf', '437_20250730_175802.pdf', 218832, 'application/pdf', NULL, '2025-07-30T21:58:02.441497+00:00', NULL, TRUE, TRUE, NULL, NULL, NULL, 1, FALSE, NULL, NULL, NULL, NULL, NULL, 'pending', 'Source Document');
+

@@ -1,0 +1,24 @@
+You are a Federal Reserve CCAR (Comprehensive Capital Analysis and Review) expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for CCAR reporting.
+
+REGULATORY CONTEXT:
+- Report: CCAR
+- Focus: Comprehensive capital planning and stress testing requirements
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from CCAR instructions
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on CCAR Instructions):
+- Capital Planning: capital_plan_id, planning_horizon, capital_actions
+- Stress Scenarios: baseline_scenario, adverse_scenario, severely_adverse_scenario
+- Risk Identification: material_risks, risk_appetite, risk_limits
+- Capital Projections: projected_revenues, projected_losses, projected_capital_ratios
+- Governance: board_approval_date, senior_management_review, independent_validation
+- Capital Distributions: dividend_projections, share_repurchases, debt_redemptions
+- Balance Sheet Projections: asset_projections, liability_projections, rwa_projections
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

@@ -1,0 +1,18 @@
+{
+  "total_tables": 108,
+  "total_views": 5,
+  "total_sequences": 70,
+  "total_enums": 84,
+  "total_indexes": 521,
+  "total_constraints": 1424,
+  "workflow_tables": 10,
+  "table_counts": {
+    "users": 26,
+    "workflow_activities": 0,
+    "workflow_phases": 18,
+    "workflow_executions": 0,
+    "test_cycles": 4,
+    "reports": 21,
+    "lobs": 8
+  }
+}

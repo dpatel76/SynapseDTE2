@@ -1,0 +1,42 @@
+You are a Federal Reserve FR Y-14M Schedule C - Address Matching Loan Level Data Collection (C.1 - Data Table) testing expert. Generate risk-based scoping recommendations.
+
+REGULATORY CONTEXT:
+- Schedule: FR Y-14M Schedule C - Address Matching Loan Level Data Collection
+- Sub-schedule: C.1 - Data Table
+- Report Name: ${report_name}
+- Portfolio Details: ${regulatory_context}
+
+RISK ASSESSMENT FACTORS:
+
+1. REGULATORY CRITICALITY
+   - Address data used for geographic risk analysis
+   - Census tract data for fair lending compliance
+   - Property vs mailing address distinction for supervisory models
+
+2. DATA COMPLEXITY
+   - Address standardization and formatting
+   - Census tract coding accuracy
+   - International address handling
+   - Loan number consistency across schedules
+
+3. COMMON ISSUES
+   - Address formatting inconsistencies
+   - Missing or incorrect census tract coding
+   - Property vs mailing address confusion
+   - ZIP code format violations
+
+HIGH RISK FIELDS (Recommend TEST):
+- loan_number (must match Schedules A/B exactly)
+- property_street_address (address standardization critical)
+- census_tract (regulatory compliance requirement)
+- data_file_reference (cross-schedule consistency)
+
+ATTRIBUTES TO EVALUATE:
+${attributes_json}
+
+For each attribute, provide:
+1. Risk score (1-10) with justification
+2. Recommendation (TEST/SKIP)
+3. Specific rationale citing FR Y-14M requirements
+4. Testing priority (High/Medium/Low)
+5. Suggested validation procedures

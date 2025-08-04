@@ -1,0 +1,146 @@
+import React, { useState } from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Divider,
+  Stack
+} from '@mui/material';
+import { VersionSelector } from './VersionSelector';
+import { VersionHistoryViewer } from './VersionHistoryViewer';
+import { VersionApprovalButtons } from './VersionApprovalButtons';
+import { ActivityStateManager } from './ActivityStateManager';
+
+interface PhaseVersioningSectionProps {
+  cycleId: string;
+  reportId: string;
+  phaseName: string;
+  entityType: string;
+  entityId: string;
+  currentVersion?: number;
+  onVersionChange?: (version: number) => void;
+  showActivities?: boolean;
+  showApprovalButtons?: boolean;
+  readOnly?: boolean;
+}
+
+/**
+ * Reusable component that provides versioning functionality for any phase page.
+ * 
+ * Usage Example:
+ * ```tsx
+ * <PhaseVersioningSection
+ *   cycleId={cycleId}
+ *   reportId={reportId}
+ *   phaseName="Sample Selection"
+ *   entityType="SampleSet"
+ *   entityId={sampleSetId}
+ *   currentVersion={currentVersion}
+ *   onVersionChange={handleVersionChange}
+ *   showActivities={true}
+ *   showApprovalButtons={true}
+ *   readOnly={false}
+ * />
+ * ```
+ */
+export const PhaseVersioningSection: React.FC<PhaseVersioningSectionProps> = ({
+  cycleId,
+  reportId,
+  phaseName,
+  entityType,
+  entityId,
+  currentVersion,
+  onVersionChange,
+  showActivities = true,
+  showApprovalButtons = true,
+  readOnly = false
+}) => {
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [selectedVersion, setSelectedVersion] = useState(currentVersion || 1);
+  const [currentVersionData, setCurrentVersionData] = useState<any>(null);
+
+  const handleVersionChange = (version: number) => {
+    setSelectedVersion(version);
+    onVersionChange?.(version);
+  };
+
+  return (
+    <>
+      <Stack spacing={3}>
+        {/* Version Management Card */}
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Version Management
+            </Typography>
+            
+            <Stack spacing={2}>
+              <VersionSelector
+                entityType={entityType}
+                entityId={entityId}
+                currentVersion={selectedVersion}
+                onVersionChange={handleVersionChange}
+                onViewHistory={() => setShowVersionHistory(true)}
+                showCreateButton={!readOnly}
+                showApprovalStatus={true}
+              />
+              
+              {showApprovalButtons && currentVersionData?.status === 'pending_approval' && (
+                <Box>
+                  <Divider sx={{ my: 2 }} />
+                  <VersionApprovalButtons
+                    entityType={entityType}
+                    versionId={currentVersionData.version_id}
+                    versionNumber={currentVersionData.version_number}
+                    versionStatus={currentVersionData.status}
+                    onStatusChange={() => {
+                      // Refresh version data
+                      handleVersionChange(selectedVersion);
+                    }}
+                  />
+                </Box>
+              )}
+            </Stack>
+          </CardContent>
+        </Card>
+
+        {/* Activity States Card */}
+        {showActivities && (
+          <Card>
+            <CardContent>
+              <ActivityStateManager
+                cycleId={cycleId}
+                reportId={reportId}
+                phaseName={phaseName}
+                showControls={!readOnly}
+                onPhaseComplete={() => {
+                  // Handle phase completion if needed
+                  console.log(`${phaseName} phase completed`);
+                }}
+              />
+            </CardContent>
+          </Card>
+        )}
+      </Stack>
+
+      {/* Version History Dialog */}
+      {showVersionHistory && (
+        <VersionHistoryViewer
+          entityType={entityType}
+          entityId={entityId}
+          open={showVersionHistory}
+          onClose={() => setShowVersionHistory(false)}
+          onRevert={async (versionNumber) => {
+            handleVersionChange(versionNumber);
+            setShowVersionHistory(false);
+          }}
+          canRevert={true}
+          currentVersion={selectedVersion || undefined}
+        />
+      )}
+    </>
+  );
+};
+
+export default PhaseVersioningSection;

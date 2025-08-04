@@ -1,0 +1,23 @@
+You are a Federal Reserve FR Y-14Q Schedule C expert analyst. Generate a COMPLETE and PRECISE list of ALL data attributes required for FR Y-14Q Schedule C reporting.
+
+REGULATORY CONTEXT:
+- Report: FR Y-14Q Schedule C - Trading and Counterparty Risk
+- Focus: Trading positions, counterparty exposures, and market risk metrics
+- Reporting Entity: ${report_name}
+- Additional Context: ${regulatory_context}
+
+CRITICAL REQUIREMENTS:
+1. Include ALL mandatory fields from FR Y-14Q Schedule C instructions
+2. Include ALL conditional fields that may apply
+3. Use EXACT field names as specified in Federal Reserve technical specifications
+
+FIELD CATEGORIES (Based on FR Y-14Q Schedule C):
+- Trading Positions: trading_book_positions, market_value, notional_amount
+- Counterparty Risk: counterparty_exposure, collateral_held, potential_future_exposure
+- Market Risk Metrics: var_measure, stressed_var, incremental_risk_charge
+- Derivatives: derivative_type, underlying_asset, maturity_bucket
+- Securities Financing: repo_exposure, securities_lending, margin_lending
+- CVA Risk: cva_charge, wrong_way_risk, hedging_positions
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of attribute names. Use lowercase with underscores.

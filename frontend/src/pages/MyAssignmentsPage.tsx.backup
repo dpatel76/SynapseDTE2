@@ -1,0 +1,594 @@
+import React, { useState, useMemo } from 'react';
+import {
+  Box,
+  Paper,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  LinearProgress,
+  Alert,
+  Chip,
+  Button,
+  IconButton,
+  Tooltip,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  CircularProgress,
+  Card,
+  CardContent,
+  Stack,
+  TextField,
+  InputAdornment,
+  useTheme,
+  alpha,
+  Tabs,
+  Tab,
+  Badge,
+} from '@mui/material';
+import {
+  Visibility,
+  PlayArrow,
+  Schedule,
+  CheckCircle,
+  Warning,
+  Assignment,
+  Search,
+  FilterList,
+  CalendarToday,
+  Assessment,
+  Timer,
+  BugReport,
+  Edit,
+  OpenInNew,
+  Check,
+  Close,
+  Inbox,
+  Send,
+  ArrowForward,
+} from '@mui/icons-material';
+import { useAuth } from '../contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import apiClient from '../api/client';
+import { useNotifications } from '../contexts/NotificationContext';
+import { format } from 'date-fns';
+
+interface UniversalAssignment {
+  assignment_id: string;  // Changed to string (UUID)
+  assignment_type: string;
+  title: string;
+  description?: string;
+  from_role: string;
+  to_role: string;
+  from_user_id?: number;
+  to_user_id?: number;
+  from_user_name?: string;
+  to_user_name?: string;
+  status: string;
+  priority: string;
+  due_date?: string;
+  acknowledged_at?: string;
+  started_at?: string;
+  completed_at?: string;
+  approved_at?: string;
+  rejected_at?: string;
+  rejection_reason?: string;
+  context_type?: string;
+  context_data?: any;
+  created_at: string;
+  updated_at: string;
+}
+
+const MyAssignmentsPage: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const queryClient = useQueryClient();
+  const { showToast } = useNotifications();
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Fetch assignments for the current user
+  const { data: assignments = [], isLoading } = useQuery({
+    queryKey: ['universal-assignments', user?.user_id],
+    queryFn: async () => {
+      try {
+        const response = await apiClient.get('/universal-assignments/assignments', {
+          params: {
+            user_id: user?.user_id,
+            include_acknowledged: true,
+            include_completed: true,
+          }
+        });
+        return response.data || [];
+      } catch (error) {
+        console.error('Error fetching assignments:', error);
+        return [];
+      }
+    },
+    enabled: !!user?.user_id,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Separate received and created assignments
+  const receivedAssignments = useMemo(() => 
+    assignments.filter((a: UniversalAssignment) => a.to_user_id === user?.user_id),
+    [assignments, user]
+  );
+
+  const createdAssignments = useMemo(() => 
+    assignments.filter((a: UniversalAssignment) => a.from_user_id === user?.user_id),
+    [assignments, user]
+  );
+
+  // Apply filters
+  const filteredAssignments = useMemo(() => {
+    let items = selectedTab === 0 ? receivedAssignments : createdAssignments;
+
+    if (statusFilter !== 'all') {
+      items = items.filter((a: UniversalAssignment) => a.status.toLowerCase() === statusFilter);
+    }
+
+    if (priorityFilter !== 'all') {
+      items = items.filter((a: UniversalAssignment) => a.priority.toLowerCase() === priorityFilter);
+    }
+
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      items = items.filter((a: UniversalAssignment) => 
+        a.title.toLowerCase().includes(search) ||
+        a.description?.toLowerCase().includes(search) ||
+        a.assignment_type.toLowerCase().includes(search)
+      );
+    }
+
+    return items;
+  }, [selectedTab, receivedAssignments, createdAssignments, statusFilter, priorityFilter, searchTerm]);
+
+  // Acknowledge assignment mutation
+  const acknowledgeMutation = useMutation({
+    mutationFn: async (assignmentId: string) => {
+      const response = await apiClient.post(`/universal-assignments/assignments/${assignmentId}/acknowledge`);
+      return response.data;
+    },
+    onSuccess: () => {
+      showToast('success', 'Assignment acknowledged');
+      queryClient.invalidateQueries({ queryKey: ['universal-assignments'] });
+    },
+    onError: (error: any) => {
+      showToast('error', `Failed to acknowledge: ${error.response?.data?.detail || error.message}`);
+    },
+  });
+
+  // Start assignment mutation
+  const startMutation = useMutation({
+    mutationFn: async (assignmentId: string) => {
+      const response = await apiClient.post(`/universal-assignments/assignments/${assignmentId}/start`);
+      return response.data;
+    },
+    onSuccess: () => {
+      showToast('success', 'Assignment started');
+      queryClient.invalidateQueries({ queryKey: ['universal-assignments'] });
+    },
+    onError: (error: any) => {
+      showToast('error', `Failed to start: ${error.response?.data?.detail || error.message}`);
+    },
+  });
+
+  // Complete assignment mutation
+  const completeMutation = useMutation({
+    mutationFn: async ({ assignmentId, notes }: { assignmentId: string; notes?: string }) => {
+      const response = await apiClient.post(`/universal-assignments/assignments/${assignmentId}/complete`, { notes });
+      return response.data;
+    },
+    onSuccess: () => {
+      showToast('success', 'Assignment completed');
+      queryClient.invalidateQueries({ queryKey: ['universal-assignments'] });
+    },
+    onError: (error: any) => {
+      showToast('error', `Failed to complete: ${error.response?.data?.detail || error.message}`);
+    },
+  });
+
+  // Navigate to assignment context
+  const handleNavigate = (assignment: UniversalAssignment) => {
+    const context = assignment.context_data;
+    if (!context) return;
+
+    // Build navigation path based on context
+    if (context.cycle_id && context.report_id) {
+      const basePath = `/cycles/${context.cycle_id}/reports/${context.report_id}`;
+      
+      // Map phase names to routes
+      const phaseRoutes: Record<string, string> = {
+        'Planning': '/planning',
+        'Data Profiling': '/data-profiling',
+        'Scoping': '/scoping',
+        'Sample Selection': '/sample-selection',
+        'Data Provider Identification': '/data-owner',
+        'Request for Information': '/request-info',
+        'Test Execution': '/test-execution',
+        'Observation Management': '/observation-management',
+        'Finalize Test Report': '/finalize-report',
+      };
+
+      const route = phaseRoutes[context.phase_name || ''] || '';
+      navigate(basePath + route);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    const statusMap: Record<string, 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info'> = {
+      'assigned': 'default',
+      'acknowledged': 'info',
+      'in_progress': 'primary',
+      'completed': 'success',
+      'approved': 'success',
+      'rejected': 'error',
+      'escalated': 'warning',
+    };
+    return statusMap[status.toLowerCase()] || 'default';
+  };
+
+  const getPriorityColor = (priority: string) => {
+    const priorityMap: Record<string, 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info'> = {
+      'critical': 'error',
+      'urgent': 'error',
+      'high': 'warning',
+      'medium': 'info',
+      'low': 'default',
+    };
+    return priorityMap[priority.toLowerCase()] || 'default';
+  };
+
+  const getOverdueStatus = (dueDate?: string, status?: string) => {
+    if (!dueDate || status === 'completed' || status === 'approved') return false;
+    return new Date(dueDate) < new Date();
+  };
+
+  return (
+    <>
+      <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
+        My Assignments
+      </Typography>
+
+      {/* Summary Cards */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3 }}>
+        <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 calc(50% - 12px)', md: '1 1 calc(25% - 18px)' } }}>
+          <Card>
+            <CardContent>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Assignment color="primary" />
+                <Box>
+                  <Typography variant="h4">{receivedAssignments.length}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Total Received
+                  </Typography>
+                </Box>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Box>
+        <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 calc(50% - 12px)', md: '1 1 calc(25% - 18px)' } }}>
+          <Card>
+            <CardContent>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Schedule color="warning" />
+                <Box>
+                  <Typography variant="h4">
+                    {receivedAssignments.filter((a: UniversalAssignment) => 
+                      a.status === 'assigned' || a.status === 'acknowledged'
+                    ).length}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Pending Action
+                  </Typography>
+                </Box>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Box>
+        <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 calc(50% - 12px)', md: '1 1 calc(25% - 18px)' } }}>
+          <Card>
+            <CardContent>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Timer color="info" />
+                <Box>
+                  <Typography variant="h4">
+                    {receivedAssignments.filter((a: UniversalAssignment) => 
+                      a.status === 'in_progress'
+                    ).length}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    In Progress
+                  </Typography>
+                </Box>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Box>
+        <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 calc(50% - 12px)', md: '1 1 calc(25% - 18px)' } }}>
+          <Card>
+            <CardContent>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Warning color="error" />
+                <Box>
+                  <Typography variant="h4">
+                    {receivedAssignments.filter((a: UniversalAssignment) => 
+                      getOverdueStatus(a.due_date, a.status)
+                    ).length}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Overdue
+                  </Typography>
+                </Box>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Box>
+      </Box>
+
+      {/* Tabs */}
+      <Paper sx={{ mb: 3 }}>
+        <Tabs 
+          value={selectedTab} 
+          onChange={(_, newValue) => setSelectedTab(newValue)}
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab 
+            label={
+              <Badge badgeContent={receivedAssignments.length} color="primary">
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Inbox />
+                  <span>Received Assignments</span>
+                </Stack>
+              </Badge>
+            } 
+          />
+          <Tab 
+            label={
+              <Badge badgeContent={createdAssignments.length} color="secondary">
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Send />
+                  <span>Created Assignments</span>
+                </Stack>
+              </Badge>
+            } 
+          />
+        </Tabs>
+      </Paper>
+
+      {/* Filters */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
+          <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 calc(33.33% - 16px)' } }}>
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Search assignments..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Box>
+          <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 calc(33.33% - 16px)' } }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                label="Status"
+              >
+                <MenuItem value="all">All Status</MenuItem>
+                <MenuItem value="assigned">Assigned</MenuItem>
+                <MenuItem value="acknowledged">Acknowledged</MenuItem>
+                <MenuItem value="in_progress">In Progress</MenuItem>
+                <MenuItem value="completed">Completed</MenuItem>
+                <MenuItem value="approved">Approved</MenuItem>
+                <MenuItem value="rejected">Rejected</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+          <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 calc(33.33% - 16px)' } }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Priority</InputLabel>
+              <Select
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                label="Priority"
+              >
+                <MenuItem value="all">All Priorities</MenuItem>
+                <MenuItem value="critical">Critical</MenuItem>
+                <MenuItem value="urgent">Urgent</MenuItem>
+                <MenuItem value="high">High</MenuItem>
+                <MenuItem value="medium">Medium</MenuItem>
+                <MenuItem value="low">Low</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </Box>
+      </Paper>
+
+      {/* Main Content */}
+      <Paper>
+        {isLoading ? (
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <CircularProgress />
+            <Typography sx={{ mt: 2 }}>Loading assignments...</Typography>
+          </Box>
+        ) : filteredAssignments.length === 0 ? (
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Assignment sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary">
+              No assignments found
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {selectedTab === 0 
+                ? "You don't have any assignments at the moment." 
+                : "You haven't created any assignments yet."}
+            </Typography>
+          </Box>
+        ) : (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Assignment</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>Priority</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Due Date</TableCell>
+                  <TableCell>{selectedTab === 0 ? 'From' : 'To'}</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredAssignments.map((assignment: UniversalAssignment) => {
+                  const isOverdue = getOverdueStatus(assignment.due_date, assignment.status);
+                  return (
+                    <TableRow 
+                      key={assignment.assignment_id}
+                      sx={{ 
+                        '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.05) },
+                        backgroundColor: isOverdue ? alpha(theme.palette.error.main, 0.05) : 'inherit'
+                      }}
+                    >
+                      <TableCell>
+                        <Box>
+                          <Typography variant="body2" fontWeight={500}>
+                            {assignment.title}
+                          </Typography>
+                          {assignment.description && (
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                              {assignment.description}
+                            </Typography>
+                          )}
+                          {assignment.context_data && (
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                              Cycle {assignment.context_data.cycle_id} • Report {assignment.context_data.report_id}
+                              {assignment.context_data.phase_name && ` • ${assignment.context_data.phase_name}`}
+                            </Typography>
+                          )}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={assignment.assignment_type.replace(/_/g, ' ')} 
+                          size="small" 
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={assignment.priority} 
+                          size="small" 
+                          color={getPriorityColor(assignment.priority)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={assignment.status.replace(/_/g, ' ')} 
+                          size="small" 
+                          color={getStatusColor(assignment.status)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {assignment.due_date ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            {isOverdue && <Warning color="error" fontSize="small" />}
+                            <Typography 
+                              variant="body2" 
+                              color={isOverdue ? 'error' : 'text.primary'}
+                            >
+                              {format(new Date(assignment.due_date), 'MMM dd, yyyy')}
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">-</Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {selectedTab === 0 
+                            ? assignment.from_user_name || assignment.from_role
+                            : assignment.to_user_name || assignment.to_role
+                          }
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Stack direction="row" spacing={1}>
+                          {selectedTab === 0 && (
+                            <>
+                              {assignment.status === 'assigned' && (
+                                <Tooltip title="Acknowledge">
+                                  <IconButton 
+                                    size="small" 
+                                    color="info"
+                                    onClick={() => acknowledgeMutation.mutate(assignment.assignment_id)}
+                                  >
+                                    <Check />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                              {(assignment.status === 'assigned' || assignment.status === 'acknowledged') && (
+                                <Tooltip title="Start">
+                                  <IconButton 
+                                    size="small" 
+                                    color="primary"
+                                    onClick={() => startMutation.mutate(assignment.assignment_id)}
+                                  >
+                                    <PlayArrow />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                              {assignment.status === 'in_progress' && (
+                                <Tooltip title="Complete">
+                                  <IconButton 
+                                    size="small" 
+                                    color="success"
+                                    onClick={() => completeMutation.mutate({ assignmentId: assignment.assignment_id })}
+                                  >
+                                    <CheckCircle />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                            </>
+                          )}
+                          <Tooltip title="Navigate to Task">
+                            <IconButton 
+                              size="small"
+                              onClick={() => handleNavigate(assignment)}
+                              disabled={!assignment.context_data}
+                            >
+                              <ArrowForward />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Paper>
+    </>
+  );
+};
+
+export default MyAssignmentsPage;

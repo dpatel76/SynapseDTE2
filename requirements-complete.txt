@@ -1,0 +1,111 @@
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0.post1
+python-multipart==0.0.6
+
+# Database
+sqlalchemy==2.0.23
+asyncpg==0.29.0
+aiomysql==0.2.0
+alembic==1.12.1
+psycopg2-binary==2.9.9
+
+# Validation & Settings
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+cryptography==41.0.7
+
+# HTTP Client
+httpx==0.25.2
+aiohttp==3.9.1
+
+# LLM Integrations
+anthropic==0.18.1
+google-generativeai==0.3.0
+openai==1.3.7  # Optional
+
+# Caching & Background Tasks
+redis==5.0.1
+celery==5.3.4
+
+# File Handling
+python-magic==0.4.27
+openpyxl==3.1.2
+pandas==2.1.3
+pypdf2==3.0.1
+
+# Email
+aiosmtplib==3.0.1
+email-validator==2.1.0.post1
+
+# Monitoring & Logging
+structlog==23.2.0
+python-json-logger==2.0.7
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+httpx-mock==0.1.0
+
+# Development Tools
+black==23.11.0
+isort==5.12.0
+flake8==6.1.0
+mypy==1.7.1
+pre-commit==3.5.0
+
+# Documentation
+mkdocs==1.5.3
+mkdocs-material==9.4.14
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3.post1
+pyyaml==6.0.1
+click==8.1.7
+
+# Performance
+orjson==3.9.10  # Fast JSON
+ujson==5.8.0    # Alternative fast JSON
+
+# Workflow Orchestration
+temporalio==1.4.0  # Required for Temporal workflows
+
+# Additional Dependencies
+aiofiles==24.1.0  # Async file operations
+jinja2==3.1.3  # Template engine
+prometheus-client==0.19.0  # Metrics collection
+psutil==5.9.8  # System and process utilities
+cachetools==5.3.2  # Caching utilities
+python-docx==1.1.0  # Word document manipulation
+markdown==3.5.2  # Markdown processing
+reportlab==4.0.9  # PDF generation
+requests==2.31.0  # HTTP library for sync operations
+kombu==5.3.4  # Messaging library for Celery
+
+# Optional Database Connectors (uncomment if needed)
+# cx-Oracle==8.3.0  # Oracle database connector
+# pymssql==2.2.11  # SQL Server connector
+
+# Optional Data Science Libraries (uncomment if needed)
+# numpy==1.26.3  # Numerical computing
+# scipy==1.11.4  # Scientific computing
+# scikit-learn==1.3.2  # Machine learning
+
+# Optional AWS Integration (uncomment if needed)
+# boto3==1.34.25  # AWS SDK
+# botocore==1.34.25  # AWS SDK core
+
+# Note: Some imports like 'starlette' come with fastapi
+# 'kombu' comes with celery, 'bcrypt' with passlib[bcrypt]
+# Additional dependencies found by validation
+networkx==3.2.1
+playwright==1.41.1
+pymongo==4.6.1

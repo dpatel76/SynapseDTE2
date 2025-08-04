@@ -1,0 +1,100 @@
+FROM rbac_user_roles 
+WHERE rbac_user_roles.user_id = $1::INTEGER AND (rbac_user_roles.expires_at IS NULL OR rbac_user_roles.expires_at > $2::TIMESTAMP WITHOUT TIME ZONE)
+SELECT rbac_user_roles.role_id 
+FROM rbac_user_roles 
+WHERE rbac_user_roles.user_id = $1::INTEGER AND (rbac_user_roles.expires_at IS NULL OR rbac_user_roles.expires_at > $2::TIMESTAMP WITHOUT TIME ZONE)
+2025-07-29 14:10:32,800 INFO sqlalchemy.engine.Engine [cached since 136.7s ago] (3, datetime.datetime(2025, 7, 29, 18, 10, 32, 800526))
+[cached since 136.7s ago] (3, datetime.datetime(2025, 7, 29, 18, 10, 32, 800526))
+2025-07-29 14:10:32,801 INFO sqlalchemy.engine.Engine SELECT rbac_role_hierarchy.parent_role_id 
+FROM rbac_role_hierarchy 
+WHERE rbac_role_hierarchy.child_role_id = $1::INTEGER
+SELECT rbac_role_hierarchy.parent_role_id 
+FROM rbac_role_hierarchy 
+WHERE rbac_role_hierarchy.child_role_id = $1::INTEGER
+2025-07-29 14:10:32,801 INFO sqlalchemy.engine.Engine [cached since 136.7s ago] (3,)
+[cached since 136.7s ago] (3,)
+2025-07-29 14:10:32,802 INFO sqlalchemy.engine.Engine SELECT rbac_role_permissions.role_id, rbac_role_permissions.permission_id, rbac_role_permissions.granted_by, rbac_role_permissions.granted_at, rbac_role_permissions.created_at, rbac_role_permissions.updated_at, rbac_role_permissions.created_by_id, rbac_role_permissions.updated_by_id 
+FROM rbac_role_permissions 
+WHERE rbac_role_permissions.role_id IN ($2::INTEGER) AND rbac_role_permissions.permission_id = $1::INTEGER
+SELECT rbac_role_permissions.role_id, rbac_role_permissions.permission_id, rbac_role_permissions.granted_by, rbac_role_permissions.granted_at, rbac_role_permissions.created_at, rbac_role_permissions.updated_at, rbac_role_permissions.created_by_id, rbac_role_permissions.updated_by_id 
+FROM rbac_role_permissions 
+WHERE rbac_role_permissions.role_id IN ($2::INTEGER) AND rbac_role_permissions.permission_id = $1::INTEGER
+2025-07-29 14:10:32,802 INFO sqlalchemy.engine.Engine [cached since 136.7s ago] (72, 3)
+[cached since 136.7s ago] (72, 3)
+2025-07-29 14:10:32,803 INFO sqlalchemy.engine.Engine SELECT workflow_phases.phase_id, workflow_phases.cycle_id, workflow_phases.report_id, workflow_phases.phase_name, workflow_phases.phase_order, workflow_phases.status, workflow_phases.state, workflow_phases.schedule_status, workflow_phases.data_requested_at, workflow_phases.data_requested_by, workflow_phases.data_received_at, workflow_phases.rules_generated_at, workflow_phases.profiling_executed_at, workflow_phases.risk_level, workflow_phases.metadata, workflow_phases.progress_percentage, workflow_phases.estimated_completion_date, workflow_phases.sla_deadline, workflow_phases.is_sla_breached, workflow_phases.state_override, workflow_phases.status_override, workflow_phases.override_reason, workflow_phases.override_by, workflow_phases.override_at, workflow_phases.planned_start_date, workflow_phases.planned_end_date, workflow_phases.actual_start_date, workflow_phases.actual_end_date, workflow_phases.started_by, workflow_phases.completed_by, workflow_phases.notes, workflow_phases.phase_data, workflow_phases.created_at, workflow_phases.updated_at, workflow_phases.created_by_id, workflow_phases.updated_by_id 
+FROM workflow_phases 
+WHERE workflow_phases.cycle_id = $1::INTEGER AND workflow_phases.report_id = $2::INTEGER AND workflow_phases.phase_name = $3::workflow_phase_enum
+SELECT workflow_phases.phase_id, workflow_phases.cycle_id, workflow_phases.report_id, workflow_phases.phase_name, workflow_phases.phase_order, workflow_phases.status, workflow_phases.state, workflow_phases.schedule_status, workflow_phases.data_requested_at, workflow_phases.data_requested_by, workflow_phases.data_received_at, workflow_phases.rules_generated_at, workflow_phases.profiling_executed_at, workflow_phases.risk_level, workflow_phases.metadata, workflow_phases.progress_percentage, workflow_phases.estimated_completion_date, workflow_phases.sla_deadline, workflow_phases.is_sla_breached, workflow_phases.state_override, workflow_phases.status_override, workflow_phases.override_reason, workflow_phases.override_by, workflow_phases.override_at, workflow_phases.planned_start_date, workflow_phases.planned_end_date, workflow_phases.actual_start_date, workflow_phases.actual_end_date, workflow_phases.started_by, workflow_phases.completed_by, workflow_phases.notes, workflow_phases.phase_data, workflow_phases.created_at, workflow_phases.updated_at, workflow_phases.created_by_id, workflow_phases.updated_by_id 
+FROM workflow_phases 
+WHERE workflow_phases.cycle_id = $1::INTEGER AND workflow_phases.report_id = $2::INTEGER AND workflow_phases.phase_name = $3::workflow_phase_enum
+2025-07-29 14:10:32,803 INFO sqlalchemy.engine.Engine [cached since 136.7s ago] (58, 156, 'Request Info')
+[cached since 136.7s ago] (58, 156, 'Request Info')
+2025-07-29 14:10:32,811 INFO sqlalchemy.engine.Engine SELECT count(cycle_report_test_cases.id) AS total, sum(CASE WHEN (cycle_report_test_cases.status = $1::phase_status_enum) THEN $2::INTEGER ELSE $3::INTEGER END) AS submitted, sum(CASE WHEN (cycle_report_test_cases.status = $4::phase_status_enum) THEN $5::INTEGER ELSE $6::INTEGER END) AS pending, sum(CASE WHEN (cycle_report_test_cases.status = $7::phase_status_enum) THEN $8::INTEGER ELSE $9::INTEGER END) AS overdue 
+FROM cycle_report_test_cases 
+WHERE cycle_report_test_cases.phase_id = $10::INTEGER
+SELECT count(cycle_report_test_cases.id) AS total, sum(CASE WHEN (cycle_report_test_cases.status = $1::phase_status_enum) THEN $2::INTEGER ELSE $3::INTEGER END) AS submitted, sum(CASE WHEN (cycle_report_test_cases.status = $4::phase_status_enum) THEN $5::INTEGER ELSE $6::INTEGER END) AS pending, sum(CASE WHEN (cycle_report_test_cases.status = $7::phase_status_enum) THEN $8::INTEGER ELSE $9::INTEGER END) AS overdue 
+FROM cycle_report_test_cases 
+WHERE cycle_report_test_cases.phase_id = $10::INTEGER
+2025-07-29 14:10:32,811 INFO sqlalchemy.engine.Engine [cached since 136.7s ago] ('Complete', 1, 0, 'Not Started', 1, 0, 'In Progress', 1, 0, 479)
+[cached since 136.7s ago] ('Complete', 1, 0, 'Not Started', 1, 0, 'In Progress', 1, 0, 479)
+2025-07-29 14:10:32,813 INFO sqlalchemy.engine.Engine SELECT count(distinct(cycle_report_test_cases_document_submissions.data_owner_id)) AS count_1 
+FROM cycle_report_test_cases_document_submissions JOIN cycle_report_test_cases ON cycle_report_test_cases_document_submissions.test_case_id = cycle_report_test_cases.id 
+WHERE cycle_report_test_cases.phase_id = $1::INTEGER AND cycle_report_test_cases_document_submissions.data_owner_id IS NOT NULL
+SELECT count(distinct(cycle_report_test_cases_document_submissions.data_owner_id)) AS count_1 
+FROM cycle_report_test_cases_document_submissions JOIN cycle_report_test_cases ON cycle_report_test_cases_document_submissions.test_case_id = cycle_report_test_cases.id 
+WHERE cycle_report_test_cases.phase_id = $1::INTEGER AND cycle_report_test_cases_document_submissions.data_owner_id IS NOT NULL
+2025-07-29 14:10:32,813 INFO sqlalchemy.engine.Engine [cached since 136.7s ago] (479,)
+[cached since 136.7s ago] (479,)
+2025-07-29 14:10:32,815 INFO sqlalchemy.engine.Engine SELECT count(cycle_report_test_cases_document_submissions.submission_id) AS count_1 
+FROM cycle_report_test_cases_document_submissions JOIN cycle_report_test_cases ON cycle_report_test_cases_document_submissions.test_case_id = cycle_report_test_cases.id 
+WHERE cycle_report_test_cases.phase_id = $1::INTEGER AND cycle_report_test_cases_document_submissions.is_current = true
+SELECT count(cycle_report_test_cases_document_submissions.submission_id) AS count_1 
+FROM cycle_report_test_cases_document_submissions JOIN cycle_report_test_cases ON cycle_report_test_cases_document_submissions.test_case_id = cycle_report_test_cases.id 
+WHERE cycle_report_test_cases.phase_id = $1::INTEGER AND cycle_report_test_cases_document_submissions.is_current = true
+2025-07-29 14:10:32,815 INFO sqlalchemy.engine.Engine [cached since 136.7s ago] (479,)
+[cached since 136.7s ago] (479,)
+2025-07-29 14:10:32,816 INFO sqlalchemy.engine.Engine SELECT count(cycle_report_planning_attributes.id) AS count_1 
+FROM cycle_report_planning_attributes JOIN workflow_phases ON cycle_report_planning_attributes.phase_id = workflow_phases.phase_id 
+WHERE workflow_phases.cycle_id = $1::INTEGER AND workflow_phases.report_id = $2::INTEGER AND workflow_phases.phase_name = $3::workflow_phase_enum AND cycle_report_planning_attributes.is_active = true
+SELECT count(cycle_report_planning_attributes.id) AS count_1 
+FROM cycle_report_planning_attributes JOIN workflow_phases ON cycle_report_planning_attributes.phase_id = workflow_phases.phase_id 
+WHERE workflow_phases.cycle_id = $1::INTEGER AND workflow_phases.report_id = $2::INTEGER AND workflow_phases.phase_name = $3::workflow_phase_enum AND cycle_report_planning_attributes.is_active = true
+2025-07-29 14:10:32,816 INFO sqlalchemy.engine.Engine [cached since 136.7s ago] (58, 156, 'Planning')
+[cached since 136.7s ago] (58, 156, 'Planning')
+2025-07-29 14:10:32,819 INFO sqlalchemy.engine.Engine SELECT count(cycle_report_planning_attributes.id) AS count_1 
+FROM cycle_report_planning_attributes JOIN workflow_phases ON cycle_report_planning_attributes.phase_id = workflow_phases.phase_id 
+WHERE workflow_phases.cycle_id = $1::INTEGER AND workflow_phases.report_id = $2::INTEGER AND workflow_phases.phase_name = $3::workflow_phase_enum AND cycle_report_planning_attributes.is_active = true AND cycle_report_planning_attributes.is_scoped = true
+SELECT count(cycle_report_planning_attributes.id) AS count_1 
+FROM cycle_report_planning_attributes JOIN workflow_phases ON cycle_report_planning_attributes.phase_id = workflow_phases.phase_id 
+WHERE workflow_phases.cycle_id = $1::INTEGER AND workflow_phases.report_id = $2::INTEGER AND workflow_phases.phase_name = $3::workflow_phase_enum AND cycle_report_planning_attributes.is_active = true AND cycle_report_planning_attributes.is_scoped = true
+2025-07-29 14:10:32,819 INFO sqlalchemy.engine.Engine [cached since 136.7s ago] (58, 156, 'Planning')
+[cached since 136.7s ago] (58, 156, 'Planning')
+2025-07-29 14:10:32,820 INFO sqlalchemy.engine.Engine SELECT count(distinct(cycle_report_test_cases.sample_id)) AS count_1 
+FROM cycle_report_test_cases 
+WHERE cycle_report_test_cases.phase_id = $1::INTEGER
+SELECT count(distinct(cycle_report_test_cases.sample_id)) AS count_1 
+FROM cycle_report_test_cases 
+WHERE cycle_report_test_cases.phase_id = $1::INTEGER
+2025-07-29 14:10:32,820 INFO sqlalchemy.engine.Engine [cached since 136.7s ago] (479,)
+[cached since 136.7s ago] (479,)
+2025-07-29 14:10:32,821 INFO sqlalchemy.engine.Engine SELECT count(distinct(reports.lob_id)) AS count_1 
+FROM reports JOIN cycle_reports ON reports.id = cycle_reports.report_id 
+WHERE cycle_reports.cycle_id = $1::INTEGER AND cycle_reports.report_id = $2::INTEGER
+SELECT count(distinct(reports.lob_id)) AS count_1 
+FROM reports JOIN cycle_reports ON reports.id = cycle_reports.report_id 
+WHERE cycle_reports.cycle_id = $1::INTEGER AND cycle_reports.report_id = $2::INTEGER
+2025-07-29 14:10:32,821 INFO sqlalchemy.engine.Engine [cached since 136.7s ago] (58, 156)
+[cached since 136.7s ago] (58, 156)
+2025-07-29 14:10:32,825 INFO sqlalchemy.engine.Engine SELECT workflow_phases.phase_id, workflow_phases.cycle_id, workflow_phases.report_id, workflow_phases.phase_name, workflow_phases.phase_order, workflow_phases.status, workflow_phases.state, workflow_phases.schedule_status, workflow_phases.data_requested_at, workflow_phases.data_requested_by, workflow_phases.data_received_at, workflow_phases.rules_generated_at, workflow_phases.profiling_executed_at, workflow_phases.risk_level, workflow_phases.metadata, workflow_phases.progress_percentage, workflow_phases.estimated_completion_date, workflow_phases.sla_deadline, workflow_phases.is_sla_breached, workflow_phases.state_override, workflow_phases.status_override, workflow_phases.override_reason, workflow_phases.override_by, workflow_phases.override_at, workflow_phases.planned_start_date, workflow_phases.planned_end_date, workflow_phases.actual_start_date, workflow_phases.actual_end_date, workflow_phases.started_by, workflow_phases.completed_by, workflow_phases.notes, workflow_phases.phase_data, workflow_phases.created_at, workflow_phases.updated_at, workflow_phases.created_by_id, workflow_phases.updated_by_id 
+FROM workflow_phases 
+WHERE workflow_phases.cycle_id = $1::INTEGER AND workflow_phases.report_id = $2::INTEGER AND workflow_phases.phase_name = $3::workflow_phase_enum
+SELECT workflow_phases.phase_id, workflow_phases.cycle_id, workflow_phases.report_id, workflow_phases.phase_name, workflow_phases.phase_order, workflow_phases.status, workflow_phases.state, workflow_phases.schedule_status, workflow_phases.data_requested_at, workflow_phases.data_requested_by, workflow_phases.data_received_at, workflow_phases.rules_generated_at, workflow_phases.profiling_executed_at, workflow_phases.risk_level, workflow_phases.metadata, workflow_phases.progress_percentage, workflow_phases.estimated_completion_date, workflow_phases.sla_deadline, workflow_phases.is_sla_breached, workflow_phases.state_override, workflow_phases.status_override, workflow_phases.override_reason, workflow_phases.override_by, workflow_phases.override_at, workflow_phases.planned_start_date, workflow_phases.planned_end_date, workflow_phases.actual_start_date, workflow_phases.actual_end_date, workflow_phases.started_by, workflow_phases.completed_by, workflow_phases.notes, workflow_phases.phase_data, workflow_phases.created_at, workflow_phases.updated_at, workflow_phases.created_by_id, workflow_phases.updated_by_id 
+FROM workflow_phases 
+WHERE workflow_phases.cycle_id = $1::INTEGER AND workflow_phases.report_id = $2::INTEGER AND workflow_phases.phase_name = $3::workflow_phase_enum
+2025-07-29 14:10:32,825 INFO sqlalchemy.engine.Engine [cached since 136.7s ago] (58, 156, 'Request Info')
+[cached since 136.7s ago] (58, 156, 'Request Info')
+2025-07-29 14:10:32,826 INFO sqlalchemy.engine.Engine COMMIT
+COMMIT
+Response 200 in 0.056s
+{"method": "GET", "url": "http://localhost:8000/api/v1/request-info/58/reports/156/status", "status_code": 200, "process_time": 0.0568, "event": "HTTP request completed", "logger": "app.main", "level": "info", "timestamp": "2025-07-29T18:10:32.831752Z"}
+INFO:     127.0.0.1:62099 - "GET /api/v1/request-info/58/reports/156/status HTTP/1.1" 200 OK

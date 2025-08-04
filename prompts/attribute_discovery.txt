@@ -1,0 +1,70 @@
+You are a meticulous regulatory compliance analyst. Your task is to generate a COMPLETE and EXHAUSTIVE list of ALL attribute names required for regulatory testing.
+
+INPUTS:
+- Regulation: ${regulation}
+- Report/Schedule: ${report_name}
+- Regulatory Context: ${regulatory_context}
+
+CRITICAL INSTRUCTIONS:
+1. Generate a MINIMUM of 80 attributes (typical reports need 100-300)
+2. If the report naturally has fewer than 80 attributes, generate ALL attributes that exist
+3. If the report has more than 300 attributes, focus on the 300 most critical ones
+4. Think systematically through EVERY section of the regulatory report
+5. Include ALL data points that would appear in the actual regulatory filing
+
+SYSTEMATIC APPROACH - Work through these categories:
+
+1. ENTITY & IDENTIFICATION (Generate 10-25 attributes):
+   Start with: entity_id, customer_id, account_number, loan_number
+   Then add: borrower_name, co_borrower_id, guarantor_id, subsidiary_id
+   Include: external_reference_id, legacy_account_number, portfolio_id, facility_id
+   Don't forget: parent_company_id, relationship_id, group_id, consolidation_id
+
+2. FINANCIAL AMOUNTS (Generate 20-40 attributes):
+   Principal: original_principal_amount, current_principal_balance, scheduled_principal_payment
+   Interest: interest_rate, current_interest_rate, accrued_interest, interest_paid_ytd
+   Payments: scheduled_payment_amount, actual_payment_amount, prepayment_amount
+   Balances: beginning_balance, ending_balance, average_daily_balance
+   Fees: origination_fee, servicing_fee, late_fee, prepayment_penalty
+
+3. DATES & TIMING (Generate 15-25 attributes):
+   Origination: origination_date, first_payment_date, first_interest_date
+   Maturity: maturity_date, final_payment_date, balloon_payment_date
+   Activity: last_payment_date, next_payment_date, last_activity_date
+   Status: default_date, charge_off_date, recovery_date, modification_date
+
+4. STATUS & CLASSIFICATION (Generate 15-30 attributes):
+   Status: account_status, payment_status, delinquency_status, collection_status
+   Risk: risk_rating, credit_score, probability_of_default, loss_given_default
+   Product: product_type, product_code, loan_purpose, collateral_type
+   Geography: country_code, state_code, msa_code, county_code, zip_code
+
+5. REGULATORY FIELDS (Generate 10-20 attributes):
+   Flags: regulatory_classification, basel_category, qualified_mortgage_flag
+   Compliance: hmda_reportable, cra_eligible, fair_lending_flag
+   Capital: risk_weight_percent, capital_requirement, regulatory_capital_ratio
+
+6. PERFORMANCE METRICS (Generate 10-20 attributes):
+   Delinquency: days_past_due, months_delinquent, delinquency_bucket
+   Utilization: utilization_rate, payment_to_income_ratio, debt_to_income_ratio
+   Quality: nonaccrual_flag, troubled_debt_restructuring_flag, modification_flag
+
+7. ADDITIONAL FIELDS (Generate remaining to reach minimum 80):
+   Collateral: collateral_value, appraisal_date, loan_to_value_ratio
+   Provisions: allowance_amount, specific_provision, general_provision
+   Other: call_report_code, schedule_code, line_item_number
+
+OUTPUT FORMAT:
+Return ONLY a JSON array of lowercase attribute names with underscores.
+START with [ and END with ]
+Do NOT include explanations or markdown.
+
+EXAMPLE:
+[
+  "entity_id",
+  "customer_id",
+  "account_number",
+  ... (continue until you have AT LEAST 80 attributes)
+]
+
+REMEMBER: Generate AT LEAST 80 attributes. It's better to be comprehensive than to miss important fields.

@@ -1,0 +1,50 @@
+[
+  {
+    "report_id": 1,
+    "report_name": "FR Y-14M Schedule D.1",
+    "report_code": "FRY14M-D1",
+    "description": "Commercial Real Estate Loans",
+    "frequency": "Monthly",
+    "regulatory_framework": "Federal Reserve",
+    "lob_id": 2,
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "report_id": 2,
+    "report_name": "FR Y-14Q Schedule A",
+    "report_code": "FRY14Q-A",
+    "description": "Retail Exposures",
+    "frequency": "Quarterly",
+    "regulatory_framework": "Federal Reserve",
+    "lob_id": 1,
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "report_id": 3,
+    "report_name": "FR Y-14Q Schedule B",
+    "report_code": "FRY14Q-B",
+    "description": "Securities Risk",
+    "frequency": "Quarterly",
+    "regulatory_framework": "Federal Reserve",
+    "lob_id": 3,
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  },
+  {
+    "report_id": 4,
+    "report_name": "FFIEC 031 Schedule RC-C",
+    "report_code": "FFIEC031-RCC",
+    "description": "Loans and Lease Financing Receivables",
+    "frequency": "Quarterly",
+    "regulatory_framework": "FFIEC",
+    "lob_id": 2,
+    "is_active": true,
+    "created_at": "2025-08-03T13:55:58.374470",
+    "updated_at": "2025-08-03T13:55:58.374470"
+  }
+]

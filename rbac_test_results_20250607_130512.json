@@ -1,0 +1,2799 @@
+{
+  "timestamp": "2025-06-07T17:05:12.143217",
+  "summary": {
+    "total_tests": 384,
+    "passed_tests": 0,
+    "failed_tests": 384,
+    "success_rate": 0.0
+  },
+  "user_statistics": {
+    "test.manager@example.com": {
+      "role": "Test Manager",
+      "total": 64,
+      "passed": 0,
+      "failed": 64,
+      "failures": [
+        {
+          "resource": "system",
+          "action": "admin",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "permissions",
+          "action": "manage",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "create",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "update",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "delete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "assign",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "create",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "assign",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "assign",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "read",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "manage",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "approve",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "generate",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "submit",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "identify",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "escalate",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "generate",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "provide",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "submit",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "review",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "submit",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "review",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        }
+      ]
+    },
+    "tester@example.com": {
+      "role": "Tester",
+      "total": 64,
+      "passed": 0,
+      "failed": 64,
+      "failures": [
+        {
+          "resource": "system",
+          "action": "admin",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "permissions",
+          "action": "manage",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "read",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "read",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "manage",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "execute",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "upload",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "create",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "update",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "delete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "complete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "execute",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "generate",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "submit",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "complete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "identify",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "escalate",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "execute",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "generate",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "upload",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "complete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "provide",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "execute",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "submit",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "review",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "complete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "create",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "submit",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "review",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        }
+      ]
+    },
+    "report.owner@example.com": {
+      "role": "Report Owner",
+      "total": 64,
+      "passed": 0,
+      "failed": 64,
+      "failures": [
+        {
+          "resource": "system",
+          "action": "admin",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "permissions",
+          "action": "manage",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "approve",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "read",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "read",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "manage",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "approve",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "generate",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "submit",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "approve",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "identify",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "escalate",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "generate",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "approve",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "provide",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "submit",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "review",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "approve",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "submit",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "review",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "approve",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        }
+      ]
+    },
+    "cdo@example.com": {
+      "role": "CDO",
+      "total": 64,
+      "passed": 0,
+      "failed": 64,
+      "failures": [
+        {
+          "resource": "system",
+          "action": "admin",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "permissions",
+          "action": "manage",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "read",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "read",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "manage",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "generate",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "submit",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "identify",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "assign",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "escalate",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "generate",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "provide",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "submit",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "review",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "submit",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "review",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        }
+      ]
+    },
+    "data.provider@example.com": {
+      "role": "Data Provider",
+      "total": 64,
+      "passed": 0,
+      "failed": 64,
+      "failures": [
+        {
+          "resource": "system",
+          "action": "admin",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "permissions",
+          "action": "manage",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "read",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "read",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "read",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "read",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "manage",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "update",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "delete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "generate",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "submit",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "execute",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "identify",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "assign",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "upload",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "escalate",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "generate",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "upload",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "upload",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "provide",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "execute",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "submit",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "review",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "create",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "submit",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "review",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "approve",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "override",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "complete",
+          "expected": false,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        }
+      ]
+    },
+    "admin@synapsedt.com": {
+      "role": "Admin",
+      "total": 64,
+      "passed": 0,
+      "failed": 64,
+      "failures": [
+        {
+          "resource": "system",
+          "action": "admin",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "permissions",
+          "action": "manage",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "create",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "update",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "delete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "cycles",
+          "action": "assign",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "create",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "update",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "delete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "assign",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "approve",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "reports",
+          "action": "override",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "create",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "update",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "delete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "users",
+          "action": "assign",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "create",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "update",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "delete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "lobs",
+          "action": "manage",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "read",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "approve",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "workflow",
+          "action": "override",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "execute",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "upload",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "create",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "update",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "delete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "planning",
+          "action": "complete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "execute",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "generate",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "submit",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "approve",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "scoping",
+          "action": "complete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "execute",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "identify",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "assign",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "upload",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "escalate",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "data_provider",
+          "action": "complete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "execute",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "generate",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "upload",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "approve",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "sample_selection",
+          "action": "complete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "execute",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "upload",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "provide",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "request_info",
+          "action": "complete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "execute",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "submit",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "review",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "approve",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "testing",
+          "action": "complete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "create",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "submit",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "review",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "approve",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "override",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        },
+        {
+          "resource": "observations",
+          "action": "complete",
+          "expected": true,
+          "actual": false,
+          "error": "'PermissionService' object has no attribute 'check_user_permission'"
+        }
+      ]
+    }
+  },
+  "role_statistics": {
+    "Test Manager": {
+      "total": 64,
+      "passed": 0,
+      "failed": 64,
+      "users": [
+        "test.manager@example.com"
+      ]
+    },
+    "Tester": {
+      "total": 64,
+      "passed": 0,
+      "failed": 64,
+      "users": [
+        "tester@example.com"
+      ]
+    },
+    "Report Owner": {
+      "total": 64,
+      "passed": 0,
+      "failed": 64,
+      "users": [
+        "report.owner@example.com"
+      ]
+    },
+    "CDO": {
+      "total": 64,
+      "passed": 0,
+      "failed": 64,
+      "users": [
+        "cdo@example.com"
+      ]
+    },
+    "Data Provider": {
+      "total": 64,
+      "passed": 0,
+      "failed": 64,
+      "users": [
+        "data.provider@example.com"
+      ]
+    },
+    "Admin": {
+      "total": 64,
+      "passed": 0,
+      "failed": 64,
+      "users": [
+        "admin@synapsedt.com"
+      ]
+    }
+  },
+  "critical_failures": [],
+  "unexpected_permissions": []
+}

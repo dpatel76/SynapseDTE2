@@ -1,0 +1,304 @@
+"""
+Unified Observation Management Models
+Implements the simplified 2-table architecture from the implementation plan
+"""
+
+from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, DateTime, Float, CheckConstraint, UniqueConstraint
+from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from datetime import datetime
+from app.models.base import CustomPKModel
+from app.models.audit_mixin import AuditMixin
+from enum import Enum
+
+
+# Enums for observation management
+class SeverityLevel(str, Enum):
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+
+
+class IssueType(str, Enum):
+    DATA_QUALITY = "data_quality"
+    PROCESS_FAILURE = "process_failure"
+    SYSTEM_ERROR = "system_error"
+    COMPLIANCE_GAP = "compliance_gap"
+
+
+class ObservationGroupStatus(str, Enum):
+    DRAFT = "draft"
+    PENDING_TESTER_REVIEW = "pending_tester_review"
+    TESTER_APPROVED = "tester_approved"
+    PENDING_REPORT_OWNER_APPROVAL = "pending_report_owner_approval"
+    REPORT_OWNER_APPROVED = "report_owner_approved"
+    REJECTED = "rejected"
+    RESOLVED = "resolved"
+    CLOSED = "closed"
+
+
+class ReviewDecision(str, Enum):
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    NEEDS_CLARIFICATION = "needs_clarification"
+
+
+class ResolutionStatus(str, Enum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    DEFERRED = "deferred"
+
+
+class DetectionMethod(str, Enum):
+    AUTO_DETECTED = "auto_detected"
+    MANUAL_REVIEW = "manual_review"
+    ESCALATION = "escalation"
+
+
+class TestResult(str, Enum):
+    FAIL = "fail"
+    INCONCLUSIVE = "inconclusive"
+
+
+class FrequencyEstimate(str, Enum):
+    ISOLATED = "isolated"
+    OCCASIONAL = "occasional"
+    FREQUENT = "frequent"
+    SYSTEMATIC = "systematic"
+
+
+class ObservationGroup(CustomPKModel, AuditMixin):
+    """
+    Observation groups with built-in approval workflow
+    Grouped by attribute and LOB combination
+    """
+    
+    __tablename__ = "cycle_report_observation_groups"
+    
+    # Primary key
+    id = Column(Integer, primary_key=True)
+    
+    # Context references
+    phase_id = Column(Integer, ForeignKey('workflow_phases.phase_id'), nullable=False)
+    cycle_id = Column(Integer, ForeignKey('test_cycles.cycle_id'), nullable=False)
+    report_id = Column(Integer, ForeignKey('reports.id'), nullable=False)
+    
+    # Group identification (grouped by attribute + LOB)
+    group_name = Column(String(255), nullable=False)
+    group_description = Column(Text, nullable=True)
+    attribute_id = Column(UUID(as_uuid=True), ForeignKey("cycle_report_planning_attributes.id"), nullable=False)
+    lob_id = Column(Integer, ForeignKey('lobs.lob_id'), nullable=False)
+    
+    # Group metadata
+    observation_count = Column(Integer, default=0, nullable=False)
+    severity_level = Column(String(50), default='medium', nullable=False)
+    issue_type = Column(String(100), nullable=False)
+    
+    # Group summary
+    issue_summary = Column(Text, nullable=False)
+    impact_description = Column(Text, nullable=True)
+    proposed_resolution = Column(Text, nullable=True)
+    
+    # Status and workflow (embedded approval workflow)
+    status = Column(String(50), default='draft', nullable=False)
+    
+    # Tester Review (built-in)
+    tester_review_status = Column(String(50), nullable=True)
+    tester_review_notes = Column(Text, nullable=True)
+    tester_review_score = Column(Integer, nullable=True)
+    tester_reviewed_by = Column(Integer, ForeignKey('users.user_id'), nullable=True)
+    tester_reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Report Owner Approval (built-in)
+    report_owner_approval_status = Column(String(50), nullable=True)
+    report_owner_approval_notes = Column(Text, nullable=True)
+    report_owner_approved_by = Column(Integer, ForeignKey('users.user_id'), nullable=True)
+    report_owner_approved_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Clarification handling (built-in)
+    clarification_requested = Column(Boolean, default=False, nullable=False)
+    clarification_request_text = Column(Text, nullable=True)
+    clarification_response = Column(Text, nullable=True)
+    clarification_due_date = Column(DateTime(timezone=True), nullable=True)
+    
+    # Resolution tracking (built-in)
+    resolution_status = Column(String(50), default='pending', nullable=False)
+    resolution_approach = Column(Text, nullable=True)
+    resolution_timeline = Column(Text, nullable=True)
+    resolution_owner = Column(Integer, ForeignKey('users.user_id'), nullable=True)
+    resolution_notes = Column(Text, nullable=True)
+    resolved_by = Column(Integer, ForeignKey('users.user_id'), nullable=True)
+    resolved_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Detection information
+    detection_method = Column(String(50), nullable=False)
+    detected_by = Column(Integer, ForeignKey('users.user_id'), nullable=False)
+    detected_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    workflow_phase = relationship("WorkflowPhase", foreign_keys=[phase_id])
+    test_cycle = relationship("TestCycle", foreign_keys=[cycle_id])
+    report = relationship("Report", foreign_keys=[report_id])
+    attribute = relationship("ReportAttribute", foreign_keys=[attribute_id])
+    lob = relationship("LOB", foreign_keys=[lob_id])
+    
+    # User relationships
+    detector = relationship("User", foreign_keys=[detected_by])
+    tester_reviewer = relationship("User", foreign_keys=[tester_reviewed_by])
+    report_owner_approver = relationship("User", foreign_keys=[report_owner_approved_by])
+    resolution_owner_user = relationship("User", foreign_keys=[resolution_owner])
+    resolver = relationship("User", foreign_keys=[resolved_by])
+    
+    # Related observations
+    observations = relationship("Observation", back_populates="group", cascade="all, delete-orphan")
+    
+    # Constraints
+    __table_args__ = (
+        CheckConstraint(
+            "severity_level IN ('high', 'medium', 'low')",
+            name='ck_observation_group_severity_level'
+        ),
+        CheckConstraint(
+            "issue_type IN ('data_quality', 'process_failure', 'system_error', 'compliance_gap')",
+            name='ck_observation_group_issue_type'
+        ),
+        CheckConstraint(
+            "status IN ('draft', 'pending_tester_review', 'tester_approved', 'pending_report_owner_approval', 'report_owner_approved', 'rejected', 'resolved', 'closed')",
+            name='ck_observation_group_status'
+        ),
+        CheckConstraint(
+            "tester_review_status IN ('approved', 'rejected', 'needs_clarification')",
+            name='ck_observation_group_tester_review_status'
+        ),
+        CheckConstraint(
+            "report_owner_approval_status IN ('approved', 'rejected', 'needs_clarification')",
+            name='ck_observation_group_report_owner_approval_status'
+        ),
+        CheckConstraint(
+            "resolution_status IN ('pending', 'in_progress', 'completed', 'deferred')",
+            name='ck_observation_group_resolution_status'
+        ),
+        CheckConstraint(
+            "detection_method IN ('auto_detected', 'manual_review', 'escalation')",
+            name='ck_observation_group_detection_method'
+        ),
+        CheckConstraint(
+            "tester_review_score IS NULL OR (tester_review_score >= 1 AND tester_review_score <= 100)",
+            name='ck_observation_group_tester_review_score'
+        ),
+        UniqueConstraint(
+            'attribute_id', 'lob_id', 'phase_id',
+            name='uq_observation_group_attribute_lob_phase'
+        ),
+    )
+    
+    def __repr__(self):
+        return f"<ObservationGroup(id={self.id}, group_name='{self.group_name}', status='{self.status}', observation_count={self.observation_count})>"
+
+
+class Observation(CustomPKModel, AuditMixin):
+    """
+    Individual observations, one per test case failure
+    Linked to test execution results
+    """
+    
+    __tablename__ = "cycle_report_observations_unified"
+    
+    # Primary key
+    id = Column(Integer, primary_key=True)
+    
+    # Group reference
+    group_id = Column(Integer, ForeignKey('cycle_report_observation_groups.id', ondelete='CASCADE'), nullable=False)
+    
+    # Link to test execution that generated this observation (one-to-one relationship)
+    test_execution_id = Column(Integer, ForeignKey('cycle_report_test_execution_test_executions.execution_id'), nullable=False)
+    test_case_id = Column(String(255), nullable=False)
+    
+    # Test context (tied to specific sample and attribute for LOB)
+    attribute_id = Column(UUID(as_uuid=True), ForeignKey("cycle_report_planning_attributes.id"), nullable=False)
+    sample_id = Column(String(255), nullable=False)
+    lob_id = Column(Integer, ForeignKey('lobs.lob_id'), nullable=False)
+    
+    # Observation details
+    observation_title = Column(String(255), nullable=False)
+    observation_description = Column(Text, nullable=False)
+    
+    # Test failure details
+    expected_value = Column(Text, nullable=True)
+    actual_value = Column(Text, nullable=True)
+    variance_details = Column(JSONB, nullable=True)
+    test_result = Column(String(50), nullable=True)
+    
+    # Evidence and documentation
+    evidence_files = Column(JSONB, nullable=True)  # List of file paths, screenshots, etc.
+    supporting_documentation = Column(Text, nullable=True)
+    
+    # Individual observation metadata
+    confidence_level = Column(Float, nullable=True)
+    reproducible = Column(Boolean, default=False, nullable=False)
+    frequency_estimate = Column(String(50), nullable=True)
+    
+    # Impact assessment
+    business_impact = Column(Text, nullable=True)
+    technical_impact = Column(Text, nullable=True)
+    regulatory_impact = Column(Text, nullable=True)
+    
+    # Relationships
+    group = relationship("ObservationGroup", back_populates="observations")
+    test_execution = relationship("TestExecutionResult", foreign_keys=[test_execution_id])
+    attribute = relationship("ReportAttribute", foreign_keys=[attribute_id])
+    lob = relationship("LOB", foreign_keys=[lob_id])
+    
+    # Constraints
+    __table_args__ = (
+        CheckConstraint(
+            "test_result IN ('fail', 'inconclusive')",
+            name='ck_observation_test_result'
+        ),
+        CheckConstraint(
+            "confidence_level IS NULL OR (confidence_level >= 0.0 AND confidence_level <= 1.0)",
+            name='ck_observation_confidence_level'
+        ),
+        CheckConstraint(
+            "frequency_estimate IN ('isolated', 'occasional', 'frequent', 'systematic')",
+            name='ck_observation_frequency_estimate'
+        ),
+        UniqueConstraint(
+            'test_execution_id',
+            name='uq_observation_test_execution'
+        ),
+        UniqueConstraint(
+            'test_case_id', 'sample_id', 'attribute_id',
+            name='uq_observation_test_case_sample_attribute'
+        ),
+    )
+    
+    def __repr__(self):
+        return f"<Observation(id={self.id}, group_id={self.group_id}, observation_title='{self.observation_title}', test_result='{self.test_result}')>"
+
+
+# Helper classes for type hints and validation
+class ObservationGroupSummary:
+    """Summary data for observation groups"""
+    def __init__(self, group: ObservationGroup):
+        self.id = group.id
+        self.group_name = group.group_name
+        self.observation_count = group.observation_count
+        self.severity_level = group.severity_level
+        self.issue_type = group.issue_type
+        self.status = group.status
+        self.created_at = group.created_at
+        self.updated_at = group.updated_at
+
+
+class ObservationSummary:
+    """Summary data for individual observations"""
+    def __init__(self, observation: Observation):
+        self.id = observation.id
+        self.group_id = observation.group_id
+        self.observation_title = observation.observation_title
+        self.test_result = observation.test_result
+        self.confidence_level = observation.confidence_level
+        self.frequency_estimate = observation.frequency_estimate
+        self.created_at = observation.created_at
