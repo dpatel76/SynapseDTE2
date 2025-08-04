@@ -1,0 +1,13 @@
+FROM temporalio/auto-setup:1.22.4
+
+# Install PostgreSQL client for database checks
+USER root
+RUN apk add --no-cache postgresql-client
+
+# Copy our custom entrypoint
+COPY --chmod=755 ./scripts/docker/temporal-entrypoint.sh /custom-entrypoint.sh
+
+# Switch back to temporal user
+USER temporal
+
+ENTRYPOINT ["/custom-entrypoint.sh"]

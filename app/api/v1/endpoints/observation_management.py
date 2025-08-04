@@ -95,7 +95,7 @@ async def create_and_submit_observation_version(
         # Update all observations to submitted status
         from sqlalchemy import update
         from app.models.observation_management import ObservationRecord, ObservationStatusEnum
-        from datetime import datetime, timezone
+        from datetime import datetime, timezone, timedelta
         
         result = await db.execute(
             update(ObservationRecord)
@@ -106,6 +106,62 @@ async def create_and_submit_observation_version(
                 updated_by_id=current_user.user_id
             )
         )
+        
+        # Create universal assignment for report owner
+        from app.models.universal_assignment import UniversalAssignment
+        from app.models.report import Report
+        from app.models.test_cycle import TestCycle
+        
+        # Get report and cycle info
+        report = await db.get(Report, report_id)
+        cycle = await db.get(TestCycle, cycle_id)
+        
+        if report and report.report_owner_id:
+            # Count observations by type for the description
+            obs_query = select(ObservationRecord).where(
+                ObservationRecord.observation_id.in_(observation_ids)
+            )
+            obs_result = await db.execute(obs_query)
+            observations = obs_result.scalars().all()
+            
+            # Group by type
+            obs_by_type = {}
+            for obs in observations:
+                obs_type = obs.observation_type.value if obs.observation_type else "Unknown"
+                obs_by_type[obs_type] = obs_by_type.get(obs_type, 0) + 1
+            
+            # Create description
+            type_summary = ", ".join([f"{count} {type_name}" for type_name, count in obs_by_type.items()])
+            
+            assignment = UniversalAssignment(
+                assignment_type="Observation Approval",
+                from_role="Tester",
+                to_role="Report Owner",
+                from_user_id=current_user.user_id,
+                to_user_id=report.report_owner_id,
+                title="Review Observations",
+                description=f"Please review and approve {len(observation_ids)} observations ({type_summary}) for {report.report_name}",
+                context_type="Report",
+                context_data={
+                    "cycle_id": cycle_id,
+                    "report_id": report_id,
+                    "phase_id": phase.phase_id,
+                    "phase_name": "Observations",
+                    "observation_ids": observation_ids,
+                    "submitted_by": current_user.user_id,
+                    "submitted_at": datetime.now(timezone.utc).isoformat(),
+                    "submission_notes": submission_notes,
+                    "total_observations": len(observation_ids),
+                    "report_name": report.report_name,
+                    "cycle_name": cycle.cycle_name if cycle else None,
+                },
+                priority="High",
+                due_date=datetime.now(timezone.utc) + timedelta(days=2),  # 2 day SLA
+                created_by_id=current_user.user_id,
+                updated_by_id=current_user.user_id
+            )
+            
+            db.add(assignment)
         
         await db.commit()
         
@@ -813,26 +869,66 @@ async def create_observation(
         )
 
 
-@router.get("/{cycle_id}/reports/{report_id}/observations", response_model=List[ObservationResponseDTO])
+@router.get("/{cycle_id}/reports/{report_id}/observations")
 @require_permission("observations", "read")
 async def list_observations(
     cycle_id: int,
     report_id: int,
-    status: Optional[ObservationStatusEnum] = None,
-    severity: Optional[ObservationSeverityEnum] = None,
-    observation_type: Optional[ObservationTypeEnum] = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """List observations with optional filters"""
+    """List all observations for a cycle/report"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
-        use_case = ListObservationsUseCase()
-        observations = await use_case.execute(
-            cycle_id, report_id, status, severity, observation_type, db
+        from sqlalchemy import select, and_
+        from app.models.observation_management import ObservationRecord
+        from app.models.workflow import WorkflowPhase
+        
+        # Get the observation management phase
+        phase_result = await db.execute(
+            select(WorkflowPhase).where(
+                and_(
+                    WorkflowPhase.cycle_id == cycle_id,
+                    WorkflowPhase.report_id == report_id,
+                    WorkflowPhase.phase_name == "Observations"
+                )
+            )
         )
-        return observations
+        phase = phase_result.scalar_one_or_none()
+        
+        if not phase:
+            return []
+        
+        # Get all observations for this phase
+        result = await db.execute(
+            select(ObservationRecord).where(
+                ObservationRecord.phase_id == phase.phase_id
+            )
+        )
+        observations = result.scalars().all()
+        
+        # Convert to response format
+        return [
+            {
+                "observation_id": obs.observation_id,
+                "observation_title": obs.observation_title,
+                "observation_description": obs.observation_description,
+                "observation_type": obs.observation_type.value if obs.observation_type else None,
+                "severity": obs.severity.value if obs.severity else None,
+                "status": obs.status.value if obs.status else None,
+                "created_at": obs.created_at.isoformat() if obs.created_at else None,
+                "updated_at": obs.updated_at.isoformat() if obs.updated_at else None,
+                "tester_decision": obs.tester_decision,
+                "report_owner_decision": obs.report_owner_decision,
+                "approval_status": obs.approval_status
+            }
+            for obs in observations
+        ]
         
     except Exception as e:
+        logger.error(f"Error in list_observations: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to list observations: {str(e)}"

@@ -1,0 +1,59 @@
+# Minimal dynamic configuration for Temporal development
+system.forceSearchAttributesCacheRefreshOnRead:
+  - value: true
+    constraints: {}
+
+# Increase limits for development
+limit.maxIDLength:
+  - value: 1000
+    constraints: {}
+
+# History service dynamic config
+history.persistenceMaxQPS:
+  - value: 3000
+    constraints: {}
+
+history.persistenceGlobalMaxQPS:
+  - value: 0
+    constraints: {}
+
+# Matching service dynamic config  
+matching.persistenceMaxQPS:
+  - value: 3000
+    constraints: {}
+
+matching.persistenceGlobalMaxQPS:
+  - value: 0
+    constraints: {}
+
+# Worker service dynamic config
+worker.persistenceMaxQPS:
+  - value: 100
+    constraints: {}
+
+# Frontend service dynamic config
+frontend.persistenceMaxQPS:
+  - value: 3000
+    constraints: {}
+
+frontend.persistenceGlobalMaxQPS:
+  - value: 0
+    constraints: {}
+
+# Enable advanced visibility on SQL
+system.advancedVisibilityWritingMode:
+  - value: "on"
+    constraints: {}
+
+system.enableReadVisibilityFromES:
+  - value: false
+    constraints: {}
+
+# Set history archival state
+system.historyArchivalState:
+  - value: "disabled"
+    constraints: {}
+
+system.visibilityArchivalState:
+  - value: "disabled"
+    constraints: {}

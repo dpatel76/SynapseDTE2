@@ -50,41 +50,16 @@ COPY --chown=appuser:appuser ./app ./app
 COPY --chown=appuser:appuser ./alembic ./alembic
 COPY --chown=appuser:appuser ./alembic.ini ./alembic.ini
 COPY --chown=appuser:appuser ./scripts/docker/bypass_migrations.py ./scripts/docker/bypass_migrations.py
+COPY --chown=appuser:appuser ./scripts/docker/run_migrations.py ./scripts/docker/run_migrations.py
+COPY --chown=appuser:appuser ./scripts/docker/load_seed_data.py ./scripts/docker/load_seed_data.py
+COPY --chown=appuser:appuser ./scripts/docker/create_seed_data.sql ./scripts/docker/create_seed_data.sql
 
 # Create uploads and logs directories
 RUN mkdir -p /app/uploads /app/logs && chown -R appuser:appuser /app/uploads /app/logs
 
-# Create startup script
-RUN echo '#!/bin/bash\n\
-set -e\n\
-\n\
-echo "Starting SynapseDTE Backend..."\n\
-\n\
-# Wait for database\n\
-echo "Waiting for database..."\n\
-while ! pg_isready -h ${DATABASE_HOST:-localhost} -p ${DATABASE_PORT:-5432} -U ${DATABASE_USER:-postgres}; do\n\
-  sleep 1\n\
-done\n\
-echo "Database is ready!"\n\
-\n\
-# Run migrations (with bypass for containerized environments)\n\
-echo "Running database migrations..."\n\
-export DOCKER_CONTAINER=1\n\
-if [ -f /app/scripts/docker/bypass_migrations.py ]; then\n\
-  python /app/scripts/docker/bypass_migrations.py\n\
-else\n\
-  alembic upgrade head || echo "Migration failed, but continuing..."\n\
-fi\n\
-\n\
-# Start application\n\
-echo "Starting FastAPI application..."\n\
-exec uvicorn app.main:app \\\n\
-  --host 0.0.0.0 \\\n\
-  --port 8000 \\\n\
-  --workers ${WORKERS:-2} \\\n\
-  --access-log \\\n\
-  --log-config /app/logging.json\n\
-' > /app/start.sh && chmod +x /app/start.sh
+# Copy startup script
+COPY --chown=appuser:appuser ./scripts/docker/backend-entrypoint.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
 # Create logging configuration
 RUN echo '{\n\

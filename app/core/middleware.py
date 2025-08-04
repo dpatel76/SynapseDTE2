@@ -197,12 +197,28 @@ class InputValidationMiddleware(BaseHTTPMiddleware):
                             content={"detail": "Invalid JSON format"}
                         )
                 
-                # CRITICAL: Set up the request to allow re-reading the body
-                # This is needed because body() can only be called once
-                async def receive():
-                    return {"type": "http.request", "body": body}
+                # FIXED: Properly handle request body reconstruction
+                # Create a new receive callable that returns the body in chunks
+                # This approach is more compatible with containerized environments
+                body_iterator = iter([body])
                 
+                async def receive():
+                    try:
+                        chunk = next(body_iterator)
+                        return {"type": "http.request", "body": chunk}
+                    except StopIteration:
+                        return {"type": "http.request", "body": b""}
+                
+                # Store the original receive function
+                original_receive = request.receive
                 request._receive = receive
+                
+                # Also update the stream method for compatibility
+                async def stream():
+                    yield body
+                    yield b""
+                
+                request._stream = stream
                 
             except Exception as e:
                 logger.error(f"Error validating request: {str(e)}")
@@ -405,10 +421,8 @@ def setup_middleware(app: FastAPI):
     app.add_middleware(SecurityHeadersMiddleware)
     # Custom CORS middleware disabled - using FastAPI's built-in CORS middleware instead
     # app.add_middleware(CORSMiddleware)
-    # DISABLED - Causing request body reading issues in containerized environment
-    # The InputValidationMiddleware reads the request body but doesn't properly
-    # reconstruct it for FastAPI to read again, causing timeouts
-    # app.add_middleware(InputValidationMiddleware)
+    # Re-enabled with fixed request body handling for containerized environments
+    app.add_middleware(InputValidationMiddleware)
     # Very high limits for development - essentially disabling rate limiting
     # In production, these should be much lower (e.g., 100 calls/min, 20 burst)
     app.add_middleware(RateLimitingMiddleware, calls_per_minute=1000, burst_limit=500)

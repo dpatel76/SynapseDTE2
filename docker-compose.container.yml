@@ -11,7 +11,8 @@ services:
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.utf8"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts/database/08032025:/docker-entrypoint-initdb.d:ro
+      # Commented out to use Alembic migrations instead
+      # - ./scripts/database/08032025:/docker-entrypoint-initdb.d:ro
     ports:
       - "${DATABASE_PORT:-5433}:5432"  # Incremented from 5432 to 5433
     networks:
@@ -78,6 +79,7 @@ services:
       # Docker Container Flag
       DOCKER_CONTAINER: "1"
     volumes:
+      - ./app:/app/app:ro  # Mount app code for development
       - ./uploads:/app/uploads
       - ./logs:/app/logs
     ports:
@@ -139,20 +141,16 @@ services:
       temporal-postgres:
         condition: service_healthy
     environment:
-      DB: postgres12
-      DB_PORT: 5432
-      POSTGRES_USER: temporal
-      POSTGRES_PWD: ${TEMPORAL_POSTGRES_PASSWORD:-temporal_password}
-      POSTGRES_SEEDS: temporal-postgres
-      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/production.yaml
-      ENABLE_ES: false
-      PROMETHEUS_ENDPOINT: 0.0.0.0:9090
-      # Use container name as PUBLIC_FRONTEND_ADDRESS
-      PUBLIC_FRONTEND_ADDRESS: temporal:7233
-    volumes:
-      - ./temporal/dynamicconfig:/etc/temporal/config/dynamicconfig:ro
-      - ./temporal/custom-entrypoint.sh:/custom-entrypoint.sh:ro
-    entrypoint: ["/custom-entrypoint.sh"]
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal_password
+      - POSTGRES_SEEDS=temporal-postgres
+      - ENABLE_ES=false
+      - SKIP_SCHEMA_SETUP=false
+      - SKIP_DB_CREATE=false
+      - USE_INTERNAL_FRONTEND=true
+      - LOG_LEVEL=info
     ports:
       - "${TEMPORAL_PORT:-7234}:7233"  # Incremented from 7233 to 7234
       - "${TEMPORAL_METRICS_PORT:-9091}:9090"  # Incremented from 9090 to 9091

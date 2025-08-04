@@ -1,0 +1,44 @@
+# Docker Compose override for Alembic integration
+# This file demonstrates how Alembic migrations are integrated into the container startup
+# Use with: docker-compose -f docker-compose.container.yml -f docker-compose.alembic.yml up
+
+services:
+  backend:
+    environment:
+      # Ensure Alembic runs on startup
+      RUN_MIGRATIONS: "true"
+      # Database URL for Alembic
+      DATABASE_URL: "postgresql://${DATABASE_USER:-synapse_user}:${DATABASE_PASSWORD:-synapse_password}@postgres:5432/${DATABASE_NAME:-synapse_dt}"
+    volumes:
+      # Mount migration scripts
+      - ./scripts/docker/run_migrations.py:/app/scripts/docker/run_migrations.py:ro
+      - ./scripts/docker/backend-entrypoint.sh:/app/start.sh:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Migration service - runs migrations once and exits
+  # Useful for CI/CD pipelines
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: synapse-migrate
+    environment:
+      DATABASE_URL: "postgresql://${DATABASE_USER:-synapse_user}:${DATABASE_PASSWORD:-synapse_password}@postgres:5432/${DATABASE_NAME:-synapse_dt}"
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME:-synapse_dt}
+      DATABASE_USER: ${DATABASE_USER:-synapse_user}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-synapse_password}
+    command: ["python", "/app/scripts/docker/run_migrations.py"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - synapse-network
+    volumes:
+      - ./app:/app/app:ro
+      - ./alembic:/app/alembic:ro
+      - ./alembic.ini:/app/alembic.ini:ro
+      - ./scripts/docker/run_migrations.py:/app/scripts/docker/run_migrations.py:ro

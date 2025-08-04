@@ -69,6 +69,7 @@ import { UniversalAssignmentAlert } from '../../components/UniversalAssignmentAl
 import { DynamicActivityCards } from '../../components/phase/DynamicActivityCards';
 import { TestExecutionTable } from '../../components/test-execution/TestExecutionTable';
 import ObservationDetailsModal from '../../components/observations/ObservationDetailsModal';
+import ObservationReportOwnerFeedback from '../../components/observation-management/ObservationReportOwnerFeedback';
 
 interface ObservationManagementPhaseStatus {
   phase_status: string;
@@ -228,9 +229,13 @@ const ObservationManagementEnhanced: React.FC = () => {
     observation: null
   });
 
+  // State for report owner feedback
+  const [hasReportOwnerFeedback, setHasReportOwnerFeedback] = useState(false);
+
   useEffect(() => {
     fetchData();
     fetchReportInfo();
+    checkReportOwnerFeedback();
   }, [cycleId, reportId]);
 
   const fetchData = async () => {
@@ -383,6 +388,24 @@ const ObservationManagementEnhanced: React.FC = () => {
       });
     } finally {
       setReportInfoLoading(false);
+    }
+  };
+
+  const checkReportOwnerFeedback = async () => {
+    try {
+      const response = await apiClient.get(
+        `/observation-enhanced/${cycleId}/reports/${reportId}/observations`
+      );
+      const observations = response.data || [];
+      
+      // Check if any observation has report owner feedback
+      const hasFeedback = observations.some((obs: any) => 
+        obs.report_owner_decision !== null && obs.report_owner_decision !== undefined
+      );
+      
+      setHasReportOwnerFeedback(hasFeedback);
+    } catch (error) {
+      console.error('Failed to check report owner feedback:', error);
     }
   };
 
@@ -1339,6 +1362,7 @@ const ObservationManagementEnhanced: React.FC = () => {
 
       <Box sx={{ mt: 3 }}>
         <Tabs value={selectedTab} onChange={(_, value) => setSelectedTab(value)}>
+          {hasReportOwnerFeedback && <Tab label="Report Owner Feedback" />}
           <Tab label="Test Results Review" />
           <Tab label="Observation Groups" />
           <Tab 
@@ -1352,9 +1376,26 @@ const ObservationManagementEnhanced: React.FC = () => {
         </Tabs>
 
         <Box sx={{ mt: 2 }}>
-          {selectedTab === 0 && renderTestExecutions()}
-          {selectedTab === 1 && renderObservationGroups()}
-          {selectedTab === 2 && (
+          {/* Report Owner Feedback Tab */}
+          {hasReportOwnerFeedback && selectedTab === 0 && (
+            <ObservationReportOwnerFeedback
+              cycleId={cycleIdNum}
+              reportId={reportIdNum}
+              onRefresh={() => {
+                fetchData();
+                checkReportOwnerFeedback();
+              }}
+            />
+          )}
+          
+          {/* Test Results Review Tab */}
+          {((hasReportOwnerFeedback && selectedTab === 1) || (!hasReportOwnerFeedback && selectedTab === 0)) && renderTestExecutions()}
+          
+          {/* Observation Groups Tab */}
+          {((hasReportOwnerFeedback && selectedTab === 2) || (!hasReportOwnerFeedback && selectedTab === 1)) && renderObservationGroups()}
+          
+          {/* Documents Tab */}
+          {((hasReportOwnerFeedback && selectedTab === 3) || (!hasReportOwnerFeedback && selectedTab === 2)) && (
             <Box sx={{ p: 2 }}>
               <PhaseDocumentManager
                 cycleId={parseInt(cycleId || '0')}
