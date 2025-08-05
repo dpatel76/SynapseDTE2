@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class PromptManager:
     """Manages external prompt templates for LLM operations with regulatory report support"""
     
-    def __init__(self, prompts_dir: str = "prompts"):
+    def __init__(self, prompts_dir: str = "app/prompts"):
         self.prompts_dir = Path(prompts_dir)
         self._templates_cache: Dict[str, Template] = {}
         

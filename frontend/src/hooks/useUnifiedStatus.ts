@@ -6,7 +6,7 @@ import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import apiClient from '../api/client';
 
 export type PhaseStatusType = 'not_started' | 'in_progress' | 'completed' | 'blocked';
-export type ActivityStatusType = 'pending' | 'active' | 'completed' | 'blocked' | 'skipped';
+export type ActivityStatusType = 'not_started' | 'pending' | 'active' | 'in_progress' | 'completed' | 'blocked' | 'skipped';
 
 export interface ActivityStatus {
   activity_id: string;

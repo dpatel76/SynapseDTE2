@@ -12,6 +12,7 @@ from app.api.v1.deps import get_current_user
 from app.core.permissions import require_permission
 from app.models import User, TestCycle, Report, CycleReport
 from app.models.workflow import WorkflowPhase
+from app.models.workflow_activity import WorkflowActivity, ActivityType, ActivityStatus
 from app.temporal.client import get_temporal_client
 from app.core.logging import get_logger
 
@@ -138,14 +139,16 @@ async def start_testing_workflow(
             ]
             
             created_phases = []
-            for phase_name in phases:
+            for idx, phase_name in enumerate(phases, start=1):
                 phase = WorkflowPhase(
                     cycle_id=cycle_id,
                     report_id=report_id,
                     phase_name=phase_name,
+                    phase_order=idx,  # Add phase order starting from 1
                     status="Not Started",
                     state="Not Started",
                     schedule_status="On Track",
+                    progress_percentage=0,  # Initialize to 0
                     created_at=datetime.utcnow(),
                     updated_at=datetime.utcnow()
                 )
@@ -155,11 +158,124 @@ async def start_testing_workflow(
             created_phases = [p.phase_name for p in existing_phases]
             logger.info(f"Workflow phases already exist for cycle {cycle_id}, report {report_id}")
         
-        # No need to create phase-specific records anymore
-        # All phase tracking is done through WorkflowPhase table
+        # Create activities for each phase
+        await db.flush()  # Ensure phases have IDs
         
-        # Ensure phases are saved
-        await db.flush()
+        # Define activities for each phase - matching the migration
+        phase_activities = {
+            "Planning": [
+                ("Start Planning Phase", ActivityType.START, 1, True, False),
+                ("Load Attributes", ActivityType.TASK, 2, True, False),
+                ("Add Data Source", ActivityType.TASK, 3, True, True),  # optional
+                ("Map PDEs", ActivityType.TASK, 4, True, True),  # optional
+                ("Review & Approve Attributes", ActivityType.REVIEW, 5, True, False),
+                ("Complete Planning Phase", ActivityType.COMPLETE, 6, False, False),
+            ],
+            "Scoping": [
+                ("Start Scoping Phase", ActivityType.START, 1, False, False),
+                ("Generate LLM Recommendations", ActivityType.TASK, 2, False, False),
+                ("Make Scoping Decisions", ActivityType.TASK, 3, True, False),
+                ("Report Owner Approval", ActivityType.APPROVAL, 4, True, False),
+                ("Complete Scoping Phase", ActivityType.COMPLETE, 5, False, False),
+            ],
+            "Data Profiling": [
+                ("Start Data Profiling Phase", ActivityType.START, 1, False, False),
+                ("Upload Data Files", ActivityType.TASK, 2, True, False),
+                ("Generate LLM Data Profiling Rules", ActivityType.TASK, 3, True, False),
+                ("Review Profiling Rules", ActivityType.REVIEW, 4, True, False),
+                ("Report Owner Rule Approval", ActivityType.APPROVAL, 5, True, False),
+                ("Execute Data Profiling", ActivityType.TASK, 6, True, False),
+                ("Complete Data Profiling Phase", ActivityType.COMPLETE, 7, False, False),
+            ],
+            "Data Provider ID": [
+                ("Start Data Provider ID Phase", ActivityType.START, 1, False, False),
+                ("Assign Data Providers", ActivityType.TASK, 2, True, False),
+                ("Review Provider Assignments", ActivityType.TASK, 3, True, False),
+                ("Complete Data Provider ID Phase", ActivityType.COMPLETE, 4, False, False),
+            ],
+            "Request Info": [
+                ("Start Request Info Phase", ActivityType.START, 1, False, False),
+                ("Create Test Cases", ActivityType.TASK, 2, True, False),
+                ("Notify Data Providers", ActivityType.TASK, 3, True, False),
+                ("Collect Documents", ActivityType.TASK, 4, True, False),
+                ("Review Submissions", ActivityType.REVIEW, 5, True, False),
+                ("Complete Request Info Phase", ActivityType.COMPLETE, 6, False, False),
+            ],
+            "Sample Selection": [
+                ("Start Sample Selection", ActivityType.START, 1, False, False),
+                ("Generate Samples", ActivityType.TASK, 2, True, False),
+                ("Review Samples", ActivityType.REVIEW, 3, True, False),
+                ("Approve Samples", ActivityType.APPROVAL, 4, True, False),
+                ("Complete Sample Selection", ActivityType.COMPLETE, 5, False, False),
+            ],
+            "Testing": [  # This will be mapped to Test Execution
+                ("Start Test Execution Phase", ActivityType.START, 1, False, False),
+                ("Load Test Cases", ActivityType.TASK, 2, True, False),
+                ("Execute Tests", ActivityType.TASK, 3, True, False),
+                ("Complete Test Execution", ActivityType.COMPLETE, 4, False, False),
+            ],
+            "Observations": [
+                ("Start Observations Phase", ActivityType.START, 1, False, False),
+                ("Review Test Results", ActivityType.TASK, 2, True, False),
+                ("Manage Observations", ActivityType.TASK, 3, True, False),
+                ("Complete Observations", ActivityType.COMPLETE, 4, False, False),
+            ],
+            "Finalize Test Report": [
+                ("Start Finalize Phase", ActivityType.START, 1, False, False),
+                ("Generate Report", ActivityType.TASK, 2, True, False),
+                ("Review Report", ActivityType.REVIEW, 3, True, False),
+                ("Approve Report", ActivityType.APPROVAL, 4, True, False),
+                ("Complete Report", ActivityType.COMPLETE, 5, False, False),
+            ],
+        }
+        
+        # Get all phases that were just created or already exist
+        phases_result = await db.execute(
+            select(WorkflowPhase).where(
+                and_(
+                    WorkflowPhase.cycle_id == cycle_id,
+                    WorkflowPhase.report_id == report_id
+                )
+            )
+        )
+        all_phases = phases_result.scalars().all()
+        
+        # Create activities for each phase
+        for phase in all_phases:
+            # Check if activities already exist for this phase
+            existing_activities_result = await db.execute(
+                select(WorkflowActivity).where(
+                    and_(
+                        WorkflowActivity.phase_id == phase.phase_id,
+                        WorkflowActivity.cycle_id == cycle_id,
+                        WorkflowActivity.report_id == report_id
+                    )
+                )
+            )
+            existing_activities = existing_activities_result.scalars().all()
+            
+            if not existing_activities and phase.phase_name in phase_activities:
+                activities = phase_activities[phase.phase_name]
+                for activity_name, activity_type, order, is_manual, is_optional in activities:
+                    activity = WorkflowActivity(
+                        cycle_id=cycle_id,
+                        report_id=report_id,
+                        phase_id=phase.phase_id,
+                        phase_name=phase.phase_name,
+                        activity_name=activity_name,
+                        activity_type=activity_type,
+                        activity_order=order,
+                        status=ActivityStatus.NOT_STARTED,
+                        can_start=(order == 1),  # Only first activity can start initially
+                        can_complete=False,
+                        is_manual=is_manual,
+                        is_optional=is_optional,
+                        created_at=datetime.utcnow(),
+                        updated_at=datetime.utcnow()
+                    )
+                    db.add(activity)
+        
+        # Ensure everything is saved
         await db.commit()
         
         logger.info(f"Created {len(created_phases)} workflow phases for cycle {cycle_id}, report {report_id}")

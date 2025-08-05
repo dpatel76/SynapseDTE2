@@ -305,8 +305,7 @@ async def create_user(
             last_name=user_data.last_name,
             role=user_data.role,
             lob_id=user_data.lob_id,
-            is_active=True,
-            created_by=current_user.user_id
+            is_active=True
         )
         
         db.add(user)
@@ -329,7 +328,6 @@ async def create_user(
     try:
         user = await create_user_use_case.execute(
             user_data=user_data,
-            created_by=current_user.user_id,
             db=db
         )
         return user

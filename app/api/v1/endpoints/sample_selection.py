@@ -681,13 +681,13 @@ async def generate_samples(
     # Check if we have a specific prompt for this regulation
     prompt_path = None
     if regulatory_framework:
-        specific_prompt_path = f"prompts/regulatory/{regulatory_framework}/sample_generation.txt"
+        specific_prompt_path = f"app/prompts/regulatory/{regulatory_framework}/sample_generation.txt"
         if os.path.exists(specific_prompt_path):
             prompt_path = specific_prompt_path
     
     # Fallback to default prompt
     if not prompt_path:
-        prompt_path = "prompts/regulatory/fr_y_14m/schedule_d_1/sample_generation.txt"
+        prompt_path = "app/prompts/regulatory/fr_y_14m/schedule_d_1/sample_generation.txt"
         if not os.path.exists(prompt_path):
             raise HTTPException(status_code=500, detail="CycleReportSampleSelectionSamples generation prompt not found")
     

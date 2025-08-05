@@ -63,7 +63,15 @@ async def get_table_schema(connection_config: Dict[str, Any]) -> str:
             table_name = connection_config.get('table_name')
             
             # Use asyncpg to fetch schema information
+            # If running in container and host is localhost, use the postgres container name
+            import os
+            if os.getenv('DOCKER_CONTAINER') and host in ['localhost', '127.0.0.1']:
+                # In container, use the postgres service name
+                host = 'postgres'
+                port = '5432'  # Internal container port
+            
             conn_string = f"postgresql://synapse_user:synapse_password@{host}:{port}/{database}"
+            logger.info(f"Attempting to connect to database for schema: {conn_string.replace('synapse_password', '***')}")
             conn = await asyncpg.connect(conn_string)
             
             try:
@@ -93,8 +101,9 @@ async def get_table_schema(connection_config: Dict[str, Any]) -> str:
                 await conn.close()
                 
     except Exception as e:
-        logger.warning(f"Failed to fetch table schema: {e}")
-        return "Schema information could not be retrieved"
+        logger.error(f"Failed to fetch table schema: {e}")
+        logger.error(f"Connection config: {connection_config}")
+        return f"Schema information could not be retrieved: {str(e)}"
     
     return "Schema information not available"
 
@@ -1553,18 +1562,22 @@ async def auto_map_pdes(
             else:
                 source_type_str = str(ds.source_type)
             
-            # Dynamically fetch schema information for database sources
+            # ALWAYS dynamically fetch schema to avoid truncation issues
             schema_summary = None
+            
+            # Log schema retrieval
+            stored_schema = getattr(ds, 'schema_summary', None)
+            logger.info(f"📊 Data source '{ds.name}' - has stored schema: {bool(stored_schema)}, but will fetch dynamically")
+            
+            # Always try to dynamically fetch schema for database sources
             if ds.connection_config and source_type_str.upper() in ['POSTGRESQL', 'MYSQL', 'ORACLE', 'SQLSERVER']:
                 try:
                     schema_summary = await get_table_schema(ds.connection_config)
-                    logger.info(f"Fetched schema for {ds.name}: {schema_summary[:100]}...")
+                    logger.info(f"✅ Dynamically fetched schema for {ds.name} - {len(schema_summary) if schema_summary else 0} chars")
                 except Exception as e:
-                    logger.warning(f"Failed to fetch schema for {ds.name}: {e}")
-            
-            # Fall back to stored schema_summary if dynamic fetch failed
-            if not schema_summary:
-                schema_summary = getattr(ds, 'schema_summary', None)
+                    logger.warning(f"Failed to dynamically fetch schema for {ds.name}: {e}")
+                    # Fall back to stored schema if dynamic fetch fails
+                    schema_summary = stored_schema
             
             # Provide default message if still no schema
             if not schema_summary:
@@ -1582,6 +1595,9 @@ async def auto_map_pdes(
                 "description": ds.description or f"{ds.name} data source",
                 "schema_summary": schema_summary
             })
+            
+            # Log the schema that will be sent to LLM
+            logger.info(f"📋 Data source '{ds.name}' schema for LLM (first 500 chars): {schema_summary[:500] if schema_summary else 'None'}")
         
         # Get report and cycle information for regulatory context and metadata
         from app.models.report import Report
@@ -1606,67 +1622,56 @@ async def auto_map_pdes(
         logger.info(f"🚀 Creating PDE mapping job with {len(attributes_context)} attributes")
         logger.info(f"📊 Total attributes found: {len(all_attributes)}, Filtered attributes: {len(attributes)}, Context prepared: {len(attributes_context)}")
         
-        # Start background job for PDE mapping
-        job_id = job_manager.create_job("pde_auto_mapping", {
+        # Use Redis job manager for Celery tasks
+        from app.core.redis_job_manager import get_redis_job_manager
+        redis_job_manager = get_redis_job_manager()
+        
+        # Create job in Redis
+        job_id = redis_job_manager.create_job("pde_auto_mapping", {
             "cycle_id": cycle_id,
             "report_id": report_id,
             "user_id": current_user.user_id,
             "cycle_name": cycle.cycle_name if cycle else f"Cycle {cycle_id}",
             "report_name": report.report_name if report else f"Report {report_id}",
-            "phase": "Planning"
+            "phase": "Planning",
+            "is_celery": True
         })
         
-        # Update initial progress
-        job_manager.update_job_progress(
-            job_id,
-            total_steps=2,
-            message="Starting automatic PDE mapping with LLM..."
+        # Start Celery task for PDE mapping
+        from app.tasks.planning_celery_tasks import auto_map_pdes_task
+        
+        # Start the Celery task
+        celery_task = auto_map_pdes_task.apply_async(
+            args=[
+                cycle_id,
+                report_id,
+                phase.phase_id,
+                current_user.user_id,
+                attributes_context,
+                data_sources_context,
+                {
+                    "report_id": report_id,
+                    "cycle_id": cycle_id,
+                    "report_name": report.report_name if report else "",
+                    "regulatory_context": report.regulation if report else ""
+                }
+            ],
+            task_id=job_id  # Use our job_id as the Celery task ID
         )
         
+        # Update Redis job manager with Celery task info
+        redis_job_manager.update_job_progress(
+            job_id,
+            total_steps=len(attributes_context),
+            message="PDE mapping task queued for processing",
+            metadata={
+                "celery_task_id": celery_task.id,
+                "queue": "llm",
+                "task_name": "auto_map_pdes_task"
+            }
+        )
         
-        # Start the async task directly using background jobs manager
-        from app.tasks.planning_tasks import _auto_map_pdes_async
-        import asyncio
-        
-        # Create async function to run the task
-        async def run_pde_mapping_task():
-            """Execute PDE mapping in background"""
-            try:
-                result = await _auto_map_pdes_async(
-                    job_id=job_id,
-                    cycle_id=cycle_id,
-                    report_id=report_id,
-                    phase_id=phase.phase_id,
-                    user_id=current_user.user_id,
-                    attributes_context=attributes_context,
-                    data_sources_context=data_sources_context,
-                    report_context={
-                        "report_id": report_id,
-                        "cycle_id": cycle_id,
-                        "report_name": report.report_name if report else "",
-                        "regulatory_context": report.regulation if report else ""
-                    }
-                )
-                logger.info(f"✅ PDE mapping completed successfully: {result}")
-                return result
-            except Exception as e:
-                logger.error(f"❌ PDE mapping failed: {e}")
-                job_manager.complete_job(job_id, error=str(e))
-                raise
-        
-        # Create the async task
-        task = asyncio.create_task(run_pde_mapping_task())
-        logger.info(f"✅ Created async task for job {job_id}: {task}")
-        
-        # Add a callback to log when the task completes
-        def task_done_callback(future):
-            try:
-                result = future.result()
-                logger.info(f"✅ Task {job_id} completed with result: {result}")
-            except Exception as e:
-                logger.error(f"❌ Task {job_id} failed with error: {e}")
-        
-        task.add_done_callback(task_done_callback)
+        logger.info(f"✅ Started Celery task {celery_task.id} for PDE mapping")
         
         return {
             "message": "PDE auto-mapping started in background",

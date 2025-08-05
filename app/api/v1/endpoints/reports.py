@@ -191,16 +191,21 @@ async def create_report(
                 detail="Report with this name already exists"
             )
         
+        # Generate report number if not provided
+        import uuid
+        report_number = f"RPT-{uuid.uuid4().hex[:8].upper()}"
+        
         # Create report
         report = Report(
             report_name=report_data.report_name,
+            report_number=report_number,
             lob_id=report_data.lob_id,
             report_owner_id=report_data.report_owner_id,
             regulation=report_data.regulation,
             frequency=report_data.frequency,
             description=report_data.description,
             is_active=True,
-            created_by=current_user.user_id
+            created_by_id=current_user.user_id
         )
         
         db.add(report)

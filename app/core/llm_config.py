@@ -355,9 +355,9 @@ class RegulationPromptMapping:
         reg_config = cls.REGULATION_MAPPING.get(regulation)
         if not reg_config:
             # Fallback to generic prompts
-            return f"prompts/generic/{prompt_type}.txt"
+            return f"app/prompts/generic/{prompt_type}.txt"
         
-        base_path = f"prompts/regulatory/{reg_config['normalized_name']}"
+        base_path = f"app/prompts/regulatory/{reg_config['normalized_name']}"
         
         if schedule and schedule in reg_config["schedules"]:
             schedule_dir = reg_config["schedules"][schedule]

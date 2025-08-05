@@ -33,6 +33,8 @@ celery_app.conf.task_routes = {
     'app.tasks.notifications.*': {'queue': 'notifications'},
     'app.tasks.data_processing.*': {'queue': 'data_processing'},
     'app.tasks.testing.*': {'queue': 'testing'},
+    'app.tasks.planning_tasks.*': {'queue': 'llm'},  # Planning tasks use LLM queue
+    'app.tasks.planning_celery_tasks.*': {'queue': 'llm'},  # Planning tasks use LLM queue
 }
 
 # Define exchanges and queues
@@ -59,6 +61,7 @@ celery_app.conf.task_default_routing_key = 'celery'
 celery_app.conf.imports = [
     'app.tasks.data_profiling_tasks',
     'app.tasks.test_execution_tasks',
+    'app.tasks.planning_celery_tasks',  # New planning tasks with pause/resume
     # Temporarily disabled due to import errors
     # 'app.tasks.llm_tasks',
     # 'app.tasks.report_tasks',

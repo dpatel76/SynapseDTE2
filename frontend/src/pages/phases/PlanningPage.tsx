@@ -565,9 +565,9 @@ const PlanningPage: React.FC<PlanningPageProps> = ({ cycleId, reportId, reportNa
       const message = response.data.message || activity.metadata?.success_message || `${action === 'start' ? 'Started' : 'Completed'} ${activity.name}`;
       showToast.success(message);
       
-      // Special handling for phase_start activities - immediately complete them if not already completed
-      if (action === 'start' && activity.metadata?.activity_type === 'phase_start') {
-        console.log('Auto-completing phase_start activity:', activity.name);
+      // Special handling for START activities - immediately complete them if not already completed
+      if (action === 'start' && activity.metadata?.activity_type === 'START') {
+        console.log('Auto-completing START activity:', activity.name);
         await new Promise(resolve => setTimeout(resolve, 500)); // Give backend time to process
         
         try {
@@ -580,7 +580,7 @@ const PlanningPage: React.FC<PlanningPageProps> = ({ cycleId, reportId, reportNa
         } catch (completeError: any) {
           // Check if error is because activity is already completed
           if (completeError.response?.data?.detail?.includes('Cannot complete activity in status')) {
-            console.log('Phase_start activity already completed, this is expected');
+            console.log('START activity already completed, this is expected');
           } else {
             // Ignore "already completed" errors
 
@@ -588,11 +588,11 @@ const PlanningPage: React.FC<PlanningPageProps> = ({ cycleId, reportId, reportNa
 
                 completeError.response?.data?.detail?.includes('Cannot complete activity in status')) {
 
-              console.log('Phase start activity already completed, ignoring error');
+              console.log('START activity already completed, ignoring error');
 
             } else {
 
-              console.error('Error auto-completing phase_start activity:', completeError);
+              console.error('Error auto-completing START activity:', completeError);
 
             }
           }

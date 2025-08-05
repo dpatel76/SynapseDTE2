@@ -72,11 +72,15 @@ const getStatusColor = (status: string) => {
     case 'completed':
       return { bg: '#e8f5e9', color: '#2e7d32', border: '#4caf50' };
     case 'active':
+    case 'in_progress':
       return { bg: '#e3f2fd', color: '#1565c0', border: '#2196f3' };
     case 'blocked':
       return { bg: '#ffebee', color: '#c62828', border: '#f44336' };
     case 'skipped':
       return { bg: '#fff3e0', color: '#e65100', border: '#ff9800' };
+    case 'not_started':
+    case 'pending':
+      return { bg: '#f5f5f5', color: '#616161', border: '#bdbdbd' };
     default:
       return { bg: '#f5f5f5', color: '#616161', border: '#bdbdbd' };
   }
@@ -84,9 +88,11 @@ const getStatusColor = (status: string) => {
 
 const formatStatusText = (status: string): string => {
   switch (status) {
+    case 'not_started':
     case 'pending':
       return 'Not Started';
     case 'active':
+    case 'in_progress':
       return 'In Progress';
     case 'completed':
       return 'Completed';
@@ -379,8 +385,14 @@ export const DynamicActivityCards: React.FC<DynamicActivityCardsProps> = ({
             {/* Action Buttons */}
             <Box sx={{ display: 'flex', gap: 1, mt: 'auto' }}>
               {(() => {
+                console.log(`Rendering buttons for ${activity.name}:`, {
+                  status: activity.status,
+                  can_start: activity.can_start,
+                  can_complete: activity.can_complete,
+                  metadata: activity.metadata
+                });
                 // Special case for LLM/generation activities and execution activities - show both regenerate and complete buttons when active
-                if (activity.status === 'active' && activity.can_complete && (
+                if ((activity.status === 'active' || activity.status === 'in_progress') && activity.can_complete && (
                   activity.name === 'Generate LLM Recommendations' || 
                   activity.name.toLowerCase().includes('llm recommendation') ||
                   activity.name === 'Generate Data Profile' ||
@@ -434,7 +446,13 @@ export const DynamicActivityCards: React.FC<DynamicActivityCardsProps> = ({
                 }
                 
                 // Regular button logic
-                if (activity.status === 'pending' && activity.can_start) {
+                console.log('Button check for:', activity.name, {
+                  status: activity.status,
+                  can_start: activity.can_start,
+                  statusCheck: (activity.status === 'pending' || activity.status === 'not_started'),
+                  condition: ((activity.status === 'pending' || activity.status === 'not_started') && activity.can_start)
+                });
+                if ((activity.status === 'pending' || activity.status === 'not_started') && activity.can_start) {
                   return (
                     <Button
                       size="small"
@@ -451,7 +469,7 @@ export const DynamicActivityCards: React.FC<DynamicActivityCardsProps> = ({
                       {processingActivities.has(activity.activity_id) ? 'Processing...' : (activity.metadata?.button_text || (activity.name.toLowerCase().includes('start') ? 'Start Phase' : 'Start'))}
                     </Button>
                   );
-                } else if (activity.status === 'pending' && activity.can_complete) {
+                } else if ((activity.status === 'pending' || activity.status === 'not_started') && activity.can_complete) {
                   // Special case for phase_complete activities that can be completed directly from pending
                   return (
                     <Button
@@ -469,9 +487,9 @@ export const DynamicActivityCards: React.FC<DynamicActivityCardsProps> = ({
                       {processingActivities.has(activity.activity_id) ? 'Processing...' : (activity.name.toLowerCase().includes('phase') ? 'Complete Phase' : 'Mark as Complete')}
                     </Button>
                   );
-                } else if (activity.status === 'active' && activity.can_complete) {
-                  // Don't show complete button for phase_start activities in active state (they should auto-complete)
-                  if (activity.metadata?.activity_type === 'phase_start') {
+                } else if ((activity.status === 'active' || activity.status === 'in_progress') && activity.can_complete) {
+                  // Don't show complete button for START activities in active state (they should auto-complete)
+                  if (activity.metadata?.activity_type === 'START') {
                     return (
                       <Typography variant="caption" color="text.secondary">
                         Processing...
@@ -508,6 +526,14 @@ export const DynamicActivityCards: React.FC<DynamicActivityCardsProps> = ({
                     </Button>
                   );
                 }
+                // Debug log for unhandled cases
+                console.warn('No button rendered for activity:', {
+                  name: activity.name,
+                  status: activity.status,
+                  can_start: activity.can_start,
+                  can_complete: activity.can_complete,
+                  blocking_reason: activity.blocking_reason
+                });
                 return null;
               })()}
               

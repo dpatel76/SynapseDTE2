@@ -43,7 +43,7 @@ async def _load_regulatory_prompt(prompt_path: str) -> Optional[str]:
         # Get the project root directory
         current_dir = Path(__file__).parent
         project_root = current_dir.parent.parent.parent  # Go up to project root
-        prompt_file_path = project_root / "prompts" / "regulatory" / prompt_path
+        prompt_file_path = project_root / "app" / "prompts" / "regulatory" / prompt_path
         
         if prompt_file_path.exists():
             with open(prompt_file_path, 'r', encoding='utf-8') as file:

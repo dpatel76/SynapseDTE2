@@ -7,7 +7,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 PhaseStatusType = Literal["not_started", "in_progress", "completed", "blocked"]
-ActivityStatusType = Literal["pending", "active", "completed", "blocked", "skipped"]
+ActivityStatusType = Literal["not_started", "pending", "active", "in_progress", "completed", "blocked", "skipped"]
 
 class ActivityStatusSchema(BaseModel):
     """Schema for activity status within a phase"""

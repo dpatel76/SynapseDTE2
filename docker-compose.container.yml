@@ -79,7 +79,7 @@ services:
       # Docker Container Flag
       DOCKER_CONTAINER: "1"
     volumes:
-      - ./app:/app/app:ro  # Mount app code for development
+      - ./app:/app/app  # Mount app code for development
       - ./uploads:/app/uploads
       - ./logs:/app/logs
     ports:
@@ -110,6 +110,46 @@ services:
     labels:
       - "com.synapse.service=frontend"
       - "com.synapse.version=${APP_VERSION:-3.7.0}"
+
+  # Celery Worker Service
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend  # Use same image as backend
+    container_name: synapse-celery-worker
+    restart: unless-stopped
+    command: celery -A app.core.celery_app worker --loglevel=info -Q celery,llm,data_processing -n worker@%h
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: "postgresql+asyncpg://${DATABASE_USER:-synapse_user}:${DATABASE_PASSWORD:-synapse_password}@postgres:5432/${DATABASE_NAME:-synapse_dt}"
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${DATABASE_NAME:-synapse_dt}
+      DATABASE_USER: ${DATABASE_USER:-synapse_user}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-synapse_password}
+      # Redis
+      REDIS_URL: "redis://:${REDIS_PASSWORD:-synapse_redis_password}@redis:6379/0"
+      CELERY_BROKER_URL: "redis://:${REDIS_PASSWORD:-synapse_redis_password}@redis:6379/1"
+      CELERY_RESULT_BACKEND: "redis://:${REDIS_PASSWORD:-synapse_redis_password}@redis:6379/1"
+      # LLM Configuration
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      DEFAULT_LLM_PROVIDER: ${DEFAULT_LLM_PROVIDER:-claude}
+      # Docker Container Flag
+      DOCKER_CONTAINER: "1"
+    volumes:
+      - ./app:/app/app  # Mount app code for development
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    networks:
+      - synapse-network
+    labels:
+      - "com.synapse.service=celery-worker"
 
   # Temporal PostgreSQL
   temporal-postgres:

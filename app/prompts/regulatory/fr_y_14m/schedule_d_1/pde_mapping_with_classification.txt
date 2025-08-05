@@ -1,0 +1,78 @@
+Suggest the database table and column for the given report attribute AND classify it for information security and regulatory compliance.
+
+CONTEXT:
+- Report: ${report_name}
+- Regulatory Context: ${regulatory_context}
+
+ATTRIBUTE TO MAP:
+- Name: ${attribute_name}
+- Description: ${attribute_description}
+- Data Type: ${data_type}
+- Mandatory Flag: ${mandatory_flag}
+- Is Primary Key: ${is_primary_key}
+- CDE Flag: ${cde_flag}
+- Historical Issues Flag: ${historical_issues_flag}
+
+AVAILABLE DATA SOURCES WITH SCHEMA:
+${data_sources}
+
+TASK 1 - MAPPING:
+Based on the attribute information above and the ACTUAL DATABASE SCHEMA provided for each data source, identify the most appropriate table and column to map this attribute to.
+
+CRITICAL INSTRUCTIONS:
+- You MUST ONLY suggest columns that ACTUALLY EXIST in the schema_summary provided above
+- DO NOT use any knowledge about database schemas outside of what is explicitly provided
+- DO NOT suggest system tables or columns (those starting with cycle_report_, activity_, workflow_, etc.)
+- If you cannot find a suitable match in the provided schema, return null for source_field
+- Look for column names that semantically match the attribute
+- Consider data type compatibility
+- For primary keys, prefer columns marked as (PK)
+
+TASK 2 - CLASSIFICATION:
+Analyze the attribute for information security classification and regulatory compliance based on:
+1. The attribute name and description
+2. The data type and characteristics (PK, CDE, mandatory, etc.)
+3. The regulatory context of the report
+4. Common regulatory requirements (GDPR, SOX, PCI-DSS, etc.)
+
+INFORMATION SECURITY CLASSIFICATIONS:
+- HRCI: Highly Restricted Confidential Information (e.g., SSN, credit card numbers, sensitive PII)
+- Confidential: Confidential business information (e.g., customer data, financial data)
+- Proprietary: Proprietary company information (e.g., internal identifiers, business logic)
+- Public: Public information (e.g., published reports, non-sensitive reference data)
+
+Return as JSON with both mapping and classification:
+{
+    "data_source_id": number,
+    "source_field": "schema.table_name.column_name OR just column_name",
+    "table_name": "table_name (optional, extracted from schema)",
+    "column_name": "column_name (the actual column name)",
+    "confidence_score": number,
+    "rationale": "Explanation referencing the actual column found in the schema",
+    "alternative_mappings": [
+        {
+            "data_source_id": number,
+            "source_field": "schema.table_name.column_name OR just column_name",
+            "confidence_score": number,
+            "rationale": "string"
+        }
+    ],
+    "information_security_classification": "HRCI|Confidential|Proprietary|Public",
+    "criticality": "High|Medium|Low",
+    "risk_level": "High|Medium|Low",
+    "regulatory_flag": boolean,
+    "pii_flag": boolean,
+    "regulatory_references": ["List of applicable regulations"],
+    "classification_rationale": "Detailed explanation of security classification",
+    "evidence": {
+        "data_sensitivity_indicators": ["List of indicators"],
+        "regulatory_scope": ["List of regulations"],
+        "business_impact": "Description of impact"
+    }
+}
+
+IMPORTANT:
+- The source_field MUST be one of the columns shown in the schema_summary above
+- Consider the regulatory context when determining classification
+- Flag any attributes that contain PII or are subject to regulatory requirements
+- Provide clear rationale for both mapping and classification decisions

@@ -2259,7 +2259,7 @@ RESPOND WITH ONLY THE JSON OBJECT - NO ADDITIONAL TEXT OR EXPLANATIONS."""
             if not prompt_template:
                 logger.warning("Could not load information_security_classification prompt, using fallback")
                 # Use the existing prompt content as fallback
-                with open("prompts/information_security_classification.txt", "r") as f:
+                with open("app/prompts/information_security_classification.txt", "r") as f:
                     prompt_content = f.read()
             else:
                 # Format the prompt with context variables
@@ -2597,24 +2597,13 @@ CRITICAL: You must respond with ONLY a valid JSON object. Do not include any exp
             regulatory_context = report_context.get('regulatory_context', '')
             report_name = report_context.get('report_name', '')
             
-            # Auto-detect regulatory report and schedule
+            # Use the standard extraction method for regulatory context
             if regulatory_context:
-                context_lower = regulatory_context.lower()
-                if 'fr y-14m' in context_lower or 'fr_y_14m' in context_lower:
-                    regulatory_report = 'fr_y_14m'
-                    if 'schedule d' in context_lower:
-                        if 'd.1' in context_lower or 'd1' in context_lower:
-                            schedule = 'schedule_d_1'
-                        elif 'd.2' in context_lower or 'd2' in context_lower:
-                            schedule = 'schedule_d_2'
-                    elif 'schedule a' in context_lower:
-                        if 'a.1' in context_lower or 'a1' in context_lower:
-                            schedule = 'schedule_a_1'
-                        elif 'a.2' in context_lower or 'a2' in context_lower:
-                            schedule = 'schedule_a_2'
-                    elif 'schedule c' in context_lower:
-                        if 'c.1' in context_lower or 'c1' in context_lower:
-                            schedule = 'schedule_c_1'
+                # Extract using the standard method which returns proper format
+                regulatory_report, schedule = self._extract_regulatory_info(
+                    regulatory_context, 
+                    report_context.get('report_type', 'Compliance Report')
+                )
             
             logger.info(f"Using regulatory context: {regulatory_report}/{schedule} for PDE mapping")
             
@@ -2839,6 +2828,13 @@ CRITICAL: You must respond with ONLY a valid JSON object. Do not include any exp
                                     logger.info(f"First mapping - Value type: {type(batch_results[first_key])}")
                                     if isinstance(batch_results[first_key], dict):
                                         logger.info(f"First mapping - Value: {json.dumps(batch_results[first_key], indent=2)}")
+                                        # Log specific fields we care about
+                                        first_mapping = batch_results[first_key]
+                                        logger.info(f"🔍 First mapping details:")
+                                        logger.info(f"  - table_name: {first_mapping.get('table_name')}")
+                                        logger.info(f"  - column_name: {first_mapping.get('column_name')}")
+                                        logger.info(f"  - confidence: {first_mapping.get('confidence')}")
+                                        logger.info(f"  - data_source_id: {first_mapping.get('data_source_id')}")
                                     else:
                                         logger.info(f"First mapping - Value: {batch_results[first_key]}")
                             # Process each mapping in the batch results
@@ -2871,8 +2867,8 @@ CRITICAL: You must respond with ONLY a valid JSON object. Do not include any exp
                                         'pde_name': mapping.get('pde_name', ''),
                                         'pde_code': mapping.get('pde_code', ''),
                                         'pde_description': mapping.get('pde_description', ''),
-                                        'source_table': mapping.get('table_name'),
-                                        'source_column': mapping.get('column_name'),
+                                        'table_name': mapping.get('table_name'),
+                                        'column_name': mapping.get('column_name'),
                                         'source_field': f"{mapping.get('table_name')}.{mapping.get('column_name')}" if mapping.get('table_name') and mapping.get('column_name') else '',
                                         'transformation_rule': mapping.get('transformation_rule', 'direct'),
                                         'mapping_type': mapping.get('mapping_type', 'direct'),
@@ -2894,6 +2890,13 @@ CRITICAL: You must respond with ONLY a valid JSON object. Do not include any exp
                                     }
                                     mapping_suggestions.append(normalized_suggestion)
                                     logger.info(f"✅ Added mapping for attribute {attr_id}: {mapping.get('column_name', 'N/A')}")
+                                    # Log the normalized suggestion to debug
+                                    if attr == batch_attributes[0]:  # Log first normalized suggestion
+                                        logger.info(f"🔍 First normalized suggestion:")
+                                        logger.info(f"  - table_name: {normalized_suggestion.get('table_name')}")
+                                        logger.info(f"  - column_name: {normalized_suggestion.get('column_name')}")
+                                        logger.info(f"  - confidence_score: {normalized_suggestion.get('confidence_score')}")
+                                        logger.info(f"  - mapped: {normalized_suggestion.get('mapped')}")
                                     
                                     # Add as alternative format
                                     alternatives = mapping.get('alternatives', [])
