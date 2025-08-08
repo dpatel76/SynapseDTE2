@@ -239,6 +239,7 @@ class SampleSelectionSample(CustomPKModel, AuditMixin):
     version_id = Column(UUID(as_uuid=True), ForeignKey('cycle_report_sample_selection_versions.version_id'), nullable=False)
     phase_id = Column(Integer, ForeignKey('workflow_phases.phase_id'), nullable=False)
     lob_id = Column(Integer, ForeignKey('lobs.lob_id'), nullable=True)  # Made nullable - tester assigns LOB
+    attribute_id = Column(Integer, ForeignKey('cycle_report_planning_attributes.id'), nullable=True)  # Link to planning attribute
     
     # Sample identification
     sample_identifier = Column(String(255), nullable=False)
@@ -257,6 +258,9 @@ class SampleSelectionSample(CustomPKModel, AuditMixin):
     report_owner_decision_at = Column(DateTime(timezone=True), nullable=True)
     report_owner_decision_by_id = Column(Integer, ForeignKey('users.user_id'), nullable=True)
     
+    # Calculated status column (automatically updated by database trigger)
+    calculated_status = Column(String(20), nullable=False, default='pending')
+    
     # Metadata
     risk_score = Column(Float, nullable=True)
     confidence_score = Column(Float, nullable=True)
@@ -272,6 +276,7 @@ class SampleSelectionSample(CustomPKModel, AuditMixin):
     version = relationship("SampleSelectionVersion", foreign_keys=[version_id], back_populates="samples")
     phase = relationship("app.models.workflow.WorkflowPhase")
     lob = relationship("app.models.lob.LOB")
+    attribute = relationship("app.models.report_attribute.ReportAttribute")
     
     # User relationships
     tester_decided_by = relationship("app.models.user.User", foreign_keys=[tester_decision_by_id])
@@ -308,13 +313,16 @@ class SampleSelectionSample(CustomPKModel, AuditMixin):
     
     @hybrid_property
     def is_approved(self) -> bool:
-        """Check if this sample is approved in the final selection"""
-        return self.tester_decision == SampleDecision.APPROVEDD
+        """Check if this sample is approved by both tester and report owner"""
+        return (self.tester_decision == SampleDecision.APPROVED and 
+                self.report_owner_decision == SampleDecision.APPROVED)
     
     @hybrid_property
     def is_rejected(self) -> bool:
-        """Check if this sample is rejected from the final selection"""
-        return self.tester_decision == SampleDecision.REJECTEDED
+        """Check if this sample is rejected by either tester or report owner"""
+        return (self.tester_decision == SampleDecision.REJECTED or 
+                self.report_owner_decision == SampleDecision.REJECTED)
+    
     
     @hybrid_property
     def is_carried_forward(self) -> bool:

@@ -311,6 +311,51 @@ async def import_data_dictionary_entries(
         
         # Commit the transaction
         await db.commit()
+        
+        # Create a draft version if attributes were imported and no version exists
+        if imported_count > 0:
+            # Check if any version already exists for this planning phase
+            from app.models.planning import PlanningVersion, VersionStatus
+            import uuid
+            from datetime import datetime
+            
+            existing_version_query = select(PlanningVersion).filter(
+                PlanningVersion.phase_id == planning_phase.phase_id
+            )
+            existing_version_result = await db.execute(existing_version_query)
+            existing_version = existing_version_result.scalar_one_or_none()
+            
+            if not existing_version:
+                # Create initial draft version
+                logger.info(f"Creating initial draft version for planning phase {planning_phase.phase_id}")
+                
+                # Get attribute counts for the version
+                attr_count_query = select(func.count(ReportAttribute.id)).filter(
+                    ReportAttribute.phase_id == planning_phase.phase_id
+                )
+                total_attributes = await db.scalar(attr_count_query)
+                
+                new_version = PlanningVersion(
+                    version_id=uuid.uuid4(),
+                    phase_id=planning_phase.phase_id,
+                    version_number=1,
+                    version_status=VersionStatus.DRAFT,
+                    total_attributes=total_attributes or 0,
+                    approved_attributes=0,
+                    pk_attributes=0,
+                    cde_attributes=0,
+                    mandatory_attributes=0,
+                    created_by_id=current_user.user_id,
+                    created_at=datetime.utcnow(),
+                    updated_at=datetime.utcnow()
+                )
+                
+                db.add(new_version)
+                await db.commit()
+                
+                logger.info(f"Created draft version {new_version.version_id} for planning phase")
+                messages.append(f"Created draft version 1 for planning phase")
+        
         success = error_count == 0
         
         return DataDictionaryImportResponse(

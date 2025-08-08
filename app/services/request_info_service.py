@@ -230,12 +230,12 @@ class RequestInfoService:
                 detail="No approved sample selection version found"
             )
         
-        # Get approved samples from the version
+        # Get approved samples from the version (using calculated_status)
         approved_samples_result = await self.db.execute(
             select(SampleSelectionSample).where(
                 and_(
                     SampleSelectionSample.version_id == sample_version.version_id,
-                    SampleSelectionSample.report_owner_decision == 'approved'
+                    SampleSelectionSample.calculated_status == 'approved'  # Use calculated_status for dual approval
                 )
             )
         )
@@ -271,18 +271,18 @@ class RequestInfoService:
                 detail="No approved scoping version found"
             )
         
-        # Get approved non-PK attributes from the version
+        # Get approved non-PK attributes from the version (using calculated_status)
         from app.models.report_attribute import ReportAttribute
         scoped_attrs_result = await self.db.execute(
             select(ScopingAttribute)
             .join(
                 ReportAttribute,
-                ScopingAttribute.planning_attribute_id == ReportAttribute.id
+                ScopingAttribute.attribute_id == ReportAttribute.id
             )
             .where(
                 and_(
                     ScopingAttribute.version_id == scoping_version.version_id,
-                    ScopingAttribute.report_owner_decision == 'approved',
+                    ScopingAttribute.calculated_status == 'approved',  # Use calculated_status for dual approval
                     ScopingAttribute.final_scoping == True,
                     ReportAttribute.is_primary_key == False
                 )
@@ -315,16 +315,17 @@ class RequestInfoService:
         data_owner_version = data_owner_version_result.scalar_one_or_none()
         logger.info(f"Data owner version found: {data_owner_version is not None}")
         
-        # Get primary key attributes for context
+        # Get primary key attributes for context (using calculated_status for consistency)
         pk_attrs_result = await self.db.execute(
             select(ScopingAttribute)
             .join(
                 ReportAttribute,
-                ScopingAttribute.planning_attribute_id == ReportAttribute.id
+                ScopingAttribute.attribute_id == ReportAttribute.id
             )
             .where(
                 and_(
                     ScopingAttribute.version_id == scoping_version.version_id,
+                    ScopingAttribute.calculated_status == 'approved',  # Use calculated_status for consistency
                     ReportAttribute.is_primary_key == True
                 )
             )
@@ -344,7 +345,7 @@ class RequestInfoService:
                 continue
             
             for attr in scoped_non_pk_attrs:
-                logger.info(f"  Processing attribute {attr.planning_attribute_id}")
+                logger.info(f"  Processing attribute {attr.attribute_id}")
                 # Get data owner assignment for this attribute/LOB combination
                 data_owner_id = None
                 
@@ -354,7 +355,7 @@ class RequestInfoService:
                         select(DataOwnerLOBAttributeMapping).where(
                             and_(
                                 DataOwnerLOBAttributeMapping.version_id == data_owner_version.version_id,
-                                DataOwnerLOBAttributeMapping.attribute_id == attr.planning_attribute_id,
+                                DataOwnerLOBAttributeMapping.attribute_id == attr.attribute_id,
                                 DataOwnerLOBAttributeMapping.lob_id == lob_id,
                                 DataOwnerLOBAttributeMapping.assignment_status == 'assigned'
                             )
@@ -386,7 +387,7 @@ class RequestInfoService:
                             select(DataOwnerLOBAttributeMapping).where(
                                 and_(
                                     DataOwnerLOBAttributeMapping.phase_id == data_provider_phase_id,
-                                    DataOwnerLOBAttributeMapping.attribute_id == attr.planning_attribute_id,
+                                    DataOwnerLOBAttributeMapping.attribute_id == attr.attribute_id,
                                     DataOwnerLOBAttributeMapping.lob_id == lob_id,
                                     DataOwnerLOBAttributeMapping.assignment_status == 'assigned'
                                 )
@@ -397,7 +398,7 @@ class RequestInfoService:
                             data_owner_id = assignment.data_owner_id
                             logger.info(f"    Found data owner assignment (without version): {data_owner_id}")
                         else:
-                            logger.info(f"    No data owner assignment found for attribute {attr.planning_attribute_id} and LOB {lob_id}")
+                            logger.info(f"    No data owner assignment found for attribute {attr.attribute_id} and LOB {lob_id}")
                 
                 if not data_owner_id:
                     # If no data owner assigned yet, create test case without assignment
@@ -411,7 +412,7 @@ class RequestInfoService:
                     # Get the attribute name from planning attributes
                     attr_name_result = await self.db.execute(
                         select(ReportAttribute.attribute_name).where(
-                            ReportAttribute.attribute_id == pk_attr.planning_attribute_id
+                            ReportAttribute.attribute_id == pk_attr.attribute_id
                         )
                     )
                     attr_name = attr_name_result.scalar_one_or_none()
@@ -422,7 +423,7 @@ class RequestInfoService:
                 from app.models.planning import ReportAttribute as PlanningAttribute
                 attr_name_result = await self.db.execute(
                     select(PlanningAttribute.attribute_name).where(
-                        PlanningAttribute.id == attr.planning_attribute_id
+                        PlanningAttribute.id == attr.attribute_id
                     )
                 )
                 attribute_name = attr_name_result.scalar_one_or_none() or "Unknown"
@@ -432,7 +433,7 @@ class RequestInfoService:
                     test_case_name=f"Evidence for {attribute_name} - Sample {sample.sample_id}",
                     phase_id=phase.phase_id,
                     # cycle_id and report_id are computed properties from phase
-                    attribute_id=attr.planning_attribute_id,
+                    attribute_id=attr.attribute_id,
                     sample_id=str(sample.sample_id),  # Convert UUID to string
                     # sample_identifier and primary_key_attributes are properties
                     lob_id=lob_id,
@@ -1373,6 +1374,7 @@ class RequestInfoService:
         """Save a validated query as evidence"""
         from app.models.request_info import TestCaseEvidence, RFIQueryValidation, CycleReportTestCase
         from sqlalchemy import func
+        import uuid
         
         # Verify test case ownership and get phase data
         from app.models.workflow import WorkflowPhase
@@ -1429,7 +1431,7 @@ class RequestInfoService:
             submission_notes=request.submission_notes,
             submission_number=next_version,  # Use version as submission number
             validation_status="pending",
-            rfi_data_source_id=request.data_source_id,  # Now supports UUID
+            rfi_data_source_id=uuid.UUID(request.data_source_id) if request.data_source_id else None,  # Convert string to UUID
             query_text=request.query_text,
             query_parameters={},  # Empty for now
             query_validation_id=None,  # We're not tracking validation ID for now
@@ -1439,17 +1441,17 @@ class RequestInfoService:
         
         self.db.add(evidence)
         
-        # Update test case status to Submitted
+        # Update test case status to Pending Approval (valid enum value for phase_status_enum)
         # This should happen for all cases including revisions (In Progress)
-        logger.info(f"Updating test case {test_case.id} status from '{test_case.status}' to 'Submitted'")
-        test_case.status = 'Submitted'
+        logger.info(f"Updating test case {test_case.id} status from '{test_case.status}' to 'Pending Approval'")
+        test_case.status = 'Pending Approval'
         
         test_case.submitted_at = datetime.now(timezone.utc)
         test_case.updated_by = user_id
         test_case.updated_at = datetime.now(timezone.utc)
         
         await self.db.commit()
-        logger.info(f"Successfully committed test case {test_case.id} with status 'Submitted'")
+        logger.info(f"Successfully committed test case {test_case.id} with status 'Pending Approval'")
         
         # Log audit
         self._log_audit(

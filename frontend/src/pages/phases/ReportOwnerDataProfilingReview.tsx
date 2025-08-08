@@ -387,6 +387,7 @@ const ReportOwnerDataProfilingReview: React.FC = () => {
       }
 
       // Check if all decisions match for auto-approval
+      let versionProcessed = false;
       try {
         const approvalResponse = await apiClient.post(
           `/data-profiling/cycles/${cycleIdNum}/reports/${reportIdNum}/check-and-approve-version`
@@ -394,34 +395,70 @@ const ReportOwnerDataProfilingReview: React.FC = () => {
         
         if (approvalResponse.data.version_approved) {
           alert(`✅ Version Automatically Approved!\n\n${approvalResponse.data.message}\n\nAll tester and report owner decisions match.`);
+          versionProcessed = true;
         } else if (approvalResponse.data.mismatches && approvalResponse.data.mismatches.length > 0) {
-          // Show version approval dialog if there are mismatches
-          const approve = window.confirm(
-            `⚠️ Decision Mismatches Found\n\n${approvalResponse.data.message}\n\nWould you like to approve the version anyway?\n\nClick OK to approve, Cancel to request changes.`
-          );
+          // Check current status from response
+          const currentStatus = approvalResponse.data.current_status;
           
-          if (approve) {
-            const notes = prompt('Please provide approval notes (optional):');
-            await apiClient.post(
-              `/data-profiling/versions/${approvalResponse.data.version_id}/approve`,
-              {
-                approved: true,
-                approval_notes: notes || 'Approved by report owner despite mismatches'
-              }
+          // Only try to approve/reject if version is still pending approval
+          if (currentStatus === 'pending_approval' || currentStatus === 'PENDING_APPROVAL') {
+            // Show version approval dialog if there are mismatches
+            const approve = window.confirm(
+              `⚠️ Decision Mismatches Found\n\n${approvalResponse.data.message}\n\nWould you like to approve the version anyway?\n\nClick OK to approve, Cancel to request changes.`
             );
-            alert('✅ Version Approved Successfully!');
-          } else {
-            const notes = prompt('Please provide feedback for changes needed:');
-            if (notes) {
-              await apiClient.post(
-                `/data-profiling/versions/${approvalResponse.data.version_id}/approve`,
-                {
-                  approved: false,
-                  approval_notes: notes
+            
+            if (approve) {
+              const notes = prompt('Please provide approval notes (optional):');
+              if (notes !== null) {  // User didn't cancel the prompt
+                try {
+                  await apiClient.post(
+                    `/data-profiling/versions/${approvalResponse.data.version_id}/approve`,
+                    {
+                      approved: true,
+                      approval_notes: notes || 'Approved by report owner despite mismatches'
+                    }
+                  );
+                  alert('✅ Version Approved Successfully!');
+                  versionProcessed = true;
+                } catch (error: any) {
+                  console.error('Error approving version:', error);
+                  if (error.response?.status !== 400) {  // Only show error if it's not a status issue
+                    alert(`Failed to approve version: ${error.response?.data?.detail || error.message}`);
+                  }
                 }
-              );
-              alert('📝 Changes Requested\n\nThe tester will be notified to make the requested changes.');
+              }
+            } else {
+              const notes = prompt('Please provide feedback for changes needed:');
+              if (notes) {
+                try {
+                  await apiClient.post(
+                    `/data-profiling/versions/${approvalResponse.data.version_id}/approve`,
+                    {
+                      approved: false,
+                      approval_notes: notes
+                    }
+                  );
+                  alert('📝 Changes Requested\n\nThe tester will be notified to make the requested changes.');
+                  versionProcessed = true;
+                } catch (error: any) {
+                  console.error('Error requesting changes:', error);
+                  if (error.response?.status !== 400) {  // Only show error if it's not a status issue
+                    alert(`Failed to request changes: ${error.response?.data?.detail || error.message}`);
+                  }
+                }
+              }
             }
+          } else if (currentStatus === 'rejected') {
+            // Version was already rejected (possibly by updating rule decisions)
+            alert(`📝 Version Already Rejected\n\nThe version has been rejected based on your rule decisions.`);
+            versionProcessed = true;
+          } else if (currentStatus === 'approved') {
+            // Version was already approved
+            alert(`✅ Version Already Approved\n\nThe version has been approved.`);
+            versionProcessed = true;
+          } else {
+            // Version is in some other status
+            alert(`⚠️ Decision Mismatches Found\n\n${approvalResponse.data.message}\n\nNote: Version status is ${currentStatus} and cannot be modified.`);
           }
         }
       } catch (approvalError: any) {

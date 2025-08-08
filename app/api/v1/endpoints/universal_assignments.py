@@ -521,6 +521,19 @@ async def approve_assignment(
     service = UniversalAssignmentService(db)
     
     try:
+        # First check if assignment needs to be completed
+        assignment = await service.get_assignment(assignment_id)
+        if assignment and assignment.status != "Completed":
+            # For Sample Selection Review assignments, auto-complete before approval
+            if "Sample Selection" in assignment.title or assignment.assignment_type == "Sample Selection Approval":
+                logger.info(f"Auto-completing Sample Selection assignment {assignment_id} before approval")
+                assignment = await service.complete_assignment(
+                    assignment_id=assignment_id,
+                    user_id=current_user.user_id,
+                    completion_notes="Completed review of all samples"
+                )
+        
+        # Now approve the assignment
         assignment = await service.approve_assignment(
             assignment_id=assignment_id,
             user_id=current_user.user_id,

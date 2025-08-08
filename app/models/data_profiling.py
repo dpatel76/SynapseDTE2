@@ -282,6 +282,9 @@ class ProfilingRule(CustomPKModel, AuditMixin):
     # Status
     status = Column(rule_status_enum, nullable=False, server_default='pending')
     
+    # Calculated status column (automatically updated by database trigger)
+    calculated_status = Column(String(20), nullable=False, default='pending')
+    
     # Relationships - using string references to avoid circular imports
     version = relationship("DataProfilingRuleVersion", back_populates="rules")
     phase = relationship("WorkflowPhase", foreign_keys=[phase_id])
@@ -314,6 +317,7 @@ class ProfilingRule(CustomPKModel, AuditMixin):
             return "request_changes"
         else:
             return "pending"
+    
     
     @validates('rule_type')
     def validate_rule_type(self, key, rule_type):

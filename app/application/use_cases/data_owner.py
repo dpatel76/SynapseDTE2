@@ -42,8 +42,7 @@ from app.models import (
     ReportAttribute,
     LOB,
     User,
-    DataOwnerAssignment,
-    # AttributeLOBAssignment removed - table doesn't exist
+    # DataOwnerAssignment replaced with DataOwnerLOBAttributeMapping
     HistoricalDataOwnerAssignment,
     DataOwnerSLAViolation,
     DataOwnerEscalationLog,
@@ -52,6 +51,7 @@ from app.models import (
     SampleRecord,
     TesterScopingDecision
 )
+from app.models.data_owner_lob_assignment import DataOwnerLOBAttributeMapping as DataOwnerAssignment
 from app.services.workflow_orchestrator import get_workflow_orchestrator
 
 logger = logging.getLogger(__name__)
@@ -437,8 +437,112 @@ class StartDataProviderPhaseUseCase(UseCase):
             version.total_lob_attributes = created_count
             version.assigned_lob_attributes = 0  # None assigned yet
             version.unassigned_lob_attributes = created_count
+            
+            # Create universal assignments for each LOB
+            await self._create_universal_assignments_for_lobs(
+                db, data_owner_phase, unique_lob_ids, 
+                lob_executive_map, scoped_attribute_ids, created_by
+            )
         
         logger.info(f"Created {created_count} unique data owner assignments for cycle {cycle_id}, report {report_id}")
+    
+    async def _create_universal_assignments_for_lobs(
+        self,
+        db: AsyncSession,
+        data_owner_phase: WorkflowPhase,
+        unique_lob_ids: List[int],
+        lob_executive_map: Dict[int, int],
+        scoped_attribute_ids: List[int],
+        created_by: int
+    ):
+        """Create universal assignments for each LOB's Data Executive"""
+        from app.models.universal_assignment import UniversalAssignment
+        from datetime import timedelta
+        import uuid
+        
+        # Get LOB details
+        lob_details = await db.execute(
+            select(LOB).where(LOB.lob_id.in_(unique_lob_ids))
+        )
+        lobs = {lob.lob_id: lob for lob in lob_details.scalars().all()}
+        
+        assignments_created = []
+        
+        for lob_id in unique_lob_ids:
+            lob = lobs.get(lob_id)
+            if not lob:
+                continue
+                
+            # Get the Data Executive for this LOB
+            data_executive_id = lob_executive_map.get(lob_id)
+            
+            # Count attributes for this LOB
+            attr_count_query = await db.execute(
+                select(func.count(DataOwnerLOBAttributeMapping.mapping_id))
+                .where(and_(
+                    DataOwnerLOBAttributeMapping.phase_id == data_owner_phase.phase_id,
+                    DataOwnerLOBAttributeMapping.lob_id == lob_id
+                ))
+            )
+            attribute_count = attr_count_query.scalar() or len(scoped_attribute_ids)
+            
+            # Check if assignment already exists for this LOB
+            existing_assignment = await db.execute(
+                select(UniversalAssignment).where(and_(
+                    UniversalAssignment.context_type == 'Phase',
+                    UniversalAssignment.context_data['phase_id'].astext == str(data_owner_phase.phase_id),
+                    UniversalAssignment.context_data['lob_id'].astext == str(lob_id),
+                    UniversalAssignment.assignment_type == 'LOB Assignment'
+                ))
+            )
+            if existing_assignment.scalar_one_or_none():
+                logger.info(f"Universal assignment already exists for LOB {lob.lob_name}")
+                continue
+            
+            # Create universal assignment for this LOB
+            new_assignment = UniversalAssignment(
+                assignment_id=str(uuid.uuid4()),
+                assignment_type='LOB Assignment',
+                from_role='System',
+                to_role='Data Executive',
+                from_user_id=created_by,
+                to_user_id=data_executive_id if data_executive_id else None,
+                title=f'Assign Data Owners for {lob.lob_name}',
+                description=f'Assign data owners to {attribute_count} attributes for {lob.lob_name}',
+                task_instructions=f'''Please assign data owners to all attributes in {lob.lob_name}:
+1. Review the {attribute_count} attributes requiring data owner assignment
+2. Select appropriate data owners from the {lob.lob_name} team
+3. Ensure all attributes have assigned data owners before marking complete
+4. Use the Data Provider ID interface to make assignments''',
+                context_type='Report',  # Changed from 'Phase' to match frontend expectations
+                priority='High',
+                assigned_at=datetime.utcnow(),
+                due_date=datetime.utcnow() + timedelta(days=3),
+                status='Assigned',
+                context_data={
+                    'phase_id': data_owner_phase.phase_id,
+                    'lob_id': lob_id,
+                    'lob_name': lob.lob_name,
+                    'attribute_count': attribute_count,
+                    'cycle_id': data_owner_phase.cycle_id,
+                    'report_id': data_owner_phase.report_id,
+                    'phase_name': 'Data Provider ID',
+                    'mapping_version_id': str(lob_executive_map.get('version_id', ''))  # Link to mapping version
+                },
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            
+            db.add(new_assignment)
+            assignments_created.append(new_assignment)
+            
+            if data_executive_id:
+                logger.info(f"Created universal assignment for {lob.lob_name} assigned to user {data_executive_id}")
+            else:
+                logger.info(f"Created universal assignment for {lob.lob_name} with role-based assignment")
+        
+        if assignments_created:
+            logger.info(f"Created {len(assignments_created)} universal assignments for LOBs")
     
     async def _create_audit_log(
         self,
@@ -1014,7 +1118,8 @@ class GetAssignmentMatrixUseCase(UseCase):
         self,
         cycle_id: int,
         report_id: int,
-        db: AsyncSession
+        db: AsyncSession,
+        current_user: Optional[User] = None  # Add current user parameter
     ) -> AssignmentMatrixDTO:
         """Get assignment matrix"""
         
@@ -1031,6 +1136,7 @@ class GetAssignmentMatrixUseCase(UseCase):
         
         # If phase hasn't started, return empty assignment matrix
         if not workflow_phase or workflow_phase.state == 'Not Started':
+            logger.warning(f"Returning empty matrix - phase not started. Phase exists: {workflow_phase is not None}, State: {workflow_phase.state if workflow_phase else 'N/A'}")
             return AssignmentMatrixDTO(
                 cycle_id=cycle_id,
                 report_id=report_id,
@@ -1041,17 +1147,37 @@ class GetAssignmentMatrixUseCase(UseCase):
                 status_summary={"Assigned": 0, "In Progress": 0, "Completed": 0, "Overdue": 0}
             )
         
-        # Get only non-primary key scoped attributes from approved samples
-        scoped_attributes = await db.execute(
-            select(ReportAttribute)
-            .where(and_(
-                ReportAttribute.cycle_id == cycle_id,
-                ReportAttribute.report_id == report_id,
-                ReportAttribute.is_scoped == True,
-                ReportAttribute.is_primary_key == False
-            ))
+        # Get planning attributes from the Planning phase that are approved and not primary keys
+        # We use planning attributes as the source of truth for CDE, PK, and issue information
+        from app.models.report_attribute import ReportAttribute as PlanningAttribute
+        
+        # Get the planning phase for this cycle/report
+        planning_phase = await db.execute(
+            select(WorkflowPhase).where(
+                and_(
+                    WorkflowPhase.cycle_id == cycle_id,
+                    WorkflowPhase.report_id == report_id,
+                    WorkflowPhase.phase_name == "Planning"
+                )
+            )
         )
-        scoped_attributes = scoped_attributes.scalars().all()
+        planning_phase = planning_phase.scalar_one_or_none()
+        
+        if not planning_phase:
+            logger.warning(f"No Planning phase found for cycle {cycle_id}, report {report_id}")
+            scoped_attributes = []
+        else:
+            # Get attributes from planning that are approved (approval_status='approved') and not primary keys
+            scoped_attributes = await db.execute(
+                select(PlanningAttribute)
+                .where(and_(
+                    PlanningAttribute.phase_id == planning_phase.phase_id,
+                    PlanningAttribute.approval_status == 'approved',
+                    PlanningAttribute.is_primary_key == False
+                ))
+            )
+            scoped_attributes = scoped_attributes.scalars().all()
+            logger.info(f"Found {len(scoped_attributes)} approved non-PK planning attributes for phase_id={planning_phase.phase_id}")
         
         # Get unique scoped attributes to avoid duplicates
         unique_attributes = {}
@@ -1115,34 +1241,102 @@ class GetAssignmentMatrixUseCase(UseCase):
             logger.info(f"Found {len(unique_lob_ids)} unique LOBs from approved samples")
             logger.info(f"LOB names: {list(unique_lob_names)}")
         
+        # Filter LOBs if current user is a Data Executive
+        if current_user and current_user.role == 'Data Executive' and current_user.lob_id:
+            logger.info(f"Data Executive {current_user.email} with LOB {current_user.lob_id} - filtering assignments")
+            # Only keep the Data Executive's LOB
+            if current_user.lob_id in unique_lob_ids:
+                unique_lob_ids = {current_user.lob_id}
+                # Also filter LOB names to match
+                user_lob = await db.execute(
+                    select(LOB).where(LOB.lob_id == current_user.lob_id)
+                )
+                user_lob_obj = user_lob.scalar_one_or_none()
+                if user_lob_obj:
+                    unique_lob_names = {user_lob_obj.lob_name}
+                    logger.info(f"Filtered to LOB: {user_lob_obj.lob_name} (ID: {current_user.lob_id})")
+            else:
+                logger.warning(f"Data Executive's LOB {current_user.lob_id} not found in approved samples")
+                # No assignments for this Data Executive
+                unique_lob_ids = set()
+                unique_lob_names = set()
+        
         for attribute in attributes:
             
-            # Convert LOB IDs to LOB objects
+            # Get data owner LOB assignments for this attribute
+            # We need to get all LOB assignments for this attribute
+            from app.models.data_owner_lob_assignment import DataOwnerLOBAttributeMapping
+            from app.models.lob import LOB as LOBModel
+            
+            # Build query for LOB assignments
+            lob_assignment_query = select(DataOwnerLOBAttributeMapping, User).outerjoin(
+                User, DataOwnerLOBAttributeMapping.data_owner_id == User.user_id
+            ).where(and_(
+                DataOwnerLOBAttributeMapping.phase_id == workflow_phase.phase_id,
+                DataOwnerLOBAttributeMapping.attribute_id == attribute.id  # Use attribute.id not attribute_id
+            ))
+            
+            # Filter by LOB if current user is a Data Executive
+            if current_user and current_user.role == 'Data Executive' and current_user.lob_id:
+                lob_assignment_query = lob_assignment_query.where(
+                    DataOwnerLOBAttributeMapping.lob_id == current_user.lob_id
+                )
+            
+            lob_assignments = await db.execute(lob_assignment_query)
+            lob_assignments_list = lob_assignments.all()
+            
+            # Build assigned_lobs with assignment details
             assigned_lobs = []
-            if unique_lob_ids:
-                from app.models.lob import LOB as LOBModel
+            if lob_assignments_list:
+                # Get LOB details for all assignments
+                lob_ids = [assignment[0].lob_id for assignment in lob_assignments_list]
+                lob_objects = await db.execute(
+                    select(LOBModel).where(LOBModel.lob_id.in_(lob_ids))
+                )
+                lob_dict = {lob.lob_id: lob for lob in lob_objects.scalars().all()}
+                
+                # Build LOB assignment details
+                for assignment, data_owner in lob_assignments_list:
+                    lob = lob_dict.get(assignment.lob_id)
+                    if lob:
+                        assigned_lobs.append({
+                            "lob_id": lob.lob_id,
+                            "lob_name": lob.lob_name,
+                            "data_owner_id": assignment.data_owner_id,
+                            "data_owner_name": data_owner.full_name if data_owner else None,
+                            "data_executive_id": assignment.data_executive_id,
+                            "can_assign": current_user and current_user.user_id == assignment.data_executive_id if assignment.data_executive_id else False
+                        })
+            elif unique_lob_ids:
+                # Fallback: If no assignments exist yet, create empty ones for the LOBs
                 lob_objects = await db.execute(
                     select(LOBModel).where(LOBModel.lob_id.in_(list(unique_lob_ids)))
                 )
                 lob_objects = lob_objects.scalars().all()
-                assigned_lobs = [
-                    {"lob_id": lob.lob_id, "lob_name": lob.lob_name}
-                    for lob in lob_objects
-                ]
+                for lob in lob_objects:
+                    # For Data Executives, only include their LOB
+                    if current_user and current_user.role == 'Data Executive' and current_user.lob_id:
+                        if lob.lob_id == current_user.lob_id:
+                            assigned_lobs.append({
+                                "lob_id": lob.lob_id,
+                                "lob_name": lob.lob_name,
+                                "data_owner_id": None,
+                                "data_owner_name": None,
+                                "data_executive_id": current_user.user_id,
+                                "can_assign": True
+                            })
+                    else:
+                        assigned_lobs.append({
+                            "lob_id": lob.lob_id,
+                            "lob_name": lob.lob_name,
+                            "data_owner_id": None,
+                            "data_owner_name": None,
+                            "data_executive_id": None,
+                            "can_assign": False
+                        })
             
-            # All attributes here are non-primary key scoped attributes
-            
-            # For non-primary key attributes
-            data_owner_assignment = await db.execute(
-                select(DataOwnerAssignment, User)
-                .outerjoin(User, DataOwnerAssignment.data_owner_id == User.user_id)
-                .where(and_(
-                    DataOwnerAssignment.cycle_id == cycle_id,
-                    DataOwnerAssignment.report_id == report_id,
-                    DataOwnerAssignment.attribute_id == attribute.attribute_id
-                ))
-            )
-            data_owner_assignment = data_owner_assignment.first()
+            # For backward compatibility, pick first assignment as the primary one
+            data_owner_assignment = lob_assignments_list[0] if lob_assignments_list else None
             
             # Check for SLA violations
             sla_violation = await db.execute(
@@ -1150,7 +1344,7 @@ class GetAssignmentMatrixUseCase(UseCase):
                 .where(and_(
                     DataOwnerSLAViolation.cycle_id == cycle_id,
                     DataOwnerSLAViolation.report_id == report_id,
-                    DataOwnerSLAViolation.attribute_id == attribute.attribute_id,
+                    DataOwnerSLAViolation.attribute_id == attribute.id,  # Use attribute.id not attribute_id
                     DataOwnerSLAViolation.is_resolved == False
                 ))
             )
@@ -1169,7 +1363,7 @@ class GetAssignmentMatrixUseCase(UseCase):
             is_overdue = sla_violation is not None
             
             # Log the attribute ID for debugging
-            logger.info(f"Creating assignment status for attribute: id={attribute.id}, attribute_id={attribute.attribute_id}, name={attribute.attribute_name}")
+            logger.info(f"Creating assignment status for attribute: id={attribute.id}, name={attribute.attribute_name}")
             
             # Generate a unique identifier for frontend tracking while preserving the actual ID
             frontend_id = str(attribute.id)

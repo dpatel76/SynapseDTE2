@@ -90,7 +90,7 @@ class DataOwnerLOBAttributeMapping(CustomPKModel, AuditMixin):
     
     # Core Business Keys
     phase_id = Column(Integer, ForeignKey('workflow_phases.phase_id'), nullable=False)
-    sample_id = Column(Integer, ForeignKey('cycle_report_sample_selection_samples.sample_id'), nullable=True)
+    sample_id = Column(UUID(as_uuid=True), ForeignKey('cycle_report_sample_selection_samples.sample_id'), nullable=True)
     attribute_id = Column(Integer, ForeignKey("cycle_report_planning_attributes.id"), nullable=False)
     lob_id = Column(Integer, ForeignKey('lobs.lob_id'), nullable=False)
     

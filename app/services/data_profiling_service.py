@@ -123,21 +123,20 @@ class DataProfilingService:
         await self.db.flush()  # Get version_id
         await self.db.commit()  # Commit to save version before background job
         
-        # Always use background job for LLM rule generation to prevent timeouts
-        from app.core.background_jobs import job_manager
+        # Use Redis job manager for Celery tasks (following MapPDE pattern)
+        from app.core.redis_job_manager import get_redis_job_manager
+        redis_job_manager = get_redis_job_manager()
         
-        # Create background job for LLM rule generation
-        job_id = job_manager.create_job(
-            job_type="data_profiling_llm_generation",
-            metadata={
-                "version_id": str(version.version_id),
-                "phase_id": phase_id,
-                "cycle_id": phase.cycle_id,
-                "report_id": phase.report_id,
-                "attributes_count": len(attributes),
-                "user_id": user_id
-            }
-        )
+        # Create job in Redis
+        job_id = redis_job_manager.create_job("data_profiling_llm_generation", {
+            "version_id": str(version.version_id),
+            "phase_id": phase_id,
+            "cycle_id": phase.cycle_id,
+            "report_id": phase.report_id,
+            "attributes_count": len(attributes),
+            "user_id": user_id,
+            "is_celery": True
+        })
         
         # Update version with job ID
         version.generation_job_id = job_id
@@ -148,8 +147,8 @@ class DataProfilingService:
         # Queue the LLM rule generation task to run asynchronously
         # This prevents the API from hanging while waiting for LLM responses
         try:
-            # Import the background task
-            from app.tasks.data_profiling_tasks import generate_profiling_rules_task
+            # Import the Celery task (new version with pause/resume support)
+            from app.tasks.data_profiling_celery_tasks import generate_profiling_rules_celery_task
             
             # Prepare attributes data for the task
             attributes_data = []
@@ -170,44 +169,38 @@ class DataProfilingService:
                     "mdrm": attr.mdrm
                 })
             
-            # Run the task using background thread (same pattern as scoping)
-            import threading
+            # Submit Celery task
+            result = generate_profiling_rules_celery_task.apply_async(
+                args=[
+                    str(version.version_id),
+                    phase_id,
+                    attributes_data,
+                    data_source_config or {},
+                    user_id
+                ],
+                kwargs={
+                    "background_job_id": job_id  # Pass job_id as keyword argument
+                },
+                task_id=job_id,  # Use the same job_id as task_id
+                queue='llm'  # Use LLM queue for rule generation
+            )
             
-            def run_in_background():
-                """Run the async LLM generation in a background thread"""
-                import traceback
-                logger.info(f"Background thread started for job {job_id}")
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                try:
-                    from app.tasks.data_profiling_tasks import _generate_profiling_rules_async
-                    logger.info(f"Successfully imported _generate_profiling_rules_async")
-                    loop.run_until_complete(_generate_profiling_rules_async(
-                        version_id=str(version.version_id),
-                        phase_id=phase_id,
-                        attributes=attributes_data,
-                        data_source_config=data_source_config or {},
-                        user_id=user_id,
-                        background_job_id=job_id,
-                        celery_task_id=None
-                    ))
-                    logger.info(f"Background task completed successfully for job {job_id}")
-                except Exception as e:
-                    logger.error(f"Background task failed: {str(e)}")
-                    logger.error(f"Traceback: {traceback.format_exc()}")
-                    job_manager.complete_job(job_id, error=str(e))
-                finally:
-                    loop.close()
-                    logger.info(f"Background thread finished for job {job_id}")
+            # Update Redis job manager with Celery task info
+            redis_job_manager.update_job_progress(
+                job_id,
+                total_steps=len(attributes_data),
+                message="Data profiling rule generation task queued for processing",
+                metadata={
+                    "celery_task_id": result.id,
+                    "queue": "llm",
+                    "task_name": "generate_profiling_rules_task"
+                }
+            )
             
-            # Start the background thread
-            thread = threading.Thread(target=run_in_background, daemon=True)
-            thread.start()
-            
-            logger.info(f"Started profiling rules generation in background thread for version {version.version_id}")
+            logger.info(f"Started profiling rules generation as Celery task {result.id} for version {version.version_id}")
             
             # Update job status to indicate task has been queued
-            job_manager.update_job_progress(
+            redis_job_manager.update_job_progress(
                 job_id,
                 status="pending",
                 progress_percentage=5,
@@ -554,13 +547,13 @@ class DataProfilingService:
         if version.version_status not in [VersionStatus.APPROVED, VersionStatus.DRAFT]:
             raise BusinessLogicException("Only approved or draft versions can be executed")
         
-        # Get all approved rules
+        # Get all rules approved by BOTH tester and report owner
         approved_rules = await self.db.execute(
             select(ProfilingRule)
             .where(
                 and_(
                     ProfilingRule.version_id == version_id,
-                    ProfilingRule.status == ProfilingRuleStatus.APPROVED
+                    ProfilingRule.calculated_status == 'approved'  # Use calculated_status
                 )
             )
             .order_by(ProfilingRule.execution_order)
@@ -568,243 +561,66 @@ class DataProfilingService:
         rules = approved_rules.scalars().all()
         
         if not rules:
-            raise BusinessLogicException("No approved rules found for execution")
+            raise BusinessLogicException("No rules approved by both tester and report owner found for execution")
         
-        # Create background job using job manager
-        from app.core.background_jobs import job_manager
+        # Use Redis job manager for Celery tasks
+        from app.core.redis_job_manager import get_redis_job_manager
+        redis_job_manager = get_redis_job_manager()
         
-        job_id = job_manager.create_job(
-            job_type="data_profiling_rule_execution",
-            metadata={
-                "version_id": str(version_id),
-                "phase_id": version.phase_id,
-                "total_rules": len(rules),
-                "approved_rules": len(rules),
-                "execution_type": "rule_execution"
-            }
-        )
+        # Create job in Redis
+        job_id = redis_job_manager.create_job("data_profiling_rule_execution", {
+            "version_id": str(version_id),
+            "phase_id": version.phase_id,
+            "total_rules": len(rules),
+            "approved_rules": len(rules),
+            "execution_type": "rule_execution",
+            "is_celery": True
+        })
         
         # Store job ID in version
         version.execution_job_id = job_id
         await self.db.commit()
         
-        # Execute directly in background using asyncio
-        from app.core.database import AsyncSessionLocal
+        # Get the user who created the version for execution tracking
+        executed_by = version.created_by_id
         
-        async def execute_in_background():
-            logger.info(f"execute_in_background started for job {job_id}")
-            async with AsyncSessionLocal() as db:
-                try:
-                    # Import inside the function
-                    from sqlalchemy import and_, select
-                    
-                    logger.info(f"Updating job {job_id} to running status")
-                    # Update job to running
-                    job_manager.update_job_progress(
-                        job_id,
-                        status="running",
-                        current_step="Starting execution",
-                        progress_percentage=0
-                    )
-                    logger.info(f"Job {job_id} updated to running status")
-                    
-                    # Get version and rules
-                    version_result = await db.execute(
-                        select(DataProfilingRuleVersion)
-                        .where(DataProfilingRuleVersion.version_id == version_id)
-                    )
-                    version = version_result.scalar_one()
-                    
-                    rules_result = await db.execute(
-                        select(ProfilingRule)
-                        .where(
-                            and_(
-                                ProfilingRule.version_id == version_id,
-                                ProfilingRule.status == ProfilingRuleStatus.APPROVED
-                            )
-                        )
-                        .order_by(ProfilingRule.execution_order)
-                    )
-                    rules = rules_result.scalars().all()
-                    
-                    # Update version metadata
-                    version.execution_started_at = datetime.utcnow()
-                    version.executed_by = version.created_by_id
-                    version.execution_job_id = job_id
-                    await db.commit()
-                    
-                    # Execute rules
-                    profiling_service = DataProfilingService(db)
-                    execution_results = {}
-                    summary_stats = {
-                        "total_rules": len(rules),
-                        "successful_rules": 0,
-                        "failed_rules": 0,
-                        "total_records_processed": 0,
-                        "total_anomalies_found": 0
-                    }
-                    
-                    for idx, rule in enumerate(rules):
-                        try:
-                            # Update progress
-                            progress = int((idx / len(rules)) * 100)
-                            job_manager.update_job_progress(
-                                job_id,
-                                current_step=f"Executing rule: {rule.rule_name}",
-                                progress_percentage=progress,
-                                completed_steps=idx,
-                                total_steps=len(rules)
-                            )
-                            
-                            # Execute rule
-                            result = await profiling_service.execute_rule(rule)
-                            
-                            # Save result to database
-                            from app.models.data_profiling import ProfilingResult
-                            
-                            # Prepare result details with metadata
-                            result_details = {
-                                "metadata": result.get("metadata", {}),
-                                "anomaly_details": result.get("anomaly_details", []),
-                                "statistical_summary": result.get("statistical_summary", {}),
-                                "execution_engine": result.get("metadata", {}).get("execution_engine", "unknown"),
-                                "data_source": result.get("metadata", {}).get("data_source"),
-                                "source_type": result.get("metadata", {}).get("source_type"),
-                                "pde_code": result.get("metadata", {}).get("pde_code"),
-                                "source_field": result.get("metadata", {}).get("source_field"),
-                                "dataframe_shape": result.get("metadata", {}).get("dataframe_shape"),
-                                "execution_mode": result.get("metadata", {}).get("execution_mode", "real")
-                            }
-                            
-                            # Determine if there's an anomaly based on failed count
-                            failed_count = result.get("records_failed", 0)
-                            has_anomaly = failed_count > 0
-                            
-                            profiling_result = ProfilingResult(
-                                phase_id=version.phase_id,
-                                rule_id=rule.rule_id,
-                                attribute_id=rule.attribute_id,
-                                execution_status="success",
-                                execution_time_ms=result.get("execution_time_ms", 0),
-                                executed_at=datetime.utcnow(),
-                                passed_count=result.get("records_passed", 0),
-                                failed_count=failed_count,
-                                total_count=result.get("records_processed", 0),
-                                pass_rate=result.get("pass_rate", 0.0),
-                                result_summary=result.get("quality_scores", {}),
-                                result_details=json.dumps(result_details),  # Store metadata as JSON string
-                                quality_impact=result.get("quality_scores", {}).get("completeness", 0.0),
-                                severity=rule.severity or "medium",
-                                has_anomaly=has_anomaly,
-                                anomaly_description=f"{failed_count} records failed validation" if has_anomaly else None,
-                                created_by_id=version.executed_by,
-                                updated_by_id=version.executed_by
-                            )
-                            db.add(profiling_result)
-                            await db.flush()
-                            
-                            execution_results[str(rule.rule_id)] = {
-                                "rule_name": rule.rule_name,
-                                "rule_type": rule.rule_type,
-                                "status": "success",
-                                "records_processed": result.get("records_processed", 0),
-                                "records_passed": result.get("records_passed", 0),
-                                "records_failed": result.get("records_failed", 0),
-                                "pass_rate": result.get("pass_rate", 0.0),
-                                "execution_time_ms": result.get("execution_time_ms", 0)
-                            }
-                            
-                            summary_stats["successful_rules"] += 1
-                            summary_stats["total_records_processed"] += result.get("records_processed", 0)
-                            
-                        except Exception as rule_error:
-                            # Save failed result to database
-                            from app.models.data_profiling import ProfilingResult
-                            profiling_result = ProfilingResult(
-                                phase_id=version.phase_id,
-                                rule_id=rule.rule_id,
-                                attribute_id=rule.attribute_id,
-                                execution_status="failed",
-                                execution_time_ms=0,
-                                executed_at=datetime.utcnow(),
-                                passed_count=0,
-                                failed_count=0,
-                                total_count=0,
-                                pass_rate=0.0,
-                                result_details=str(rule_error),
-                                severity=rule.severity or "medium",
-                                created_by_id=version.executed_by,
-                                updated_by_id=version.executed_by
-                            )
-                            db.add(profiling_result)
-                            await db.flush()
-                            
-                            execution_results[str(rule.rule_id)] = {
-                                "rule_name": rule.rule_name,
-                                "rule_type": rule.rule_type,
-                                "status": "failed",
-                                "error": str(rule_error)
-                            }
-                            summary_stats["failed_rules"] += 1
-                            logger.error(f"Rule {rule.rule_name} failed: {str(rule_error)}")
-                    
-                    # Update version with results
-                    version.execution_completed_at = datetime.utcnow()
-                    version.total_records_processed = summary_stats["total_records_processed"]
-                    
-                    # Calculate overall quality score
-                    if summary_stats["successful_rules"] > 0:
-                        total_pass_rate = sum(
-                            result.get("pass_rate", 0) 
-                            for result in execution_results.values() 
-                            if result.get("status") == "success"
-                        )
-                        # Cap quality score to fit database precision (5,2) = max 999.99
-                        calculated_score = (total_pass_rate / summary_stats["successful_rules"] * 100)
-                        version.overall_quality_score = min(calculated_score, 999.99)
-                    
-                    await db.commit()
-                    
-                    # Complete job
-                    job_manager.complete_job(
-                        job_id,
-                        result={
-                            "status": "success",
-                            "version_id": str(version_id),
-                            "summary": summary_stats,
-                            "execution_time_seconds": (
-                                version.execution_completed_at - version.execution_started_at
-                            ).total_seconds()
-                        }
-                    )
-                    
-                except Exception as e:
-                    logger.error(f"Error executing profiling rules: {str(e)}")
-                    job_manager.complete_job(job_id, error=str(e))
+        # Import the sync Celery task (avoids async connection issues)
+        from app.tasks.data_profiling_celery_tasks import execute_profiling_rules_sync_task
         
-        # Run in background
-        import threading
+        # Submit Celery task
+        result = execute_profiling_rules_sync_task.apply_async(
+            args=[
+                str(version_id),
+                executed_by,
+                {}  # execution_config (empty dict for now)
+            ],
+            task_id=job_id,  # Use the same job_id as task_id
+            queue='data_processing'
+        )
         
-        def run_async_task():
-            logger.info(f"Background thread started for job {job_id}")
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(execute_in_background())
-                loop.close()
-                logger.info(f"Background thread completed for job {job_id}")
-            except Exception as e:
-                logger.error(f"Background thread error for job {job_id}: {str(e)}")
-                import traceback
-                logger.error(f"Traceback: {traceback.format_exc()}")
-                job_manager.complete_job(job_id, error=str(e))
+        # Update Redis job manager with Celery task info
+        redis_job_manager.update_job_progress(
+            job_id,
+            total_steps=len(rules),
+            message="Data profiling rule execution task queued for processing",
+            metadata={
+                "celery_task_id": result.id,
+                "queue": "data_processing",
+                "task_name": "execute_profiling_rules_task"
+            }
+        )
         
-        # Start in a separate thread
-        thread = threading.Thread(target=run_async_task)
-        thread.daemon = True
-        thread.start()
+        logger.info(f"Started profiling rules execution as Celery task {result.id} for version {version_id}")
         
-        logger.info(f"Started execution job {job_id} for version {version_id} with {len(rules)} rules")
+        # Update job status to indicate task has been queued
+        redis_job_manager.update_job_progress(
+            job_id,
+            status="pending",
+            progress_percentage=0,
+            current_step="Queued",
+            message=f"Rule execution task has been queued"
+        )
+        
         return job_id
     
     async def get_execution_results(self, version_id: str) -> Dict[str, Any]:

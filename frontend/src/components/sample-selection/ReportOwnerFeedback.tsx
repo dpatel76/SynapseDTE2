@@ -94,17 +94,33 @@ const ReportOwnerFeedback: React.FC<ReportOwnerFeedbackProps> = ({
       // Sort versions by version_number descending to check latest first
       const sortedVersions = [...versions].sort((a: any, b: any) => b.version_number - a.version_number);
       
+      console.log('All versions:', versions);
+      
       // Find the latest version that has been reviewed by Report Owner
       let reviewedVersion: number | null = null;
-      let feedbackVersion = null;
+      let feedbackVersion: any = null;
       
       for (const version of sortedVersions) {
+        console.log(`Checking version ${version.version_number}:`, {
+          status: version.version_status,
+          ro_decision: version.report_owner_decision,
+          ro_feedback: version.report_owner_feedback
+        });
+        
         // Skip looking at draft versions for feedback - we want the version that was actually reviewed
         if (version.version_status === 'draft') {
           continue;
         }
         
-        // Check if version was reviewed (approved/rejected/pending_approval)
+        // Check if version has report owner decision
+        if (version.report_owner_decision && version.report_owner_decision !== 'pending') {
+          reviewedVersion = version.version_number;
+          feedbackVersion = version;
+          console.log(`Found version ${version.version_number} with RO decision: ${version.report_owner_decision}`);
+          break;
+        }
+        
+        // Also check by status
         if (version.version_status === 'approved' || version.version_status === 'rejected' || version.version_status === 'pending_approval') {
           reviewedVersion = version.version_number;
           feedbackVersion = version;
@@ -151,9 +167,33 @@ const ReportOwnerFeedback: React.FC<ReportOwnerFeedbackProps> = ({
             `/sample-selection/cycles/${cycleId}/reports/${reportId}/samples?version=${reviewedVersion}&include_feedback=true`
           );
           const versionSamples = samplesResponse.data.samples || [];
-          // Filter to only samples with RO feedback
-          feedbackSamples = versionSamples.filter((s: any) => s.report_owner_decision);
-          console.log(`Loaded ${feedbackSamples.length} samples with RO feedback from version ${reviewedVersion}`);
+          
+          // Show all samples with both tester and RO decisions for transparency
+          // Filter to samples that have RO feedback (showing what RO actually reviewed)
+          const samplesWithROFeedback = versionSamples.filter((s: any) => 
+            s.report_owner_decision && 
+            s.report_owner_decision !== 'pending'
+          );
+          
+          console.log(`Found ${samplesWithROFeedback.length} samples with RO feedback out of ${versionSamples.length} total`);
+          
+          // If the version has report owner decision, apply it to all samples with feedback
+          if (feedbackVersion && feedbackVersion.report_owner_decision) {
+            console.log(`Version ${reviewedVersion} has RO decision at version level: ${feedbackVersion.report_owner_decision}`);
+            // Apply version-level decision to samples for display
+            feedbackSamples = samplesWithROFeedback.map((s: any) => ({
+              ...s,
+              report_owner_decision: s.report_owner_decision || feedbackVersion.report_owner_decision,
+              report_owner_feedback: s.report_owner_feedback || feedbackVersion.report_owner_feedback || '',
+              report_owner_reviewed_at: s.report_owner_reviewed_at || feedbackVersion.report_owner_reviewed_at,
+              report_owner_reviewed_by: s.report_owner_reviewed_by || feedbackVersion.report_owner_reviewed_by
+            }));
+          } else {
+            // Use all samples with RO decisions
+            feedbackSamples = samplesWithROFeedback;
+          }
+          
+          console.log(`Loaded ${feedbackSamples.length} samples from version ${reviewedVersion}`);
         } catch (error) {
           console.warn(`Error loading samples from version ${reviewedVersion}:`, error);
           // Fallback to empty
@@ -172,8 +212,8 @@ const ReportOwnerFeedback: React.FC<ReportOwnerFeedbackProps> = ({
       
       const samples = feedbackSamples;
       
-      // Convert samples with report_owner_decision to submission feedback format
-      const samplesWithFeedback = samples.filter((sample: any) => sample.report_owner_decision);
+      // All samples should now have feedback (either individual or from version)
+      const samplesWithFeedback = samples;
       
       if (samplesWithFeedback.length > 0) {
         // Group all sample feedback into a single submission
@@ -223,6 +263,7 @@ const ReportOwnerFeedback: React.FC<ReportOwnerFeedbackProps> = ({
           reviewed_by: reviewedByName,
           samples_feedback: samplesWithFeedback.map((sample: any) => ({
             sample_id: sample.sample_id,
+            tester_decision: sample.tester_decision,
             report_owner_decision: sample.report_owner_decision,
             report_owner_feedback: sample.report_owner_feedback || '',
             report_owner_reviewed_at: sample.report_owner_reviewed_at,
@@ -442,8 +483,9 @@ const ReportOwnerFeedback: React.FC<ReportOwnerFeedbackProps> = ({
                         <TableCell>Category</TableCell>
                         <TableCell>Attribute</TableCell>
                         <TableCell>LOB</TableCell>
-                        <TableCell>Decision</TableCell>
-                        <TableCell>Feedback</TableCell>
+                        <TableCell>Tester Decision</TableCell>
+                        <TableCell>RO Decision</TableCell>
+                        <TableCell>RO Feedback</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -474,6 +516,9 @@ const ReportOwnerFeedback: React.FC<ReportOwnerFeedbackProps> = ({
                             <Typography variant="body2">
                               {sample.lob_assignment || '-'}
                             </Typography>
+                          </TableCell>
+                          <TableCell>
+                            {getDecisionChip(sample.tester_decision)}
                           </TableCell>
                           <TableCell>
                             {getDecisionChip(sample.report_owner_decision)}

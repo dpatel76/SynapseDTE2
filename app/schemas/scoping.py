@@ -142,7 +142,7 @@ class ScopingVersionResponse(BaseModel):
     created_at: datetime
     created_by_id: int
     updated_at: datetime
-    updated_by_id: int
+    updated_by_id: Optional[int] = None
     
     # Computed properties
     can_be_edited: bool = Field(False, description="Can be edited")
@@ -230,7 +230,7 @@ class VersionCopyCreate(BaseModel):
 # Attribute Management Schemas
 class ScopingAttributeCreate(BaseModel):
     """Schema for creating a scoping attribute"""
-    planning_attribute_id: int = Field(..., description="Planning attribute ID")
+    attribute_id: int = Field(..., description="Planning attribute ID")
     llm_recommendation: LLMRecommendationCreate = Field(..., description="LLM recommendation")
 
 
@@ -252,7 +252,7 @@ class ScopingAttributeResponse(BaseModel):
     attribute_id: UUID
     version_id: UUID
     phase_id: int
-    planning_attribute_id: int
+    attribute_id: int
     
     # Planning attribute details
     attribute_name: Optional[str] = None
@@ -301,7 +301,7 @@ class ScopingAttributeResponse(BaseModel):
     created_at: datetime
     created_by_id: int
     updated_at: datetime
-    updated_by_id: int
+    updated_by_id: Optional[int] = None
     
     # Computed properties
     has_tester_decision: bool = Field(False, description="Has tester decision")
@@ -318,7 +318,7 @@ class ScopingAttributeResponse(BaseModel):
 class ScopingAttributeSummary(BaseModel):
     """Schema for scoping attribute summary"""
     attribute_id: UUID
-    planning_attribute_id: int
+    attribute_id: int
     llm_recommendation: str
     llm_confidence_score: Optional[Decimal]
     tester_decision: Optional[TesterDecision]
@@ -346,7 +346,7 @@ class AttributeQueryParams(BaseModel):
     """Schema for attribute query parameters"""
     version_id: Optional[UUID] = Field(None, description="Filter by version ID")
     phase_id: Optional[int] = Field(None, description="Filter by phase ID")
-    planning_attribute_id: Optional[int] = Field(None, description="Filter by planning attribute ID")
+    attribute_id: Optional[int] = Field(None, description="Filter by planning attribute ID")
     status: Optional[AttributeStatus] = Field(None, description="Filter by status")
     tester_decision: Optional[TesterDecision] = Field(None, description="Filter by tester decision")
     report_owner_decision: Optional[ReportOwnerDecision] = Field(None, description="Filter by report owner decision")

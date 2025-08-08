@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { usePhaseStatus, getStatusColor, getStatusIcon, formatStatusText } from '../../hooks/useUnifiedStatus';
 import { DynamicActivityCards } from '../../components/phase/DynamicActivityCards';
@@ -26,11 +26,11 @@ import {
   Alert,
   Stack,
   LinearProgress,
+  CircularProgress,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  CircularProgress,
   FormControlLabel,
   Switch,
   MenuItem,
@@ -126,6 +126,10 @@ interface SampleSelectionVersion {
   rejected_samples: number;
   pending_samples: number;
   change_reason?: string;
+  report_owner_decision?: 'approved' | 'rejected' | 'revision_required' | 'pending' | null;
+  report_owner_feedback?: string;
+  report_owner_reviewed_at?: string;
+  report_owner_reviewed_by?: number;
 }
 
 interface ReportInfo {
@@ -200,7 +204,6 @@ const SampleSelectionPage: React.FC = () => {
   const [phaseLoading, setPhaseLoading] = useState(false);
   const [bulkSelectedSamples, setBulkSelectedSamples] = useState<string[]>([]);
   const [primaryKeyColumns, setPrimaryKeyColumns] = useState<string[]>([]);
-  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
   const [showEnhancedGenerateDialog, setShowEnhancedGenerateDialog] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
@@ -228,6 +231,11 @@ const SampleSelectionPage: React.FC = () => {
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [reviewDecision, setReviewDecision] = useState<'approved' | 'rejected' | 'revision_required'>('approved');
   const [reviewFeedback, setReviewFeedback] = useState('');
+  
+  // Job polling state
+  const [jobProgress, setJobProgress] = useState<any>(null);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [individualFeedback, setIndividualFeedback] = useState<{ [sampleId: string]: string }>({});
   const [individualDecisions, setIndividualDecisions] = useState<{ [sampleId: string]: 'approved' | 'rejected' | null }>({});
   const [availableLOBs, setAvailableLOBs] = useState<string[]>([]);
@@ -235,12 +243,35 @@ const SampleSelectionPage: React.FC = () => {
   const [samplingMethod, setSamplingMethod] = useState<'random' | 'intelligent'>('random');
   const [profilingJobId, setProfilingJobId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(0); // Tab state
-  const [hasReportOwnerFeedback, setHasReportOwnerFeedback] = useState(false);
+  // Remove state - we'll compute this directly
+  // const [hasReportOwnerFeedback, setHasReportOwnerFeedback] = useState(false);
   
   // Version management states
   const [versions, setVersions] = useState<SampleSelectionVersion[]>([]);
   const [selectedVersionId, setSelectedVersionId] = useState<string>('');
   const [versionsLoaded, setVersionsLoaded] = useState(false);
+  
+  // Check if ANY version has report owner feedback (not just current)
+  const hasReportOwnerFeedback = React.useMemo(() => {
+    // Check if any version has report owner feedback
+    const versionsWithFeedback = versions.filter(v => 
+      v.report_owner_decision && 
+      v.report_owner_decision !== 'pending'
+    );
+    
+    const hasFeedback = versionsWithFeedback.length > 0;
+    
+    console.log('Computing hasReportOwnerFeedback:', {
+      totalVersions: versions.length,
+      versionsWithFeedback: versionsWithFeedback.map(v => ({
+        version: v.version_number,
+        decision: v.report_owner_decision
+      })),
+      result: hasFeedback
+    });
+    
+    return hasFeedback;
+  }, [versions]);
 
   // Filter samples by selected version
   const filteredSamples = React.useMemo(() => {
@@ -418,12 +449,7 @@ const SampleSelectionPage: React.FC = () => {
     try {
       console.log('Loading data sources for cycle:', cycleIdNum, 'report:', reportIdNum);
       // Try to get data sources from the planning phase
-      const response = await apiClient.get(`/data-sources`, {
-        params: {
-          cycle_id: cycleIdNum,
-          report_id: reportIdNum
-        }
-      });
+      const response = await apiClient.get(`/planning/cycles/${cycleIdNum}/reports/${reportIdNum}/data-sources`);
       console.log('Data sources response:', response.data);
       const sources = response.data || [];
       setDataSources(sources);
@@ -433,9 +459,9 @@ const SampleSelectionPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading data sources:', error);
-      // Fallback - try to get from cycle/report endpoint
+      // Fallback - try to get from planning endpoint
       try {
-        const fallbackResponse = await apiClient.get(`/cycles/${cycleIdNum}/reports/${reportIdNum}/data-sources`);
+        const fallbackResponse = await apiClient.get(`/planning/cycles/${cycleIdNum}/reports/${reportIdNum}/data-sources`);
         console.log('Fallback data sources response:', fallbackResponse.data);
         const sources = fallbackResponse.data || [];
         setDataSources(sources);
@@ -577,13 +603,8 @@ const SampleSelectionPage: React.FC = () => {
             const approvedSamples = allSamples.filter((s: Sample) => s.tester_decision === 'approved');
             setSamples(approvedSamples);
             
-            // Check for Report Owner decisions in the samples
-            const samplesWithActualRODecision = allSamples.filter((s: Sample) => 
-              s.report_owner_decision && s.report_owner_decision !== 'pending'
-            );
-            const hasReportOwnerDecisions = samplesWithActualRODecision.length > 0;
-            setHasReportOwnerFeedback(hasReportOwnerDecisions);
-            console.log(`Report Owner no-assignment path: Setting hasReportOwnerFeedback to: ${hasReportOwnerDecisions}`);
+            // Don't set hasReportOwnerFeedback here - let the useEffect handle it
+            console.log('Report Owner no-assignment path: Not setting hasReportOwnerFeedback here');
             
             // Initialize LOB assignments
             const lobAssignments: { [sampleId: string]: string } = {};
@@ -613,13 +634,8 @@ const SampleSelectionPage: React.FC = () => {
           const approvedSamples = allSamples.filter((s: Sample) => s.tester_decision === 'approved');
           setSamples(approvedSamples);
           
-          // Check for Report Owner decisions in the samples
-          const samplesWithActualRODecision = allSamples.filter((s: Sample) => 
-            s.report_owner_decision && s.report_owner_decision !== 'pending'
-          );
-          const hasReportOwnerDecisions = samplesWithActualRODecision.length > 0;
-          setHasReportOwnerFeedback(hasReportOwnerDecisions);
-          console.log(`Report Owner fallback path: Setting hasReportOwnerFeedback to: ${hasReportOwnerDecisions}`);
+          // Don't set hasReportOwnerFeedback here - let the useEffect handle it
+          console.log('Report Owner fallback path: Not setting hasReportOwnerFeedback here');
           
           const lobAssignments: { [sampleId: string]: string } = {};
           approvedSamples.forEach((sample: Sample) => {
@@ -672,14 +688,8 @@ const SampleSelectionPage: React.FC = () => {
           const samplesWithRODecision = loadedSamples.filter((s: Sample) => s.report_owner_decision);
           console.log(`Samples with report_owner_decision: ${samplesWithRODecision.length} out of ${loadedSamples.length}`);
           
-          // Set Report Owner feedback tab visibility based on actual sample data
-          // Only show tab if there are non-pending RO decisions
-          const samplesWithActualRODecision = loadedSamples.filter((s: Sample) => 
-            s.report_owner_decision && s.report_owner_decision !== 'pending'
-          );
-          const hasReportOwnerDecisions = samplesWithActualRODecision.length > 0;
-          setHasReportOwnerFeedback(hasReportOwnerDecisions);
-          console.log(`Setting hasReportOwnerFeedback to: ${hasReportOwnerDecisions} (${samplesWithActualRODecision.length} actual decisions)`);
+          // Don't set hasReportOwnerFeedback here - let the useEffect handle it
+          console.log('Tester path: Not setting hasReportOwnerFeedback here - will be handled by useEffect');
         }
         setSamples(loadedSamples);
         
@@ -819,6 +829,11 @@ const SampleSelectionPage: React.FC = () => {
     console.log('Loading state:', loading);
   }, [samples, loading]);
 
+  // Debug dialog state
+  useEffect(() => {
+    console.log('Enhanced Generate Dialog state changed to:', showEnhancedGenerateDialog);
+  }, [showEnhancedGenerateDialog]);
+
   // Load phase status when samples change
   useEffect(() => {
     if (samples.length > 0 || phaseStatus) {
@@ -835,6 +850,8 @@ const SampleSelectionPage: React.FC = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedVersionId]);
+
+  // Removed useEffect - using computed value instead
 
   // Handle sample decision
   const handleSampleDecision = async (sampleId: string, decision: 'approved' | 'rejected') => {
@@ -990,67 +1007,78 @@ const SampleSelectionPage: React.FC = () => {
     }
   };
 
-  // Generate samples
-  const handleGenerateSamples = async () => {
-    setBasicGenerating(true);
-    try {
-      console.log('Generating samples with size:', sampleSize);
-      console.log('Scoped attributes:', scopedAttributes);
-      const requestData = {
-        sample_size: sampleSize,
-        strategy: 'intelligent',  // Changed from 'basic' to 'intelligent'
-        sample_type: 'Population Sample',
-        regulatory_context: reportInfo?.regulatory_framework || 'General Regulatory Compliance',
-        scoped_attributes: scopedAttributes.map(attr => ({
-          attribute_name: attr.attribute_name,
-          is_primary_key: attr.is_primary_key || false,
-          data_type: attr.data_type || 'VARCHAR',
-          is_mandatory: attr.is_required || false  // Map is_required to is_mandatory
-        })),
-        // Add distribution for intelligent sampling
-        distribution: {
-          clean: 0.3,    // 30% clean samples
-          anomaly: 0.5,  // 50% anomaly samples
-          boundary: 0.2  // 20% boundary samples
-        },
-        use_data_source: true,  // Use actual data source for realistic samples
-        include_file_samples: false
-      };
-      console.log('Request data being sent:', requestData);
-      console.log('Scoped attributes detail:', requestData.scoped_attributes);
-      console.log('API URL:', `/sample-selection/cycles/${cycleIdNum}/reports/${reportIdNum}/samples/generate-unified`);
-      
-      console.log('Making API request...');
-      const response = await apiClient.post(
-        `/sample-selection/cycles/${cycleIdNum}/reports/${reportIdNum}/samples/generate-unified`, 
-        requestData,
-        { timeout: 30000 } // 30 second timeout
-      );
-      
-      console.log('Generate response:', response.data);
-      showToast.success(`Generated ${response.data.samples_generated} new samples`);
-      setShowGenerateDialog(false);
-      setSampleSize(100); // Reset to default
-      
-      // Show new version created alert
-      setIsCreatingNewVersion(true);
-      setTimeout(() => setIsCreatingNewVersion(false), 5000);
-      
-      await loadSamples();
-      await loadPhaseStatus(); // Also refresh the status
-      await loadVersions(); // Reload versions to show the new one
-    } catch (error: any) {
-      console.error('Error generating samples:', error);
-      console.error('Error response:', error.response);
-      showToast.error(error.response?.data?.detail || 'Failed to generate samples');
-      setShowGenerateDialog(false); // Close dialog on error
-    } finally {
-      setBasicGenerating(false);
+  // Removed handleGenerateSamples - now using only enhanced/intelligent generation
+
+  // Poll job status
+  const pollJobStatus = (jobId: string) => {
+    console.log('Starting job polling for:', jobId);
+    
+    // Clear any existing interval
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
     }
+
+    const poll = async () => {
+      try {
+        const response = await apiClient.get(`/jobs/${jobId}/status`);
+        const jobData = response.data;
+        
+        console.log('Job status poll:', jobData);
+        setJobProgress(jobData);
+        
+        if (jobData.status === 'completed') {
+          showToast.success(`Sample generation completed! ${jobData.result?.sample_count || 0} samples generated.`);
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          setActiveJobId(null);
+          setJobProgress(null);
+          
+          // Reload data to show new samples
+          await loadSamples();
+          await loadPhaseStatus();
+          await loadVersions();
+        } else if (jobData.status === 'failed') {
+          showToast.error(`Sample generation failed: ${jobData.error || 'Unknown error'}`);
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          setActiveJobId(null);
+          setJobProgress(null);
+        }
+      } catch (error) {
+        console.error('Error polling job status:', error);
+      }
+    };
+
+    // Start polling immediately
+    poll();
+    
+    // Then poll every 2 seconds
+    pollingIntervalRef.current = setInterval(poll, 2000);
   };
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Enhanced generate samples using intelligent sampling
   const handleEnhancedGenerateSamples = async () => {
+    console.log('handleEnhancedGenerateSamples called');
+    console.log('Current state:', {
+      enhancedSampleSize,
+      enhancedDataSource,
+      dataSources,
+      showEnhancedGenerateDialog
+    });
+    
     setEnhancedGenerating(true);
     try {
       console.log('Enhanced generating samples with params:', {
@@ -1060,38 +1088,38 @@ const SampleSelectionPage: React.FC = () => {
         use_anomaly_insights: useAnomalyInsights
       });
 
+      // Use the intelligent sampling endpoint with 30/50/20 distribution
+      const requestData = {
+        target_sample_size: enhancedSampleSize,
+        use_data_source: true,  // Always use data source for enhanced generation
+        distribution: {
+          clean: 0.3,
+          anomaly: 0.5,
+          boundary: 0.2
+        },
+        include_file_samples: false
+      };
+      
       const response = await apiClient.post(
         `/sample-selection/cycles/${cycleIdNum}/reports/${reportIdNum}/samples/generate-intelligent`,
-        {
-          target_sample_size: enhancedSampleSize,
-          use_data_source: true,
-          data_source_id: enhancedDataSource ? parseInt(enhancedDataSource) : undefined,
-          distribution: {
-            clean: 0.3,
-            anomaly: 0.5,
-            boundary: 0.2
-          },
-          include_file_samples: false,
-          sampling_strategy: enhancedSamplingStrategy,
-          use_anomaly_insights: useAnomalyInsights
-        }
+        requestData
       );
       
       console.log('Enhanced generate response:', response.data);
       
-      if (response.data.samples && response.data.samples.length > 0) {
+      if (response.data.job_id) {
         showToast.success(
-          `Generated ${response.data.samples.length} samples from ${response.data.data_source_type} source using ${response.data.method} method`
+          `Sample generation started. Job ID: ${response.data.job_id}`
         );
         setShowEnhancedGenerateDialog(false);
+        
+        // Set active job and start polling
+        setActiveJobId(response.data.job_id);
+        pollJobStatus(response.data.job_id);
         
         // Show new version created alert
         setIsCreatingNewVersion(true);
         setTimeout(() => setIsCreatingNewVersion(false), 5000);
-        
-        await loadSamples();
-        await loadPhaseStatus();
-        await loadVersions(); // Reload versions to show the new one
       } else {
         showToast.warning('No samples generated. Check data source configuration.');
       }
@@ -1108,10 +1136,10 @@ const SampleSelectionPage: React.FC = () => {
 
   const handleActivityAction = async (activity: any, action: string) => {
     try {
-      // Special handling for generate_samples activity - open the dialog instead
+      // Special handling for generate_samples activity - open enhanced dialog
       if (activity.activity_id === 'generate_samples' && action === 'complete') {
-        console.log('Opening Generate Samples dialog from activity card');
-        setShowGenerateDialog(true);
+        console.log('Opening Enhanced Generate Samples dialog from activity card');
+        setShowEnhancedGenerateDialog(true);
         return;
       }
       
@@ -1657,12 +1685,17 @@ const SampleSelectionPage: React.FC = () => {
           sx={{ borderBottom: 1, borderColor: 'divider' }}
         >
           {(() => {
-            console.log('Tab render check:', { 
-              hasReportOwnerFeedback, 
-              userRole: user?.role, 
-              shouldShowTab: hasReportOwnerFeedback && user?.role === 'Tester' 
+            // Show tab if ANY version has report owner feedback
+            const showFeedbackTab = hasReportOwnerFeedback && user?.role === 'Tester';
+            
+            console.log('Tab render - using hasReportOwnerFeedback:', { 
+              versionsCount: versions.length,
+              hasReportOwnerFeedback,
+              userRole: user?.role,
+              showFeedbackTab
             });
-            return hasReportOwnerFeedback && user?.role === 'Tester' && <Tab label="Report Owner Feedback" />;
+            
+            return showFeedbackTab && <Tab label="Report Owner Feedback" />;
           })()}
           <Tab label="Sample Generation" />
           <Tab label="Sample Review" />
@@ -1671,7 +1704,11 @@ const SampleSelectionPage: React.FC = () => {
         </Tabs>
 
         {/* Report Owner Feedback Tab */}
-        {hasReportOwnerFeedback && user?.role === 'Tester' && activeTab === 0 && (
+        {(() => {
+          // Show content if ANY version has report owner feedback
+          const showFeedbackTab = hasReportOwnerFeedback && user?.role === 'Tester';
+          
+          return showFeedbackTab && activeTab === 0 && (
           <ReportOwnerFeedback
             cycleId={cycleIdNum}
             reportId={reportIdNum}
@@ -1742,9 +1779,15 @@ const SampleSelectionPage: React.FC = () => {
                 await loadPhaseStatus();
                 
                 // Switch to Sample Review tab to see the new version
+                // When Make Changes is clicked, we always want to go to Sample Review
+                // The Report Owner Feedback tab will still be visible, but we want to work on samples
+                // Check if ANY version has RO feedback (not just current) to determine tab layout
+                const anyVersionHasFeedback = versions.some(v => 
+                  v.report_owner_decision && v.report_owner_decision !== 'pending'
+                );
                 // For Tester with RO feedback visible: 0=RO Feedback, 1=Sample Gen, 2=Sample Review
                 // For others: 0=Sample Gen, 1=Sample Review
-                const sampleReviewTabIndex = hasReportOwnerFeedback && user?.role === 'Tester' ? 2 : 1;
+                const sampleReviewTabIndex = (anyVersionHasFeedback && user?.role === 'Tester') ? 2 : 1;
                 setActiveTab(sampleReviewTabIndex);
                 
                 setIsCreatingNewVersion(true);
@@ -1755,7 +1798,8 @@ const SampleSelectionPage: React.FC = () => {
               }
             }}
           />
-        )}
+        );
+        })()}
 
         {/* Sample Generation Tab */}
         {((hasReportOwnerFeedback && user?.role === 'Tester' && activeTab === 1) || 
@@ -1768,32 +1812,22 @@ const SampleSelectionPage: React.FC = () => {
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button
                   variant="contained"
-                  color="secondary"
-                  startIcon={<PsychologyIcon />}
+                  color="primary"
+                  startIcon={<ScienceIcon />}
                   onClick={() => {
-                    console.log('Generate Samples clicked');
-                    console.log('isReadOnly:', isReadOnly());
-                    console.log('phaseStatus:', phaseStatus);
-                    console.log('scopedAttributes:', scopedAttributes);
-                    console.log('Button disabled?', isReadOnly() || phaseStatus?.phase_status === 'Not Started');
-                    // Don't reset sample size - let user keep their preference
-                    setShowGenerateDialog(true);
+                    console.log('===== GENERATE SAMPLES BUTTON CLICKED =====');
+                    console.log('1. Current dialog state:', showEnhancedGenerateDialog);
+                    console.log('2. isReadOnly:', isReadOnly());
+                    console.log('3. phaseStatus:', phaseStatus);
+                    console.log('4. Button disabled state:', isReadOnly() || phaseStatus?.phase_status === 'Not Started');
+                    console.log('5. Setting showEnhancedGenerateDialog to true...');
+                    setShowEnhancedGenerateDialog(true);
+                    console.log('6. Dialog state should now be true');
+                    console.log('========================================');
                   }}
                   disabled={isReadOnly() || phaseStatus?.phase_status === 'Not Started'}
                 >
                   Generate Samples
-                </Button>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  startIcon={<ScienceIcon />}
-                  onClick={() => {
-                    // Don't reset sample size - let user keep their preference
-                    setShowEnhancedGenerateDialog(true);
-                  }}
-                  disabled={isReadOnly() || phaseStatus?.phase_status === 'Not Started'}
-                >
-                  Enhanced Generate
                 </Button>
                 <Button
                   variant="outlined"
@@ -1997,6 +2031,40 @@ const SampleSelectionPage: React.FC = () => {
                 Review and modify the samples to address the Report Owner's feedback, then resubmit for approval.
               </Typography>
             </Alert>
+          )}
+          
+          {/* Job Progress Indicator */}
+          {activeJobId && jobProgress && (
+            <Paper sx={{ mb: 2, p: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                <CircularProgress size={24} />
+                <Typography variant="h6">
+                  Generating Samples...
+                </Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Job ID: {activeJobId}
+              </Typography>
+              <Box sx={{ mb: 1 }}>
+                <Typography variant="body2" sx={{ mb: 0.5 }}>
+                  Status: {jobProgress.status || 'Processing'}
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  Progress: {jobProgress.current_step || 'Initializing intelligent sampling...'}
+                </Typography>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={jobProgress.progress_percentage || 0} 
+                  sx={{ height: 8, borderRadius: 1 }}
+                />
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                  {jobProgress.progress_percentage || 0}% complete
+                  {jobProgress.completed_steps && jobProgress.total_steps && 
+                    ` (${jobProgress.completed_steps}/${jobProgress.total_steps} steps)`
+                  }
+                </Typography>
+              </Box>
+            </Paper>
           )}
 
           {/* Bulk Actions Bar */}
@@ -2551,111 +2619,21 @@ const SampleSelectionPage: React.FC = () => {
         )}
       </Paper>
 
-      {/* Generate Samples Dialog */}
-      {console.log('Rendering dialogs - showGenerateDialog:', showGenerateDialog)}
-      <Dialog 
-        open={showGenerateDialog} 
-        onClose={() => {
-          setShowGenerateDialog(false);
-          // Don't reset - keep user's preference
-        }} 
-        maxWidth="md" 
-        fullWidth
-      >
-        <DialogTitle>
-          Generate New Samples
-        </DialogTitle>
-        <DialogContent>
-          <Tabs 
-            value={samplingMethod} 
-            onChange={(e, value) => setSamplingMethod(value)}
-            sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}
-          >
-            <Tab label="Intelligent Sampling (30/50/20)" value="random" icon={<PsychologyIcon />} iconPosition="start" />
-            <Tab label="Intelligent Sampling" value="intelligent" icon={<ScienceIcon />} iconPosition="start" />
-          </Tabs>
-
-          {samplingMethod === 'random' ? (
-            <>
-              <Alert severity="info" sx={{ mb: 2 }}>
-                Intelligent sampling will generate samples with the following distribution:
-                • 30% Clean samples - typical values near statistical mean
-                • 50% Anomaly samples - outliers, DQ rule violations, and edge cases  
-                • 20% Boundary samples - minimum/maximum values and regulatory limits
-              </Alert>
-              <TextField
-                label="Number of Samples"
-                type="number"
-                value={sampleSize}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  const parsed = parseInt(value);
-                  if (!isNaN(parsed)) {
-                    setSampleSize(parsed);
-                  }
-                }}
-                inputProps={{
-                  min: 1,
-                  max: 1000,
-                  step: 1
-                }}
-                helperText="Enter a number between 1 and 1000"
-                fullWidth
-                sx={{ mt: 2 }}
-              />
-              <Alert severity="info" sx={{ mt: 2 }}>
-                Random sampling will generate synthetic samples based on scoped attributes.
-                New samples will be added to your existing sample list.
-              </Alert>
-            </>
-          ) : (
-            <>
-              <Alert severity="info" sx={{ mb: 2 }}>
-                Intelligent sampling uses profiling results to select anomaly-based and boundary condition samples with explainability.
-              </Alert>
-              {!profilingJobId && (
-                <Alert severity="warning" sx={{ mb: 2 }}>
-                  No profiling job found. Please complete data profiling first to use intelligent sampling.
-                </Alert>
-              )}
-              <IntelligentSamplingPanel
-                cycleId={cycleIdNum}
-                reportId={reportIdNum}
-                profilingJobId={profilingJobId || undefined}
-              />
-            </>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => {
-            setShowGenerateDialog(false);
-            // Don't reset - keep user's preference
-          }}>Cancel</Button>
-          {samplingMethod === 'random' && (
-            <Button 
-              onClick={handleGenerateSamples} 
-              variant="contained" 
-              color="primary"
-              disabled={!sampleSize || sampleSize < 1 || sampleSize > 1000 || basicGenerating}
-              startIcon={basicGenerating ? <CircularProgress size={20} /> : null}
-            >
-              {basicGenerating ? 'Generating...' : 'Generate Intelligent Samples'}
-            </Button>
-          )}
-        </DialogActions>
-      </Dialog>
 
       {/* Enhanced Generate Samples Dialog */}
       <Dialog 
         open={showEnhancedGenerateDialog} 
-        onClose={() => setShowEnhancedGenerateDialog(false)} 
+        onClose={() => {
+          console.log('Dialog onClose triggered');
+          setShowEnhancedGenerateDialog(false);
+        }} 
         maxWidth="md" 
         fullWidth
       >
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <ScienceIcon color="primary" />
-            Enhanced Sample Generation
+            Generate Samples
           </Box>
         </DialogTitle>
         <DialogContent>
@@ -2718,7 +2696,7 @@ const SampleSelectionPage: React.FC = () => {
                   >
                     {dataSources.map((ds: any) => (
                       <MenuItem key={ds.id} value={ds.id}>
-                        {ds.source_name} ({ds.source_type})
+                        {ds.name || ds.source_name} ({ds.source_type})
                       </MenuItem>
                     ))}
                   </Select>

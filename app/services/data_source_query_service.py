@@ -13,8 +13,15 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import create_async_engine
 import asyncpg
 import aiomysql
-import cx_Oracle
-import pymssql
+try:
+    import cx_Oracle
+except ImportError:
+    cx_Oracle = None
+    
+try:
+    import pymssql
+except ImportError:
+    pymssql = None
 from contextlib import asynccontextmanager
 
 from app.core.config import get_settings

@@ -249,7 +249,41 @@ async def get_lob_attribute_assignments(
         assignment_status=assignment_status,
         data_executive_id=data_executive_id
     )
-    return assignments
+    
+    # Enrich assignments with relationship data for response
+    enriched_assignments = []
+    for assignment in assignments:
+        enriched = {
+            "mapping_id": assignment.mapping_id,
+            "version_id": assignment.version_id,
+            "phase_id": assignment.phase_id,
+            "sample_id": assignment.sample_id,
+            "attribute_id": assignment.attribute_id,
+            "lob_id": assignment.lob_id,
+            "data_owner_id": assignment.data_owner_id,
+            "data_executive_id": assignment.data_executive_id,
+            "assigned_by_data_executive_at": assignment.assigned_by_data_executive_at,
+            "assignment_rationale": assignment.assignment_rationale,
+            "previous_data_owner_id": assignment.previous_data_owner_id,
+            "change_reason": assignment.change_reason,
+            "assignment_status": assignment.assignment_status,
+            "data_owner_acknowledged": assignment.data_owner_acknowledged,
+            "data_owner_acknowledged_at": assignment.data_owner_acknowledged_at,
+            "data_owner_response_notes": assignment.data_owner_response_notes,
+            "created_at": assignment.created_at,
+            "created_by_id": assignment.created_by_id,
+            "updated_at": assignment.updated_at,
+            "updated_by_id": assignment.updated_by_id,
+            # Add relationship data
+            "lob_name": assignment.lob.lob_name if assignment.lob else None,
+            "attribute_name": assignment.attribute.attribute_name if assignment.attribute else None,
+            "data_owner_name": f"{assignment.data_owner.first_name} {assignment.data_owner.last_name}" if assignment.data_owner else None,
+            "data_executive_name": f"{assignment.data_executive.first_name} {assignment.data_executive.last_name}" if assignment.data_executive else None,
+            "sample_description": None  # Sample description can be added if needed
+        }
+        enriched_assignments.append(enriched)
+    
+    return enriched_assignments
 
 
 @router.get("/phases/{phase_id}/dashboard", response_model=PhaseAssignmentDashboard)

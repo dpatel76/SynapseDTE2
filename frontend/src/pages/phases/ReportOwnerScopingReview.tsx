@@ -42,6 +42,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import apiClient from '../../api/client';
 import { usePhaseStatus, getStatusColor, getStatusIcon, formatStatusText } from '../../hooks/useUnifiedStatus';
+import { ReportMetadataCard } from '../../components/common/ReportMetadataCard';
 
 interface ReportInfo {
   report_id: number;
@@ -152,6 +153,7 @@ const ReportOwnerScopingReview: React.FC = () => {
   const [approveAttributeDialogOpen, setApproveAttributeDialogOpen] = useState(false);
   const [rejectAttributeDialogOpen, setRejectAttributeDialogOpen] = useState(false);
   const [attributeActionNotes, setAttributeActionNotes] = useState('');
+  const [currentVersionId, setCurrentVersionId] = useState<string | null>(null);
   
   // Load data
   useEffect(() => {
@@ -195,6 +197,26 @@ const ReportOwnerScopingReview: React.FC = () => {
       const decisions = decisionsResponse.data;
       const attributes = attributesResponse.data;
       const submission = statusResponse.data; // Use status data as submission info
+      
+      // Since status doesn't include version ID, fetch it from versions endpoint
+      try {
+        const versionsResponse = await apiClient.get(`/scoping/cycles/${cycleIdNum}/reports/${reportIdNum}/versions`);
+        const versions = versionsResponse.data?.versions || [];
+        
+        if (versions.length > 0) {
+          // Get the latest version (should be first in list)
+          const latestVersion = versions[0];
+          const versionId = latestVersion.version_id;
+          
+          if (versionId) {
+            setCurrentVersionId(versionId);
+            console.log('📋 Stored current version ID from versions endpoint:', versionId);
+          }
+        }
+      } catch (versionsError) {
+        console.error('Failed to fetch versions:', versionsError);
+        // Continue without version ID - will fallback to old endpoint
+      }
       
       // Debug logging
       console.log('🔍 Raw decisions from backend:', decisions);
@@ -736,7 +758,14 @@ const ReportOwnerScopingReview: React.FC = () => {
         notes: attributeActionNotes || undefined
       };
 
-      await apiClient.post(`/scoping/attributes/${selectedAttribute.attribute_id}/report-owner-decision`, payload);
+      // Use versioned endpoint if we have the version ID
+      if (currentVersionId) {
+        await apiClient.post(`/scoping/versions/${currentVersionId}/attributes/${selectedAttribute.attribute_id}/report-owner-decision`, payload);
+      } else {
+        // Fallback to non-versioned endpoint
+        console.warn('No version ID available, using non-versioned endpoint');
+        await apiClient.post(`/scoping/attributes/${selectedAttribute.attribute_id}/report-owner-decision`, payload);
+      }
       
       // Update local state to reflect the decision
       setAttributeApprovals(prev => ({
@@ -773,7 +802,14 @@ const ReportOwnerScopingReview: React.FC = () => {
         notes: attributeActionNotes
       };
 
-      await apiClient.post(`/scoping/attributes/${selectedAttribute.attribute_id}/report-owner-decision`, payload);
+      // Use versioned endpoint if we have the version ID
+      if (currentVersionId) {
+        await apiClient.post(`/scoping/versions/${currentVersionId}/attributes/${selectedAttribute.attribute_id}/report-owner-decision`, payload);
+      } else {
+        // Fallback to non-versioned endpoint
+        console.warn('No version ID available, using non-versioned endpoint');
+        await apiClient.post(`/scoping/attributes/${selectedAttribute.attribute_id}/report-owner-decision`, payload);
+      }
       
       // Update local state to reflect the decision
       setAttributeApprovals(prev => ({
@@ -834,13 +870,12 @@ const ReportOwnerScopingReview: React.FC = () => {
         <Card sx={{ mb: 2 }}>
           <CardContent sx={{ py: 1.5 }}>
             <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <BusinessIcon color="action" fontSize="small" />
-                <Typography variant="body2" color="text.secondary">LOB:</Typography>
-                <Typography variant="body2" fontWeight="medium">
-                  {reportInfo?.lob || 'Unknown'}
-                </Typography>
-              </Box>
+              <ReportMetadataCard
+                metadata={reportInfo ?? null}
+                loading={false}
+                variant="compact"
+                showFields={['lob']}
+              />
               
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <PersonIcon color="action" fontSize="small" />

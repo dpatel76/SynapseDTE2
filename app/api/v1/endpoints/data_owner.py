@@ -220,7 +220,7 @@ async def get_assignment_matrix(
     """Get complete assignment matrix for data provider phase"""
     try:
         use_case = GetAssignmentMatrixUseCase()
-        return await use_case.execute(cycle_id, report_id, db)
+        return await use_case.execute(cycle_id, report_id, db, current_user)
         
     except Exception as e:
         raise HTTPException(

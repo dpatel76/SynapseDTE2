@@ -15,6 +15,11 @@ class RequestInfoPhaseStatus(str, Enum):
 
 
 class TestCaseStatus(str, Enum):
+    NOT_STARTED = "Not Started"
+    IN_PROGRESS = "In Progress"
+    COMPLETE = "Complete"
+    PENDING_APPROVAL = "Pending Approval"
+    # Legacy values for backward compatibility
     PENDING = "Pending"
     SUBMITTED = "Submitted"
     OVERDUE = "Overdue"
@@ -144,7 +149,7 @@ class TestCaseResponse(TestCaseBase):
     assigned_at: datetime
     
     # Status and timing
-    status: TestCaseStatus
+    status: str  # Using str to be flexible with database enum values
     submitted_at: Optional[datetime] = None
     acknowledged_at: Optional[datetime] = None
     

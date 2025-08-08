@@ -478,9 +478,9 @@ class DataOwnerLOBAssignmentService:
                     "version_number": version.version_number,
                     "version_date": version.assignment_batch_date,
                     "data_executive_id": version.data_executive_id,
-                    "assignment_id": str(assignment.assignment_id),
+                    "mapping_id": str(assignment.mapping_id),  # Fixed: model uses mapping_id
                     "lob_id": assignment.lob_id,
-                    "lob_name": assignment.lob.name if assignment.lob else None,
+                    "lob_name": assignment.lob.lob_name if assignment.lob else None,  # Fixed: LOB model uses lob_name
                     "attribute_id": assignment.attribute_id,
                     "attribute_name": assignment.attribute.attribute_name if assignment.attribute else None,
                     "sample_id": assignment.sample_id,
@@ -554,7 +554,7 @@ class DataOwnerLOBAssignmentService:
                 joinedload(DataOwnerLOBAttributeMapping.data_owner),
                 joinedload(DataOwnerLOBAttributeMapping.data_executive)
             )
-            .where(DataOwnerLOBAttributeMapping.assignment_id == assignment_id)
+            .where(DataOwnerLOBAttributeMapping.mapping_id == assignment_id)  # Fixed: model uses mapping_id not assignment_id
         )
         assignment = result.scalar_one_or_none()
         if not assignment:

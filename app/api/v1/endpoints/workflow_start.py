@@ -195,11 +195,10 @@ async def start_testing_workflow(
             ],
             "Request Info": [
                 ("Start Request Info Phase", ActivityType.START, 1, False, False),
-                ("Create Test Cases", ActivityType.TASK, 2, True, False),
-                ("Notify Data Providers", ActivityType.TASK, 3, True, False),
-                ("Collect Documents", ActivityType.TASK, 4, True, False),
-                ("Review Submissions", ActivityType.REVIEW, 5, True, False),
-                ("Complete Request Info Phase", ActivityType.COMPLETE, 6, False, False),
+                ("Notify Data Providers", ActivityType.TASK, 2, True, False),
+                ("Collect Documents", ActivityType.TASK, 3, True, False),
+                ("Review Submissions", ActivityType.REVIEW, 4, True, False),
+                ("Complete Request Info Phase", ActivityType.COMPLETE, 5, False, False),
             ],
             "Sample Selection": [
                 ("Start Sample Selection", ActivityType.START, 1, False, False),

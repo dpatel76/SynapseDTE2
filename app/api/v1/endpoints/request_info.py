@@ -250,6 +250,9 @@ async def get_data_owner_test_cases(
         )
         return portal_data
         
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -2287,14 +2290,18 @@ async def extract_document_values(
             if attribute:
                 logger.info(f"Attribute data_type: {attribute.data_type}")
                 logger.info(f"Attribute description: {attribute.description[:100] if attribute.description else 'None'}")
-                logger.info(f"Attribute validation_rules: {attribute.validation_rules[:100] if attribute.validation_rules else 'None'}")
+                # validation_rules has been moved to scoping phase, so use getattr with default
+                validation_rules_raw = getattr(attribute, 'validation_rules', None)
+                logger.info(f"Attribute validation_rules: {validation_rules_raw[:100] if validation_rules_raw else 'None'}")
             
             validation_rules = {}
-            if attribute and attribute.validation_rules:
+            # validation_rules has been moved to scoping phase, so check if it exists
+            validation_rules_raw = getattr(attribute, 'validation_rules', None) if attribute else None
+            if validation_rules_raw:
                 try:
-                    validation_rules = json.loads(attribute.validation_rules)
+                    validation_rules = json.loads(validation_rules_raw)
                 except json.JSONDecodeError:
-                    logger.warning(f"Failed to parse validation_rules as JSON: {attribute.validation_rules}")
+                    logger.warning(f"Failed to parse validation_rules as JSON: {validation_rules_raw}")
                     validation_rules = {}
             
             # Handle enum data type

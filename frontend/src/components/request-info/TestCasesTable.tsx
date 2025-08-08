@@ -35,6 +35,7 @@ import {
   Visibility as VisibilityIcon,
   Storage as StorageIcon,
   Description,
+  CloudUpload as CloudUploadIcon,
 } from '@mui/icons-material';
 import { EvidenceModal } from '../shared/EvidenceModal';
 
@@ -67,6 +68,7 @@ interface TestCasesTableProps {
   onViewEvidence?: (testCase: TestCase) => void;
   onValidate?: (testCase: TestCase, status: 'Approved' | 'Rejected') => void;
   onViewSampleDetails?: (testCase: TestCase) => void;
+  onUploadEvidence?: (testCase: TestCase) => void;
   userRole?: string;
 }
 
@@ -79,6 +81,7 @@ export const TestCasesTable: React.FC<TestCasesTableProps> = ({
   onViewEvidence,
   onValidate,
   onViewSampleDetails,
+  onUploadEvidence,
   userRole = 'Tester',
 }) => {
   const [page, setPage] = useState(0);
@@ -361,53 +364,97 @@ export const TestCasesTable: React.FC<TestCasesTableProps> = ({
                 </TableCell>
                 <TableCell align="center">
                   <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                    <Tooltip title="Edit">
-                      <IconButton
-                        size="small"
-                        onClick={() => onEdit && onEdit(testCase)}
-                        color="primary"
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Resend to Data Owner">
-                      <IconButton
-                        size="small"
-                        onClick={() => onResend && onResend(testCase)}
-                        color="info"
-                      >
-                        <SendIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="View Sample Details">
-                      <IconButton
-                        size="small"
-                        onClick={() => onViewSampleDetails && onViewSampleDetails(testCase)}
-                        color="default"
-                      >
-                        <VisibilityIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    {(testCase.status === 'Submitted' || (testCase.status === 'In Progress' && testCase.submission_count > 0)) && (
+                    {userRole === 'Data Owner' ? (
                       <>
-                        <Tooltip title="Approve">
+                        {/* Data Owner can upload evidence */}
+                        <Tooltip title="Upload Evidence">
                           <IconButton
                             size="small"
-                            onClick={() => onValidate && onValidate(testCase, 'Approved')}
-                            color="success"
+                            onClick={() => onUploadEvidence && onUploadEvidence(testCase)}
+                            color="primary"
+                            disabled={testCase.status === 'Submitted'}
                           >
-                            <CheckCircle fontSize="small" />
+                            <CloudUploadIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Reject">
+                        {/* Data Owner can view evidence */}
+                        {testCase.submission_count > 0 && (
+                          <Tooltip title="View Evidence">
+                            <IconButton
+                              size="small"
+                              onClick={() => onViewEvidence && onViewEvidence(testCase)}
+                              color="default"
+                            >
+                              <VisibilityIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        {/* Data Owner can view sample details */}
+                        <Tooltip title="View Sample Details">
                           <IconButton
                             size="small"
-                            onClick={() => onValidate && onValidate(testCase, 'Rejected')}
-                            color="error"
+                            onClick={() => onViewSampleDetails && onViewSampleDetails(testCase)}
+                            color="default"
                           >
-                            <ErrorIcon fontSize="small" />
+                            <Description fontSize="small" />
                           </IconButton>
                         </Tooltip>
+                      </>
+                    ) : (
+                      <>
+                        {/* Tester can edit test cases */}
+                        <Tooltip title="Edit">
+                          <IconButton
+                            size="small"
+                            onClick={() => onEdit && onEdit(testCase)}
+                            color="primary"
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        {/* Tester can resend to data owner */}
+                        <Tooltip title="Resend to Data Owner">
+                          <IconButton
+                            size="small"
+                            onClick={() => onResend && onResend(testCase)}
+                            color="info"
+                          >
+                            <SendIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        {/* Tester can view sample details */}
+                        <Tooltip title="View Sample Details">
+                          <IconButton
+                            size="small"
+                            onClick={() => onViewSampleDetails && onViewSampleDetails(testCase)}
+                            color="default"
+                          >
+                            <VisibilityIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        {/* Tester can approve/reject evidence if there are submissions and no approval decision yet */}
+                        {(testCase.submission_count > 0 && !testCase.approval_status) && (
+                          <>
+                            <Tooltip title="Approve Evidence">
+                              <IconButton
+                                size="small"
+                                onClick={() => onValidate && onValidate(testCase, 'Approved')}
+                                color="success"
+                              >
+                                <CheckCircle fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Request Revision">
+                              <IconButton
+                                size="small"
+                                onClick={() => onValidate && onValidate(testCase, 'Rejected')}
+                                color="error"
+                              >
+                                <ErrorIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </>
+                        )}
                       </>
                     )}
                   </Box>

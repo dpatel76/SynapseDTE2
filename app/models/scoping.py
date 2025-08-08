@@ -249,17 +249,19 @@ class ScopingAttribute(CustomPKModel, AuditMixin):
     
     This model stores the scoping decision for each attribute within a version,
     including LLM recommendations, tester decisions, and report owner decisions.
+    
+    Uses composite primary key: (version_id, attribute_id) where attribute_id
+    references the planning phase attribute.
     """
     
     __tablename__ = "cycle_report_scoping_attributes"
     
-    # Primary key
-    attribute_id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    # Composite primary key
+    version_id = Column(UUID(as_uuid=True), ForeignKey('cycle_report_scoping_versions.version_id'), primary_key=True, nullable=False)
+    attribute_id = Column(Integer, ForeignKey("cycle_report_planning_attributes.id"), primary_key=True, nullable=False)
     
     # Context
-    version_id = Column(UUID(as_uuid=True), ForeignKey('cycle_report_scoping_versions.version_id'), nullable=False)
     phase_id = Column(Integer, ForeignKey('workflow_phases.phase_id'), nullable=False)
-    planning_attribute_id = Column(Integer, ForeignKey("cycle_report_planning_attributes.id"), nullable=False)
     
     # LLM Recommendation (embedded JSON)
     llm_recommendation = Column(JSONB, nullable=False)
@@ -286,26 +288,35 @@ class ScopingAttribute(CustomPKModel, AuditMixin):
     # Special Cases and Metadata
     is_override = Column(Boolean, nullable=False, default=False)
     override_reason = Column(Text, nullable=True)
-    is_cde = Column(Boolean, nullable=False, default=False)
-    has_historical_issues = Column(Boolean, nullable=False, default=False)
-    is_primary_key = Column(Boolean, nullable=False, default=False)
+    
+    # NOTE: The following fields have been removed as they belong in planning and should be accessed via join:
+    # - is_cde (use planning_attribute.is_cde)
+    # - has_historical_issues (use planning_attribute.has_issues)  
+    # - is_primary_key (use planning_attribute.is_primary_key)
+    
+    # Fields moved from planning attributes (per requirements)
+    validation_rules = Column(Text, nullable=True, comment='Validation rules for this attribute')
+    testing_approach = Column(Text, nullable=True, comment='Testing approach for this attribute')
     
     # Data Quality Integration
     data_quality_score = Column(Float, nullable=True)
     data_quality_issues = Column(JSONB, nullable=True)
     
-    # Expected Source Documents
+    # Expected Source Documents (mapped from typical_source_documents in planning)
     expected_source_documents = Column(JSONB, nullable=True)
-    search_keywords = Column(JSONB, nullable=True)
+    search_keywords = Column(JSONB, nullable=True)  # Mapped from keywords_to_look_for in planning
     risk_factors = Column(JSONB, nullable=True)
     
     # Status
     status = Column(attribute_status_enum, nullable=False)
     
+    # Calculated status column (automatically updated by database trigger)
+    calculated_status = Column(String(20), nullable=False, default='pending')
+    
     # Relationships
     version = relationship("ScopingVersion", back_populates="attributes")
     phase = relationship("app.models.workflow.WorkflowPhase")
-    report_attribute = relationship("app.models.report_attribute.ReportAttribute")
+    planning_attribute = relationship("app.models.report_attribute.ReportAttribute", foreign_keys=[attribute_id])
     
     # User relationships
     tester_decided_by = relationship("app.models.user.User", foreign_keys=[tester_decided_by_id])
@@ -355,6 +366,7 @@ class ScopingAttribute(CustomPKModel, AuditMixin):
     def is_pending_decision(self) -> bool:
         """Check if this attribute is pending tester decision"""
         return self.tester_decision is None
+    
     
     @hybrid_property
     def llm_recommended_action(self) -> Optional[str]:
@@ -413,8 +425,7 @@ class ScopingAttribute(CustomPKModel, AuditMixin):
     def get_decision_summary(self) -> Dict[str, Any]:
         """Get a comprehensive summary of all decisions for this attribute"""
         return {
-            "attribute_id": str(self.attribute_id),
-            "planning_attribute_id": self.planning_attribute_id,
+            "attribute_id": self.attribute_id,
             "status": self.status.value,
             "llm_recommendation": {
                 "recommended_action": self.llm_recommended_action,
@@ -452,7 +463,7 @@ class ScopingAttribute(CustomPKModel, AuditMixin):
         }
     
     def __repr__(self):
-        return f"<ScopingAttribute(attribute_id={self.attribute_id}, planning_attribute_id={self.planning_attribute_id}, tester_decision={self.tester_decision}, final_scoping={self.final_scoping})>"
+        return f"<ScopingAttribute(version_id={self.version_id}, attribute_id={self.attribute_id}, tester_decision={self.tester_decision}, final_scoping={self.final_scoping}>"
 
 
 # Legacy aliases and compatibility models

@@ -158,6 +158,12 @@ class InputValidationMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
         
+        # Bypass validation for evidence submission endpoints that need to accept SQL queries
+        if "/evidence/data-source" in str(request.url.path):
+            logger.info(f"Bypassing security validation for data source evidence endpoint: {request.url.path}")
+            response = await call_next(request)
+            return response
+        
         # Check if this is a relaxed validation endpoint
         is_relaxed_endpoint = any(endpoint in str(request.url.path) for endpoint in self.RELAXED_VALIDATION_ENDPOINTS)
         

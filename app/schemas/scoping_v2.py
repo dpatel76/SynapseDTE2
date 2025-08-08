@@ -170,11 +170,11 @@ class LLMRecommendationCreate(ScopingBaseSchema):
 class ScopingAttributeCreate(ScopingBaseSchema):
     """Schema for creating scoping attributes"""
     
-    planning_attribute_id: int = Field(..., description="Planning attribute ID")
+    attribute_id: int = Field(..., description="Planning attribute ID")
     llm_recommendation: LLMRecommendationCreate = Field(..., description="LLM recommendation")
     
-    @validator('planning_attribute_id')
-    def validate_planning_attribute_id(cls, v):
+    @validator('attribute_id')
+    def validate_attribute_id(cls, v):
         if v <= 0:
             raise ValueError("Planning attribute ID must be positive")
         return v
@@ -245,7 +245,7 @@ class ScopingAttributeResponse(ScopingBaseSchema):
     attribute_id: UUID
     version_id: UUID
     phase_id: int
-    planning_attribute_id: int
+    attribute_id: int
     
     # LLM recommendation
     llm_recommendation: Dict[str, Any]
@@ -302,7 +302,7 @@ class ScopingAttributeSummary(ScopingBaseSchema):
     """Simplified attribute summary for lists"""
     
     attribute_id: UUID
-    planning_attribute_id: int
+    attribute_id: int
     tester_decision: Optional[TesterDecision]
     final_scoping: Optional[bool]
     report_owner_decision: Optional[ReportOwnerDecision]
@@ -382,7 +382,7 @@ class AttributeDecisionSummary(ScopingBaseSchema):
     """Schema for attribute decision summary"""
     
     attribute_id: UUID
-    planning_attribute_id: int
+    attribute_id: int
     status: AttributeStatus
     
     llm_recommendation: Dict[str, Any]
@@ -414,7 +414,7 @@ class AttributeQueryParams(ScopingBaseSchema):
     """Schema for attribute query parameters"""
     
     version_id: Optional[UUID] = Field(None, description="Filter by version ID")
-    planning_attribute_id: Optional[int] = Field(None, description="Filter by planning attribute ID")
+    attribute_id: Optional[int] = Field(None, description="Filter by planning attribute ID")
     status: Optional[AttributeStatus] = Field(None, description="Filter by status")
     tester_decision: Optional[TesterDecision] = Field(None, description="Filter by tester decision")
     report_owner_decision: Optional[ReportOwnerDecision] = Field(None, description="Filter by report owner decision")

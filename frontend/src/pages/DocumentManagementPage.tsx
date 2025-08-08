@@ -448,7 +448,7 @@ const DocumentManagementPage: React.FC = () => {
                 Total Size
               </Typography>
               <Typography variant="h4">
-                {metrics.total_size_mb.toFixed(1)} MB
+                {(metrics.total_size_mb ?? 0).toFixed(1)} MB
               </Typography>
             </CardContent>
           </Card>

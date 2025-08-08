@@ -185,7 +185,7 @@ export const EvidenceUploadDialog: React.FC<EvidenceUploadDialogProps> = ({
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
-      formData.append('test_case_id', testCase.test_case_id);
+      formData.append('test_case_id', testCase.test_case_id);  // FormData handles string/int conversion
       
       // Include expected primary keys and attribute
       if (testCase.primary_key_attributes) {
@@ -315,7 +315,7 @@ export const EvidenceUploadDialog: React.FC<EvidenceUploadDialogProps> = ({
     setValidating(true);
     try {
       const response = await apiClient.post('/request-info/query-validation', {
-        test_case_id: testCase.test_case_id,
+        test_case_id: parseInt(testCase.test_case_id, 10),  // Convert string to int
         data_source_id: selectedDataSource,
         query_text: queryText,
         execute_query: true,  // Add flag to execute query and get results
@@ -361,7 +361,7 @@ export const EvidenceUploadDialog: React.FC<EvidenceUploadDialogProps> = ({
     setSubmitting(true);
     try {
       await apiClient.post('/request-info/query-evidence', {
-        test_case_id: testCase.test_case_id,
+        test_case_id: parseInt(testCase.test_case_id, 10),  // Convert string to int
         data_source_id: selectedDataSource,
         query_text: queryText,
         submission_notes: submissionNotes,

@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePhaseStatus, getStatusColor, getStatusIcon, formatStatusText } from '../../hooks/useUnifiedStatus';
 import { DynamicActivityCards } from '../../components/phase/DynamicActivityCards';
+import { ReportMetadataCard } from '../../components/common/ReportMetadataCard';
 import { useUniversalAssignments } from '../../hooks/useUniversalAssignments';
 import { UniversalAssignmentAlert } from '../../components/UniversalAssignmentAlert';
 import { ReportOwnerFeedback } from '../../components/data-profiling/ReportOwnerFeedback';
@@ -344,6 +345,27 @@ const DataProfilingEnhanced: React.FC = () => {
 
   const loadPhaseMetrics = async () => {
     try {
+      // Use unified status metadata if available
+      if (unifiedPhaseStatus?.metadata) {
+        console.log('📊 Using unified status metadata:', unifiedPhaseStatus.metadata);
+        setPhaseMetrics({
+          total_attributes: unifiedPhaseStatus.metadata.total_attributes || 0,
+          attributes_with_rules: unifiedPhaseStatus.metadata.attributes_with_rules || 0,
+          total_profiling_rules: unifiedPhaseStatus.metadata.total_profiling_rules || 0,
+          rules_generated: unifiedPhaseStatus.metadata.rules_generated || 0,
+          attributes_with_anomalies: unifiedPhaseStatus.metadata.attributes_with_anomalies || 0,
+          cdes_with_anomalies: unifiedPhaseStatus.metadata.cdes_with_anomalies || 0,
+          days_elapsed: unifiedPhaseStatus.metadata.days_elapsed || 0,
+          completion_percentage: unifiedPhaseStatus.metadata.completion_percentage || 0,
+          can_start_phase: unifiedPhaseStatus.can_proceed_to_next || false,
+          can_complete_phase: unifiedPhaseStatus.can_proceed_to_next || false,
+          phase_status: unifiedPhaseStatus.phase_status || 'Not Started',
+          files_uploaded: 0,
+        });
+        return;
+      }
+      
+      // Fallback to direct API if unified status not available
       const response = await dataProfilingApi.getStatus(cycle_id, report_id);
       console.log('📊 Phase metrics response:', response);
       console.log('🔧 DEBUG can_complete:', response.can_complete);
@@ -785,7 +807,12 @@ const DataProfilingEnhanced: React.FC = () => {
         
         // Store job ID for version tracking in CompressedRulesTable
         if (response.job_id) {
-          localStorage.setItem(`data-profiling-job-${cycle_id}-${report_id}`, response.job_id);
+          const storageKey = `data-profiling-job-${cycle_id}-${report_id}`;
+          console.log('📝 Storing job ID in localStorage:', response.job_id, 'with key:', storageKey);
+          localStorage.setItem(storageKey, response.job_id);
+          // Verify it was stored
+          const storedValue = localStorage.getItem(storageKey);
+          console.log('✅ Verified stored value:', storedValue);
         }
         
         await loadWorkflowStats();
@@ -852,6 +879,18 @@ const DataProfilingEnhanced: React.FC = () => {
         activity.activity_code === 'execute_profiling'
       )) {
         console.log('Re-running data profiling execution...');
+        await executeProfilingRules();
+        return;
+      }
+      
+      // Handle complete action for Execute Data Profiling - should trigger execution
+      if (action === 'complete' && (
+        activity.name === 'Execute Data Profiling' ||
+        activity.name === 'Execute Profiling' ||
+        activity.name.toLowerCase().includes('execute') ||
+        activity.activity_code === 'execute_profiling'
+      )) {
+        console.log('Executing data profiling rules...');
         await executeProfilingRules();
         return;
       }
@@ -1036,22 +1075,12 @@ const DataProfilingEnhanced: React.FC = () => {
               </Box>
               
               {/* Right side - Key metadata */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <BusinessIcon color="action" fontSize="small" />
-                  <Typography variant="body2" color="text.secondary">LOB:</Typography>
-                  <Typography variant="body2" fontWeight="medium">
-                    {reportInfo?.lob || 'Unknown'}
-                  </Typography>
-                </Box>
-                
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="body2" color="text.secondary">Report ID:</Typography>
-                  <Typography variant="body2" fontWeight="medium" fontFamily="monospace">
-                    {report_id}
-                  </Typography>
-                </Box>
-              </Box>
+              <ReportMetadataCard
+                metadata={reportInfo ?? null}
+                loading={false}
+                variant="compact"
+                showFields={['lob', 'tester', 'owner']}
+              />
             </Box>
           </CardContent>
         </Card>
@@ -1121,38 +1150,12 @@ const DataProfilingEnhanced: React.FC = () => {
             </Box>
             
             {/* Right side - Key metadata */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <BusinessIcon color="action" fontSize="small" />
-                <Typography variant="body2" color="text.secondary">LOB:</Typography>
-                <Typography variant="body2" fontWeight="medium">
-                  {reportInfo?.lob || 'Unknown'}
-                </Typography>
-              </Box>
-              
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PersonIcon color="action" fontSize="small" />
-                <Typography variant="body2" color="text.secondary">Tester:</Typography>
-                <Typography variant="body2" fontWeight="medium">
-                  {reportInfo?.assigned_tester || 'Not assigned'}
-                </Typography>
-              </Box>
-              
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PersonIcon color="action" fontSize="small" />
-                <Typography variant="body2" color="text.secondary">Owner:</Typography>
-                <Typography variant="body2" fontWeight="medium">
-                  {reportInfo?.report_owner || 'Not specified'}
-                </Typography>
-              </Box>
-              
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="body2" color="text.secondary">ID:</Typography>
-                <Typography variant="body2" fontWeight="medium" fontFamily="monospace">
-                  {report_id}
-                </Typography>
-              </Box>
-            </Box>
+            <ReportMetadataCard
+              metadata={reportInfo ?? null}
+              loading={false}
+              variant="compact"
+              showFields={['lob', 'tester', 'owner']}
+            />
           </Box>
         </CardContent>
       </Card>
@@ -1181,8 +1184,8 @@ const DataProfilingEnhanced: React.FC = () => {
       )}
 
 
-      {/* Data Profiling Metrics Row - Only show if phase has started */}
-      {phaseMetrics?.phase_status !== 'Not Started' && (
+      {/* Data Profiling Metrics Row */}
+      {phaseMetrics && (
         <Box sx={{ mb: 3 }}>
           {/* First Row - Primary Metrics */}
           <Grid container spacing={2} sx={{ mb: 2 }}>

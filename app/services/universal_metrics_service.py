@@ -651,13 +651,105 @@ class UniversalMetricsService:
     async def _get_sample_selection_metrics(self, context: MetricsContext) -> Dict[str, Any]:
         """Get Sample Selection specific metrics"""
         try:
-            # Get basic metrics from universal calculation
-            universal = await self.get_metrics(context)
+            # Get Planning phase for attributes
+            planning_phase = await self._get_phase_safe(context.cycle_id, context.report_id, 'Planning')
+            total_attributes = 0
+            
+            if planning_phase:
+                # Count total planning attributes
+                attrs_query = await self.db.execute(
+                    text("""
+                        SELECT COUNT(*) as count
+                        FROM cycle_report_planning_attributes
+                        WHERE phase_id = :phase_id
+                    """),
+                    {"phase_id": planning_phase.phase_id}
+                )
+                attrs_row = attrs_query.first()
+                total_attributes = attrs_row.count if attrs_row else 0
+            
+            # Get Scoping phase for scoped attributes
+            scoping_phase = await self._get_phase_safe(context.cycle_id, context.report_id, 'Scoping')
+            scoped_attributes_total = 0
+            scoped_attributes_pk = 0
+            scoped_attributes_non_pk = 0
+            
+            if scoping_phase:
+                # Count scoped attributes - using final_scoping = true for in-scope attributes
+                scoped_query = await self.db.execute(
+                    text("""
+                        SELECT 
+                            COUNT(*) as total,
+                            COUNT(CASE WHEN sa.is_primary_key = true THEN 1 END) as pk_count,
+                            COUNT(CASE WHEN sa.is_primary_key = false THEN 1 END) as non_pk_count
+                        FROM cycle_report_scoping_attributes sa
+                        WHERE sa.phase_id = :phase_id
+                        AND sa.final_scoping = true
+                    """),
+                    {"phase_id": scoping_phase.phase_id}
+                )
+                scoped_row = scoped_query.first()
+                if scoped_row:
+                    scoped_attributes_total = scoped_row.total
+                    scoped_attributes_pk = scoped_row.pk_count
+                    scoped_attributes_non_pk = scoped_row.non_pk_count
+            
+            # Get Sample Selection phase for samples
+            sample_phase = await self._get_phase_safe(context.cycle_id, context.report_id, 'Sample Selection')
+            approved_samples = 0
+            
+            if sample_phase:
+                # Count approved samples from the latest version
+                samples_query = await self.db.execute(
+                    text("""
+                        SELECT COUNT(*) as count
+                        FROM cycle_report_sample_selection_samples s
+                        JOIN cycle_report_sample_selection_versions v ON s.version_id = v.version_id
+                        WHERE v.phase_id = :phase_id
+                        AND s.report_owner_decision = 'approved'
+                        AND v.version_number = (
+                            SELECT MAX(version_number) 
+                            FROM cycle_report_sample_selection_versions 
+                            WHERE phase_id = :phase_id
+                        )
+                    """),
+                    {"phase_id": sample_phase.phase_id}
+                )
+                samples_row = samples_query.first()
+                approved_samples = samples_row.count if samples_row else 0
+            
+            # Get LOBs count
+            lobs_query = await self.db.execute(
+                text("""
+                    SELECT COUNT(DISTINCT lob_id) as count
+                    FROM cycle_report_lobs
+                    WHERE cycle_id = :cycle_id AND report_id = :report_id
+                """),
+                {"cycle_id": context.cycle_id, "report_id": context.report_id}
+            )
+            lobs_row = lobs_query.first()
+            lobs_count = lobs_row.count if lobs_row else 0
+            
+            # Get data providers count
+            providers_query = await self.db.execute(
+                text("""
+                    SELECT COUNT(DISTINCT dp.data_provider_id) as count
+                    FROM cycle_report_data_providers dp
+                    WHERE dp.cycle_id = :cycle_id AND dp.report_id = :report_id
+                """),
+                {"cycle_id": context.cycle_id, "report_id": context.report_id}
+            )
+            providers_row = providers_query.first()
+            data_providers_count = providers_row.count if providers_row else 0
             
             return {
-                "total_attributes": universal.scoped_attributes_total,
-                "approved_samples": universal.approved_samples,
-                "total_lobs": universal.lobs_count
+                "total_attributes": total_attributes,
+                "scoped_attributes_total": scoped_attributes_total,
+                "scoped_attributes_pk": scoped_attributes_pk,
+                "scoped_attributes_non_pk": scoped_attributes_non_pk,
+                "approved_samples": approved_samples,
+                "lobs_count": lobs_count,
+                "data_providers_count": data_providers_count
             }
         except Exception as e:
             logger.error(f"Error in _get_sample_selection_metrics: {e}")
@@ -667,8 +759,108 @@ class UniversalMetricsService:
     
     async def _get_data_profiling_metrics(self, context: MetricsContext) -> Dict[str, Any]:
         """Get Data Profiling specific metrics"""
-        # For now, return empty - can be implemented later
-        return {}
+        try:
+            # Get Planning phase for total attributes
+            planning_phase = await self._get_phase_safe(context.cycle_id, context.report_id, 'Planning')
+            total_attributes = 0
+            
+            if planning_phase:
+                # Count total planning attributes
+                attrs_query = await self.db.execute(
+                    text("""
+                        SELECT COUNT(*) as count
+                        FROM cycle_report_planning_attributes
+                        WHERE phase_id = :phase_id
+                    """),
+                    {"phase_id": planning_phase.phase_id}
+                )
+                attrs_row = attrs_query.first()
+                total_attributes = attrs_row.count if attrs_row else 0
+            
+            # Get Data Profiling phase
+            profiling_phase = await self._get_phase_safe(context.cycle_id, context.report_id, 'Data Profiling')
+            
+            attributes_with_rules = 0
+            total_profiling_rules = 0
+            attributes_with_anomalies = 0
+            cdes_with_anomalies = 0
+            
+            if profiling_phase:
+                # Get latest version
+                version_query = await self.db.execute(
+                    text("""
+                        SELECT version_id 
+                        FROM cycle_report_data_profiling_rule_versions
+                        WHERE phase_id = :phase_id
+                        ORDER BY version_number DESC
+                        LIMIT 1
+                    """),
+                    {"phase_id": profiling_phase.phase_id}
+                )
+                version_row = version_query.first()
+                
+                if version_row:
+                    version_id = version_row.version_id
+                    
+                    # Count attributes with rules (approved by both)
+                    attrs_with_rules_query = await self.db.execute(
+                        text("""
+                            SELECT COUNT(DISTINCT attribute_id) as count
+                            FROM cycle_report_data_profiling_rules
+                            WHERE version_id = :version_id
+                            AND calculated_status = 'approved'
+                        """),
+                        {"version_id": version_id}
+                    )
+                    attrs_with_rules_row = attrs_with_rules_query.first()
+                    attributes_with_rules = attrs_with_rules_row.count if attrs_with_rules_row else 0
+                    
+                    # Count total rules (approved by both)
+                    total_rules_query = await self.db.execute(
+                        text("""
+                            SELECT COUNT(*) as count
+                            FROM cycle_report_data_profiling_rules
+                            WHERE version_id = :version_id
+                            AND calculated_status = 'approved'
+                        """),
+                        {"version_id": version_id}
+                    )
+                    total_rules_row = total_rules_query.first()
+                    total_profiling_rules = total_rules_row.count if total_rules_row else 0
+                
+                # Count attributes with anomalies
+                anomaly_query = await self.db.execute(
+                    text("""
+                        SELECT COUNT(DISTINCT attribute_id) as count
+                        FROM cycle_report_data_profiling_results
+                        WHERE phase_id = :phase_id
+                        AND has_anomaly = true
+                    """),
+                    {"phase_id": profiling_phase.phase_id}
+                )
+                anomaly_row = anomaly_query.first()
+                attributes_with_anomalies = anomaly_row.count if anomaly_row else 0
+            
+            # Calculate completion percentage
+            completion_percentage = 0
+            if total_attributes > 0:
+                completion_percentage = int((attributes_with_rules / total_attributes) * 100)
+            
+            return {
+                'total_attributes': total_attributes,
+                'attributes_with_rules': attributes_with_rules,
+                'total_profiling_rules': total_profiling_rules,
+                'rules_generated': total_profiling_rules,  # Same as total for now
+                'attributes_with_anomalies': attributes_with_anomalies,
+                'cdes_with_anomalies': cdes_with_anomalies,
+                'days_elapsed': 1,  # TODO: Calculate from phase start date
+                'completion_percentage': completion_percentage
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in _get_data_profiling_metrics: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return {}
     
     async def _get_scoping_metrics(self, context: MetricsContext) -> Dict[str, Any]:
         """Get Scoping specific metrics"""

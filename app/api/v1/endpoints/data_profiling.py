@@ -861,7 +861,7 @@ async def get_profiling_results(
     )
     version = version_query.scalar_one_or_none()
     
-    if not version or not version.execution_job_id:
+    if not version:
         return {
             "success": True,
             "results": [],
@@ -869,118 +869,158 @@ async def get_profiling_results(
             "executed_rules": 0,
             "completed_rules": 0,
             "failed_rules": 0,
-            "message": "No profiling jobs have been executed for this cycle/report"
+            "message": "No profiling versions found for this cycle/report"
         }
     
-    # Get execution results from job manager
-    from app.core.background_jobs import job_manager
-    job = job_manager.get_job(version.execution_job_id)
-    
-    if not job or job.get("status") != "completed":
-        return {
-            "success": True,
-            "results": [],
-            "total_rules": 0,
-            "executed_rules": 0,
-            "completed_rules": 0,
-            "failed_rules": 0,
-            "message": "Profiling execution is still in progress or failed",
-            "job_status": job.get("status") if job else "not_found"
-        }
-    
-    # Get the summary from job results
-    summary = job.get("result", {}).get("summary", {})
-    
-    # Get execution results from database with attribute details
-    # Only get the latest execution result per rule
+    # Get execution results from database
     from app.models.data_profiling import ProfilingResult
-    from app.models.report_attribute import ReportAttribute
-    from sqlalchemy import func, distinct
+    from sqlalchemy import func, and_
+    from sqlalchemy.orm import aliased
     
-    # First, get the latest execution time per rule
-    latest_executions_subquery = (
+    # Get only the latest execution for each rule using a subquery
+    latest_results_subquery = (
         select(
             ProfilingResult.rule_id,
-            func.max(ProfilingResult.executed_at).label('max_executed_at')
+            func.max(ProfilingResult.executed_at).label('latest_executed_at')
         )
         .where(ProfilingResult.phase_id == phase_id)
         .group_by(ProfilingResult.rule_id)
         .subquery()
     )
     
-    # Then get the full results for only the latest executions
+    # Join with the main query to get only latest results
     results_query = await db.execute(
-        select(ProfilingResult, ProfilingRule, ReportAttribute)
-        .join(ProfilingRule, ProfilingRule.rule_id == ProfilingResult.rule_id)
-        .join(ReportAttribute, ReportAttribute.id == ProfilingRule.attribute_id)
+        select(ProfilingResult, ProfilingRule)
+        .join(ProfilingRule, ProfilingResult.rule_id == ProfilingRule.rule_id)
         .join(
-            latest_executions_subquery,
+            latest_results_subquery,
             and_(
-                ProfilingResult.rule_id == latest_executions_subquery.c.rule_id,
-                ProfilingResult.executed_at == latest_executions_subquery.c.max_executed_at
+                ProfilingResult.rule_id == latest_results_subquery.c.rule_id,
+                ProfilingResult.executed_at == latest_results_subquery.c.latest_executed_at
             )
         )
         .where(ProfilingResult.phase_id == phase_id)
-        .order_by(
-            # Sort by attribute importance first
-            ReportAttribute.is_primary_key.desc(),  # PK attributes first
-            ReportAttribute.cde_flag.desc(),  # Then CDE attributes
-            ReportAttribute.historical_issues_flag.desc(),  # Then attributes with issues
-            ReportAttribute.line_item_number.nulls_last(),  # Then by line item number
-            ProfilingRule.attribute_name,  # Then by attribute name (keeps rules for same attribute together)
-            ProfilingRule.rule_name  # Finally by rule name within each attribute
+        .order_by(ProfilingRule.execution_order, ProfilingRule.rule_name)
+    )
+    results = results_query.all()
+    
+    if not results:
+        return {
+            "success": True,
+            "results": [],
+            "total_rules": 0,
+            "executed_rules": 0,
+            "completed_rules": 0,
+            "failed_rules": 0,
+            "message": "No profiling results found. Execution may be in progress."
+        }
+    
+    # Get planning attributes for additional information
+    from app.models.report_attribute import ReportAttribute
+    attribute_ids = list(set(r.attribute_id for _, r in results if r.attribute_id))
+    
+    # Get the Planning phase_id for this cycle/report
+    planning_phase_query = await db.execute(
+        select(WorkflowPhase.phase_id).where(
+            and_(
+                WorkflowPhase.cycle_id == cycle_id,
+                WorkflowPhase.report_id == report_id,
+                WorkflowPhase.phase_name == "Planning"
+            )
         )
     )
-    db_results = results_query.all()
+    planning_phase_id = planning_phase_query.scalar()
     
-    # Format results for display
-    results = []
-    for result, rule, attribute in db_results:
-        results.append({
+    # Query planning attributes to get line item number, PK, CDE, issues info
+    planning_attrs = {}
+    if attribute_ids and planning_phase_id:
+        attrs_query = await db.execute(
+            select(ReportAttribute).where(
+                and_(
+                    ReportAttribute.phase_id == planning_phase_id,
+                    ReportAttribute.id.in_(attribute_ids)
+                )
+            )
+        )
+        for attr in attrs_query.scalars():
+            planning_attrs[attr.id] = {
+                "line_item_number": attr.line_item_number,
+                "is_primary_key": attr.is_primary_key if hasattr(attr, 'is_primary_key') else False,
+                "is_cde": attr.is_cde if hasattr(attr, 'is_cde') else False,
+                "has_issues": attr.has_issues if hasattr(attr, 'has_issues') else False,
+                "primary_key_order": attr.primary_key_order if hasattr(attr, 'primary_key_order') else None
+            }
+    
+    # Format results for display - include all necessary fields
+    results_list = []
+    for result, rule in results:
+        planning_info = planning_attrs.get(rule.attribute_id, {})
+        results_list.append({
             "result_id": result.result_id,
             "rule_id": str(rule.rule_id),
             "rule_name": rule.rule_name,
             "rule_type": rule.rule_type,
-            "rule_code": rule.rule_code,  # Include the actual rule logic
+            "rule_code": rule.rule_code,  # Add rule logic
             "attribute_id": rule.attribute_id,
             "attribute_name": rule.attribute_name,
-            "line_item_number": attribute.line_item_number,
-            "is_primary_key": attribute.is_primary_key,
-            "is_cde": attribute.cde_flag,
-            "has_issues": attribute.historical_issues_flag,
-            "status": "passed" if result.execution_status == "success" else "failed",
+            "line_item_number": planning_info.get("line_item_number"),
+            "is_primary_key": planning_info.get("is_primary_key", False),
+            "is_cde": planning_info.get("is_cde", False),
+            "has_issues": planning_info.get("has_issues", False),
+            "primary_key_order": planning_info.get("primary_key_order"),
             "execution_status": result.execution_status,
-            "records_processed": result.total_count or 0,
-            "records_passed": result.passed_count or 0,
-            "records_failed": result.failed_count or 0,
             "passed_count": result.passed_count or 0,
             "failed_count": result.failed_count or 0,
             "total_count": result.total_count or 0,
             "pass_rate": result.pass_rate or 0.0,
             "execution_time_ms": result.execution_time_ms or 0,
-            "quality_scores": result.result_summary or {},
             "executed_at": result.executed_at.isoformat() if result.executed_at else None,
-            "severity": result.severity,
-            "has_anomaly": result.has_anomaly,
-            "anomaly_description": result.anomaly_description,
-            "error": result.result_details if result.execution_status == "failed" else None
+            "severity": result.severity or rule.severity,
+            "has_anomaly": result.has_anomaly or False,
+            "anomaly_description": result.anomaly_description
         })
     
+    # Sort results according to the requirements:
+    # 1. Primary keys first (sorted by primary_key_order)
+    # 2. Then CDE attributes
+    # 3. Then attributes with issues
+    # 4. Then by line item number ascending
+    def sort_key(result):
+        is_pk = result.get("is_primary_key", False)
+        is_cde = result.get("is_cde", False)
+        has_issues = result.get("has_issues", False)
+        pk_order = result.get("primary_key_order") or 999999
+        line_item = result.get("line_item_number") or ""
+        
+        # Convert line item to numeric for proper sorting
+        try:
+            line_item_num = int(line_item) if line_item else 999999
+        except ValueError:
+            line_item_num = 999999
+        
+        # Return tuple for sorting (lower values come first)
+        return (
+            0 if is_pk else 1,  # PKs first
+            pk_order if is_pk else 0,  # PK order within PKs
+            0 if is_cde else 1,  # CDEs second
+            0 if has_issues else 1,  # Issues third
+            line_item_num  # Line item number last
+        )
+    
+    results_list.sort(key=sort_key)
+    
     # Calculate totals from actual results
-    total_processed = sum(r.total_count or 0 for r, _, _ in db_results)
-    successful_rules = sum(1 for r, _, _ in db_results if r.execution_status == "success")
-    failed_rules = sum(1 for r, _, _ in db_results if r.execution_status == "failed")
+    successful_rules = sum(1 for r, _ in results if r.execution_status == "success")
+    failed_rules = sum(1 for r, _ in results if r.execution_status == "failed")
     
     return {
         "success": True,
-        "results": results,
+        "results": results_list,
         "total_rules": len(results),
         "executed_rules": len(results),
         "completed_rules": successful_rules,
         "failed_rules": failed_rules,
-        "total_records_processed": total_processed,
         "message": "Profiling execution completed successfully",
-        "execution_time": job.get("result", {}).get("execution_time_seconds", 0),
         "overall_quality_score": version.overall_quality_score if version else None
     }
 
@@ -1635,6 +1675,16 @@ async def send_to_report_owner(
             )
         )
         
+        # Update version status to PENDING_APPROVAL
+        version.version_status = VersionStatus.PENDING_APPROVAL
+        version.submitted_at = datetime.utcnow()
+        version.submitted_by_id = current_user.user_id
+        version.updated_at = datetime.utcnow()
+        version.updated_by_id = current_user.user_id
+        
+        # Ensure the version is tracked by SQLAlchemy
+        db.add(version)
+        
         # Create universal assignment for report owner
         from app.services.universal_assignment_service import UniversalAssignmentService
         assignment_service = UniversalAssignmentService(db)
@@ -2009,25 +2059,67 @@ async def check_and_approve_version(
                 "message": f"Cannot approve version: {len(rules_without_decisions)} rules without decisions, {len(mismatched_rules)} mismatched decisions"
             }
         
-        # All decisions match! Approve the version
-        version.version_status = VersionStatus.APPROVED
-        version.approved_by_id = current_user.user_id
-        version.approved_at = datetime.utcnow()
-        version.updated_by_id = current_user.user_id
-        version.updated_at = datetime.utcnow()
-        
-        await db.commit()
-        
-        logger.info(f"Version {version.version_id} automatically approved - all decisions match")
-        
-        return {
-            "version_approved": True,
-            "version_id": str(version.version_id),
-            "version_number": version.version_number,
-            "current_status": version.version_status,
-            "total_rules": len(rules),
-            "message": f"Version {version.version_number} approved! All {len(rules)} rules have matching tester and report owner decisions."
-        }
+        # All decisions match! Approve the version if it's in pending approval status
+        if version.version_status == VersionStatus.PENDING_APPROVAL:
+            version.version_status = VersionStatus.APPROVED
+            version.approved_by_id = current_user.user_id
+            version.approved_at = datetime.utcnow()
+            version.updated_by_id = current_user.user_id
+            version.updated_at = datetime.utcnow()
+            
+            await db.commit()
+            
+            # Complete any assignments for this version
+            try:
+                from app.services.universal_assignment_service import UniversalAssignmentService
+                assignment_service = UniversalAssignmentService(db)
+                
+                assignments = await assignment_service.get_assignments_by_filters(
+                    assignment_type="Rule Approval",
+                    to_user_id=current_user.user_id,
+                    status_filter=["Assigned", "Acknowledged", "In Progress"]
+                )
+                
+                for assignment in assignments:
+                    context_data = assignment.context_data or {}
+                    if (context_data.get("version_id") == str(version.version_id) and 
+                        assignment.status not in ["Completed", "Cancelled"]):
+                        await assignment_service.complete_assignment(
+                            assignment_id=str(assignment.assignment_id),
+                            user_id=current_user.user_id,
+                            completion_notes="Version automatically approved - all decisions match",
+                            completion_data={
+                                "version_approved": True,
+                                "auto_approved": True,
+                                "total_rules": len(rules)
+                            }
+                        )
+                        logger.info(f"Completed assignment {assignment.assignment_id} after auto-approval")
+                        break
+            except Exception as e:
+                logger.error(f"Failed to complete assignment after auto-approval: {str(e)}")
+            
+            logger.info(f"Version {version.version_id} automatically approved - all decisions match")
+            
+            return {
+                "version_approved": True,
+                "version_id": str(version.version_id),
+                "version_number": version.version_number,
+                "current_status": version.version_status,
+                "total_rules": len(rules),
+                "message": f"Version {version.version_number} approved! All {len(rules)} rules have matching tester and report owner decisions."
+            }
+        else:
+            logger.info(f"Version {version.version_id} has matching decisions but is not in pending approval status: {version.version_status}")
+            
+            return {
+                "version_approved": False,
+                "version_id": str(version.version_id),
+                "version_number": version.version_number,
+                "current_status": version.version_status,
+                "total_rules": len(rules),
+                "message": f"All {len(rules)} rules have matching decisions, but version is not in pending approval status (current: {version.version_status})."
+            }
         
     except HTTPException:
         raise
@@ -2044,9 +2136,11 @@ async def get_job_status(
 ):
     """Get status of a data profiling job"""
     try:
-        from app.core.background_jobs import job_manager
+        # Use Redis job manager to match what the service uses
+        from app.core.redis_job_manager import get_redis_job_manager
+        redis_job_manager = get_redis_job_manager()
         
-        job = job_manager.get_job(job_id)
+        job = redis_job_manager.get_job_status(job_id)
         if not job:
             raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
         
@@ -2062,8 +2156,12 @@ async def get_job_status(
             "created_at": job.get("created_at"),
             "updated_at": job.get("updated_at")
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting job status: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Failed to get job status: {str(e)}")
 
 
@@ -2088,34 +2186,14 @@ async def get_attribute_dq_results(
         
         logger.info(f"Getting DQ results for attribute {attribute_id} in phase {phase_id}")
         
-        # Convert UUID attribute_id to integer if needed
-        # Check if attribute_id is a UUID string
-        import uuid
-        planning_attribute_id = None
+        # Parse attribute_id as integer (no longer using UUID)
         try:
-            # Try to parse as UUID
-            uuid.UUID(attribute_id)
-            # It's a UUID, need to get the planning_attribute_id
-            from app.models.scoping import ScopingAttribute
-            scope_attr_query = await db.execute(
-                select(ScopingAttribute.planning_attribute_id)
-                .where(ScopingAttribute.attribute_id == attribute_id)
-            )
-            planning_attr_result = scope_attr_query.scalar_one_or_none()
-            if planning_attr_result:
-                planning_attribute_id = planning_attr_result
-                logger.info(f"Converted UUID {attribute_id} to planning_attribute_id {planning_attribute_id}")
-            else:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Attribute with ID {attribute_id} not found in scoping attributes"
-                )
+            query_attribute_id = int(attribute_id)
         except ValueError:
-            # Not a UUID, assume it's already an integer
-            planning_attribute_id = int(attribute_id)
-        
-        # Use the integer attribute ID for querying profiling results
-        query_attribute_id = planning_attribute_id
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid attribute ID: {attribute_id}. Must be an integer."
+            )
         
         # Get latest execution for each rule using window function
         latest_executions_cte = text("""
@@ -2690,38 +2768,46 @@ async def approve_version(
         await db.commit()
         await db.refresh(version)
         
-        # Mark Universal Assignment as complete regardless of approval/rejection
+        # Complete any assignments for this version (consistent with other phases)
+        from app.services.universal_assignment_service import UniversalAssignmentService
+        from app.models.universal_assignment import UniversalAssignment
+        
         try:
-            from app.services.universal_assignment_service import UniversalAssignmentService
             assignment_service = UniversalAssignmentService(db)
             
-            # Find and complete the assignment
-            assignments = await assignment_service.get_assignments_by_filters(
-                assignment_type="Rule Approval",
-                to_user_id=current_user.user_id,
-                status_filter=["Assigned", "Acknowledged", "In Progress"]
+            # Find assignments for this version - similar to how scoping does it
+            assignment_query = select(UniversalAssignment).where(
+                and_(
+                    UniversalAssignment.assignment_type == "Rule Approval",
+                    UniversalAssignment.status.in_(["Assigned", "Acknowledged", "In Progress"])
+                )
             )
             
-            # Find the assignment for this specific version
+            result = await db.execute(assignment_query)
+            assignments = result.scalars().all()
+            
             for assignment in assignments:
-                # Check if this assignment is for the current version
                 context_data = assignment.context_data or {}
-                if (context_data.get("version_id") == str(version.version_id) and 
-                    assignment.status not in ["Completed", "Cancelled"]):
+                if context_data.get("version_id") == str(version.version_id):
                     await assignment_service.complete_assignment(
                         assignment_id=str(assignment.assignment_id),
                         user_id=current_user.user_id,
-                        completion_notes=f"Version {'approved' if approval_data.approved else 'rejected'}: {approval_data.approval_notes or 'Decision by Report Owner'}",
+                        completion_notes=f"Version {'approved' if approval_data.approved else 'rejected'}: {approval_data.approval_notes or ''}",
                         completion_data={
+                            "version_id": str(version.version_id),
+                            "version_status": "approved" if approval_data.approved else "rejected",
                             "version_approved": approval_data.approved,
-                            "approval_notes": approval_data.approval_notes,
                             "changes_requested": not approval_data.approved
                         }
                     )
-                    logger.info(f"Completed assignment {assignment.assignment_id}")
+                    logger.info(f"Completed assignment {assignment.assignment_id} for version {version_id}")
+                    break
+            else:
+                logger.warning(f"No assignment found for version {version_id}")
+                
         except Exception as e:
-            logger.error(f"Failed to update Universal Assignment: {str(e)}")
-            # Don't fail the approval if assignment update fails
+            # Don't fail the approval if assignment completion fails
+            logger.error(f"Failed to complete assignment for version {version_id}: {str(e)}")
         
         logger.info(f"Version {version_id} {'approved' if approval_data.approved else 'rejected'}")
         

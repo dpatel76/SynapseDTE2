@@ -48,6 +48,7 @@ import { VersionHistoryViewer } from '../../components/common/VersionHistoryView
 import { DQResultsDialog } from '../../components/scoping/DQResultsDialog';
 import { usePhaseStatus, getStatusColor, getStatusIcon, formatStatusText } from '../../hooks/useUnifiedStatus';
 import { DynamicActivityCards } from '../../components/phase/DynamicActivityCards';
+import { ReportMetadataCard } from '../../components/common/ReportMetadataCard';
 import { useUniversalAssignments } from '../../hooks/useUniversalAssignments';
 import { UniversalAssignmentAlert } from '../../components/UniversalAssignmentAlert';
 import { workflowHooks } from '../../services/universalAssignmentWorkflow';
@@ -490,7 +491,7 @@ const ScopingPage: React.FC = () => {
       };
       
       // Save decision to backend
-      await apiClient.post(`/scoping/attributes/${attributeId}/tester-decision`, decisionPayload);
+      await apiClient.post(`/scoping/versions/${selectedVersionId}/attributes/${attributeId}/tester-decision`, decisionPayload);
       
       // Update the attribute in local state with the new decision
       setAttributes(prevAttributes => 
@@ -548,7 +549,7 @@ const ScopingPage: React.FC = () => {
         };
         
         // Save to backend
-        await apiClient.post(`/scoping/attributes/${attrIdStr}/tester-decision`, decisionPayload);
+        await apiClient.post(`/scoping/versions/${selectedVersionId}/attributes/${attrIdStr}/tester-decision`, decisionPayload);
       });
       
       // Wait for all saves to complete
@@ -1409,53 +1410,12 @@ const ScopingPage: React.FC = () => {
             </Box>
             
             {/* Right side - Key metadata */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-              {reportInfoLoading ? (
-                <Box sx={{ width: 200 }}>
-                  <LinearProgress />
-                </Box>
-              ) : (
-                <>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <BusinessIcon color="action" fontSize="small" />
-                    <Typography variant="body2" color="text.secondary">LOB:</Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {reportInfo?.lob || 'Unknown'}
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <PersonIcon color="action" fontSize="small" />
-                    <Typography variant="body2" color="text.secondary">Tester:</Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {reportInfo?.assigned_tester || 'Not assigned'}
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <PersonIcon color="action" fontSize="small" />
-                    <Typography variant="body2" color="text.secondary">Owner:</Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {reportInfo?.report_owner || 'Not specified'}
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" color="text.secondary">Cycle:</Typography>
-                    <Typography variant="body2" fontWeight="medium" fontFamily="monospace">
-                      {reportInfo?.cycle_id || cycleIdNum}
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" color="text.secondary">Report:</Typography>
-                    <Typography variant="body2" fontWeight="medium" fontFamily="monospace">
-                      {reportInfo?.report_id || reportIdNum}
-                    </Typography>
-                  </Box>
-                </>
-              )}
-            </Box>
+            <ReportMetadataCard
+              metadata={reportInfo ?? null}
+              loading={false}
+              variant="compact"
+              showFields={['lob', 'tester', 'owner']}
+            />
           </Box>
         </CardContent>
       </Card>
@@ -1934,12 +1894,41 @@ const ScopingPage: React.FC = () => {
                   >
                     {Array.isArray(versionList) && versionList.map((version) => (
                       <MenuItem key={version.version_id} value={version.version_id}>
-                        v{version.version_number} {version.is_current && '(Current)'}
+                        v{version.version_number} 
+                        {version.version_status === 'approved' && ' ✓ Approved'}
+                        {version.version_status === 'rejected' && ' ✗ Rejected'}
+                        {version.version_status === 'pending_approval' && ' ⏳ Pending'}
+                        {version.is_current && ' (Current)'}
                       </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
               </Box>
+              {/* Version Status Chip */}
+              {(() => {
+                const currentVersion = versionList.find(v => v.version_id === selectedVersionId);
+                if (currentVersion?.version_status) {
+                  return (
+                    <Chip
+                      size="small"
+                      label={
+                        currentVersion.version_status === 'approved' ? 'Approved' :
+                        currentVersion.version_status === 'rejected' ? 'Rejected' :
+                        currentVersion.version_status === 'pending_approval' ? 'Pending Approval' :
+                        currentVersion.version_status.charAt(0).toUpperCase() + currentVersion.version_status.slice(1)
+                      }
+                      color={
+                        currentVersion.version_status === 'approved' ? 'success' :
+                        currentVersion.version_status === 'rejected' ? 'error' :
+                        currentVersion.version_status === 'pending_approval' ? 'warning' :
+                        'default'
+                      }
+                      sx={{ ml: 1 }}
+                    />
+                  );
+                }
+                return null;
+              })()}
               <Tooltip title="View version history">
                 <IconButton 
                   size="small"

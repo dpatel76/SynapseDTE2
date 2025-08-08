@@ -125,6 +125,90 @@ class DatabaseConnectionService:
                 timeout=timeout
             )
             
+            # Check if this is a query for fry14m_scheduled1_data and add column aliases
+            if 'fry14m_scheduled1_data' in query.lower():
+                # Define column mappings for primary keys - matching what the UI expects
+                column_mappings = {
+                    'reference_number': '"Reference Number"',
+                    'bank_id': '"Bank ID"', 
+                    'period_id': '"Period ID"',
+                    'customer_id': '"Customer ID"',
+                    'current_credit_limit': '"Current Credit Limit"'
+                }
+                
+                # Build explicit column list with aliases for the important columns
+                # This ensures the UI gets the column names it expects
+                aliased_columns = [
+                    'reference_number AS "Reference Number"',
+                    'bank_id AS "Bank ID"',
+                    'period_id AS "Period ID"',
+                    'customer_id AS "Customer ID"',
+                    'current_credit_limit AS "Current Credit Limit"'
+                ]
+                
+                # Handle different query patterns using regex for more flexible matching
+                import re
+                
+                # Check if query is selecting specific columns that need aliasing
+                # Pattern to match column names in SELECT clause before FROM
+                select_pattern = re.compile(
+                    r'select\s+(.*?)\s+from\s+fry14m_scheduled1_data', 
+                    re.IGNORECASE | re.DOTALL
+                )
+                
+                match = select_pattern.search(query)
+                if match:
+                    selected_columns = match.group(1).strip()
+                    
+                    # Check if it's SELECT * or specific columns
+                    if selected_columns == '*':
+                        # For SELECT *, include all columns with aliases
+                        all_columns = aliased_columns + [
+                            'cycle_ending_balance',
+                            'active_indicator', 
+                            'account_charge_off_date',
+                            'customer_name',
+                            'original_credit_limit',
+                            'highest_credit_limit',
+                            'account_open_date',
+                            'account_close_date',
+                            'data_source_name',
+                            'created_at',
+                            'updated_at'
+                        ]
+                        replacement = f'SELECT {", ".join(all_columns)} FROM fry14m_scheduled1_data'
+                        query = select_pattern.sub(replacement, query)
+                        logger.info(f"Applied column aliases for SELECT *")
+                    else:
+                        # For specific columns, apply aliases only to the primary key columns
+                        # Parse the column list
+                        columns = [col.strip() for col in selected_columns.split(',')]
+                        
+                        # Map columns that need aliases
+                        column_mapping = {
+                            'reference_number': 'reference_number AS "Reference Number"',
+                            'bank_id': 'bank_id AS "Bank ID"',
+                            'period_id': 'period_id AS "Period ID"',
+                            'customer_id': 'customer_id AS "Customer ID"',
+                            'current_credit_limit': 'current_credit_limit AS "Current Credit Limit"'
+                        }
+                        
+                        # Replace columns with their aliased versions
+                        aliased_list = []
+                        for col in columns:
+                            col_lower = col.lower().strip()
+                            if col_lower in column_mapping:
+                                aliased_list.append(column_mapping[col_lower])
+                            else:
+                                aliased_list.append(col)
+                        
+                        # Rebuild the SELECT clause
+                        replacement = f'SELECT {", ".join(aliased_list)} FROM fry14m_scheduled1_data'
+                        query = select_pattern.sub(replacement, query)
+                        logger.info(f"Applied column aliases for specific columns")
+                    
+                    logger.debug(f"Modified query: {query[:200]}...")  # Log first 200 chars
+                
             # Convert parameters to positional args for asyncpg
             if parameters:
                 # Replace :param with $1, $2, etc.

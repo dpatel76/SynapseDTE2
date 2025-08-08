@@ -3,10 +3,13 @@ Database configuration and connection management
 """
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.pool import NullPool
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Generator
 import structlog
+import time
 
 from app.core.config import settings
 
@@ -35,6 +38,28 @@ else:
 AsyncSessionLocal = async_sessionmaker(
     engine,
     class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
+
+# Create sync engine for Celery tasks
+sync_database_url = settings.database_url.replace("+asyncpg", "+psycopg2")
+if "postgresql+psycopg2" not in sync_database_url:
+    sync_database_url = sync_database_url.replace("postgresql://", "postgresql+psycopg2://")
+
+sync_engine = create_engine(
+    sync_database_url,
+    echo=settings.debug,
+    pool_size=settings.database_pool_size if not settings.debug else 5,
+    max_overflow=settings.database_max_overflow if not settings.debug else 10,
+    future=True
+)
+
+# Create sync session factory for Celery tasks
+SyncSessionLocal = sessionmaker(
+    bind=sync_engine,
+    class_=Session,
     expire_on_commit=False,
     autocommit=False,
     autoflush=False,
@@ -70,6 +95,34 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
                 await session.close()
     except Exception as e:
         logger.error(f"Failed to create session after {time.time() - start_time:.2f}s", error=str(e))
+        raise
+
+
+def get_sync_db() -> Generator[Session, None, None]:
+    """
+    Sync database session for Celery tasks
+    """
+    start_time = time.time()
+    logger.info("get_sync_db called - attempting to create sync session")
+    
+    try:
+        logger.info("Creating SyncSessionLocal...")
+        with SyncSessionLocal() as session:
+            logger.info(f"Sync session created successfully in {time.time() - start_time:.2f}s")
+            try:
+                yield session
+                logger.info(f"About to commit sync session after {time.time() - start_time:.2f}s")
+                session.commit()
+                logger.info(f"Sync session committed successfully after {time.time() - start_time:.2f}s")
+            except Exception as e:
+                logger.error(f"Sync session error after {time.time() - start_time:.2f}s", error=str(e))
+                session.rollback()
+                raise
+            finally:
+                logger.info(f"Closing sync session after {time.time() - start_time:.2f}s")
+                session.close()
+    except Exception as e:
+        logger.error(f"Failed to create sync session after {time.time() - start_time:.2f}s", error=str(e))
         raise
 
 

@@ -4,23 +4,27 @@ Implements intelligent sampling with proper async patterns
 """
 
 import asyncio
+import json
 import logging
 import uuid
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy import select, and_
 from sqlalchemy.orm.attributes import flag_modified
 
 from app.core.database import AsyncSessionLocal
-from app.core.background_jobs import job_manager
+from app.core.config import settings
+from app.core.background_jobs import job_manager, BackgroundJobManager
+from app.core.redis_job_manager import get_redis_job_manager, RedisJobManager
 from app.core.exceptions import BusinessLogicError
 from app.models.workflow import WorkflowPhase
 from app.models.report_attribute import ReportAttribute
 from app.models.cycle_report_data_source import CycleReportDataSource
 from app.models.audit import LLMAuditLog
 from app.services.sample_selection_table_service import SampleSelectionTableService
+from app.core.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
@@ -184,7 +188,7 @@ async def execute_intelligent_sampling_task(
                         scoping_attrs = scoping_attrs_query.scalars().all()
                         
                         # Get the corresponding planning attributes
-                        approved_attr_ids = [sa.planning_attribute_id for sa in scoping_attrs]
+                        approved_attr_ids = [sa.attribute_id for sa in scoping_attrs]
                         
                         if approved_attr_ids:
                             planning_attrs_query = await task_db.execute(
@@ -430,3 +434,159 @@ async def execute_intelligent_sampling_task(
         logger.error(f"Intelligent sampling job {job_id} failed: {str(e)}", exc_info=True)
         job_manager.complete_job(job_id, error=str(e))
         raise
+
+
+@celery_app.task(name='app.tasks.sample_selection_tasks.execute_intelligent_sampling_celery_task')
+def execute_intelligent_sampling_celery_task(
+    job_id: str,
+    cycle_id: int,
+    report_id: int,
+    target_sample_size: int,
+    use_data_source: bool,
+    distribution: Optional[Dict[str, float]],
+    include_file_samples: bool,
+    current_user_id: int,
+    current_user_name: str
+) -> Dict[str, Any]:
+    """
+    Celery wrapper for async intelligent sampling task
+    """
+    logger.info(f"Celery task started for intelligent sampling job {job_id}")
+    
+    # Use Redis job manager for cross-container communication
+    redis_job_manager = get_redis_job_manager()
+    
+    # Check if job exists (it should have been created by the endpoint)
+    job_status = redis_job_manager.get_job_status(job_id)
+    if not job_status:
+        logger.warning(f"Job {job_id} not found in Redis, creating it manually")
+        # Create job data manually with specific ID
+        job_data = {
+            "job_id": job_id,
+            "job_type": "intelligent_sampling",
+            "status": "pending",
+            "progress_percentage": 0,
+            "current_step": "Created",
+            "total_steps": 0,
+            "completed_steps": 0,
+            "message": "Job created",
+            "result": None,
+            "error": None,
+            "created_at": datetime.utcnow().isoformat(),
+            "started_at": None,
+            "completed_at": None,
+            "metadata": {
+                "cycle_id": cycle_id,
+                "report_id": report_id,
+                "target_sample_size": target_sample_size,
+                "use_data_source": use_data_source,
+                "distribution": distribution,
+                "initiated_by": current_user_name,
+                "initiated_by_id": current_user_id
+            }
+        }
+        
+        try:
+            # Store job data directly
+            redis_job_manager.redis_client.setex(
+                f"{redis_job_manager.job_prefix}{job_id}",
+                redis_job_manager.job_ttl,
+                json.dumps(job_data)
+            )
+            # Add to active jobs set
+            redis_job_manager.redis_client.sadd(redis_job_manager.active_jobs_key, job_id)
+            logger.info(f"✅ Created job {job_id} in Redis")
+        except Exception as e:
+            logger.error(f"Failed to create job in Redis: {e}")
+    
+    # Create a custom job manager that uses Redis
+    class CeleryRedisJobManager:
+        def __init__(self, redis_manager):
+            self.redis_manager = redis_manager
+            
+        def update_job_progress(self, job_id, **kwargs):
+            return self.redis_manager.update_job_progress(job_id, **kwargs)
+            
+        def complete_job(self, job_id, result=None, error=None):
+            return self.redis_manager.complete_job(job_id, result=result, error=error)
+            
+        def get_job_status(self, job_id):
+            return self.redis_manager.get_job_status(job_id)
+    
+    # Replace global job_manager with Redis-based one for this execution
+    global job_manager
+    original_job_manager = job_manager
+    job_manager = CeleryRedisJobManager(redis_job_manager)
+    
+    try:
+        # Close any existing event loop to avoid conflicts
+        try:
+            existing_loop = asyncio.get_running_loop()
+            if existing_loop and existing_loop.is_running():
+                logger.warning("Found existing running loop, will create new one")
+        except RuntimeError:
+            # No loop running, which is what we want
+            pass
+        
+        # Create a fresh event loop for this thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        # Create a new async engine and session factory for this task
+        # This ensures we don't have event loop conflicts
+        engine = create_async_engine(
+            settings.database_url.replace('postgresql://', 'postgresql+asyncpg://'),
+            echo=False,
+            pool_pre_ping=True,
+            pool_size=5,
+            max_overflow=10
+        )
+        
+        # Create task-specific session factory
+        TaskSessionLocal = async_sessionmaker(
+            engine,
+            class_=AsyncSession,
+            expire_on_commit=False
+        )
+        
+        # Temporarily replace the global AsyncSessionLocal
+        global AsyncSessionLocal
+        original_session_local = AsyncSessionLocal
+        AsyncSessionLocal = TaskSessionLocal
+        
+        try:
+            # Run the async task
+            result = loop.run_until_complete(
+                execute_intelligent_sampling_task(
+                    job_id=job_id,
+                    cycle_id=cycle_id,
+                    report_id=report_id,
+                    target_sample_size=target_sample_size,
+                    use_data_source=use_data_source,
+                    distribution=distribution,
+                    include_file_samples=include_file_samples,
+                    current_user_id=current_user_id,
+                    current_user_name=current_user_name
+                )
+            )
+            return result
+        finally:
+            # Restore original session factory
+            AsyncSessionLocal = original_session_local
+            
+            # Dispose of the engine
+            loop.run_until_complete(engine.dispose())
+            
+            # Clean up the event loop
+            try:
+                loop.close()
+            except Exception as e:
+                logger.warning(f"Error closing event loop: {e}")
+            
+    except Exception as e:
+        logger.error(f"Error in Celery task: {str(e)}", exc_info=True)
+        job_manager.complete_job(job_id, error=str(e))
+        raise
+    finally:
+        # Restore original job manager
+        job_manager = original_job_manager

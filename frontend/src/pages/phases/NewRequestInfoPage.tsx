@@ -77,6 +77,9 @@ import { UserRole } from '../../types/api';
 // import WorkflowProgress from '../../components/WorkflowProgress';
 import DataSourceQueryPanel from '../../components/request-info/DataSourceQueryPanel';
 import { TestCasesTable } from '../../components/request-info';
+import { EvidenceUploadDialog } from '../../components/data-owner/EvidenceUploadDialog';
+import { EvidenceModal } from '../../components/shared/EvidenceModal';
+import { ReportMetadataCard } from '../../components/common/ReportMetadataCard';
 
 // Types for Request for Information phase
 interface ReportInfo {
@@ -270,7 +273,9 @@ const NewRequestInfoPage: React.FC = () => {
   const [startPhaseDialogOpen, setStartPhaseDialogOpen] = useState(false);
   const [completePhaseDialogOpen, setCompletePhaseDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [selectedTestCase, setSelectedTestCase] = useState<TestCase | null>(null);
+  const [viewEvidenceDialogOpen, setViewEvidenceDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [selectedTestCase, setSelectedTestCase] = useState<any | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadNotes, setUploadNotes] = useState('');
   const [completionNotes, setCompletionNotes] = useState('');
@@ -329,7 +334,8 @@ const NewRequestInfoPage: React.FC = () => {
   const { 
     data: phaseData, 
     isLoading: phaseLoading, 
-    error: phaseError 
+    error: phaseError,
+    refetch: refetchPhaseData 
   } = useQuery({
     queryKey: ['request-info-phase', cycleIdNum, reportIdNum],
     queryFn: async () => {
@@ -452,24 +458,69 @@ const NewRequestInfoPage: React.FC = () => {
 
   // Queries
   const { data: testCases, isLoading: testCasesLoading } = useQuery({
-    queryKey: ['test-cases', (phaseData as TesterPhaseView)?.phase?.phase_id, filterStatus, filterDataOwner],
+    queryKey: ['test-cases', cycleIdNum, reportIdNum, filterStatus, filterDataOwner, user?.role],
     queryFn: async () => {
-      const testerPhaseData = phaseData as TesterPhaseView;
-      const phaseId = testerPhaseData?.phase?.phase_id;
-      if (!phaseId) return [];
+      console.log('[RFI] Fetching test cases for:', {
+        cycleId: cycleIdNum,
+        reportId: reportIdNum,
+        userRole: user?.role,
+        filterStatus,
+        filterDataOwner
+      });
       
       const params = new URLSearchParams();
       if (filterStatus !== 'All') params.append('status', filterStatus);
       if (filterDataOwner !== 'All') params.append('data_owner_id', filterDataOwner.toString());
       
-      // Use the cycle/report endpoint since phase-specific endpoint doesn't exist
+      // Use the cycle/report endpoint to get test cases
       const response = await apiClient.get(`/request-info/${cycleIdNum}/reports/${reportIdNum}/test-cases?${params.toString()}`);
+      console.log('[RFI] Test cases received:', response.data?.length || 0);
       return response.data || [];
     },
-    enabled: !!(phaseData as TesterPhaseView)?.phase?.phase_id && user?.role !== UserRole.DATA_OWNER,
+    enabled: !!cycleIdNum && !!reportIdNum && !!user && user.role !== UserRole.DATA_OWNER,
     refetchInterval: 5000, // Poll every 5 seconds to check for new test cases
     staleTime: 2000 // Consider data stale after 2 seconds
   });
+  
+  // Debug logging for test cases query
+  React.useEffect(() => {
+    console.log('[RFI] Test cases query state:', {
+      enabled: !!cycleIdNum && !!reportIdNum && !!user && user?.role !== UserRole.DATA_OWNER,
+      cycleIdNum,
+      reportIdNum,
+      userExists: !!user,
+      userRole: user?.role,
+      userRoleRaw: user ? JSON.stringify(user) : 'null',
+      isDataOwner: user?.role === UserRole.DATA_OWNER,
+      DATA_OWNER_ENUM: UserRole.DATA_OWNER,
+      testCasesLength: testCases?.length || 0,
+      loading: testCasesLoading
+    });
+  }, [cycleIdNum, reportIdNum, user, testCases, testCasesLoading]);
+  
+  // Fallback: Force fetch test cases if query is not working due to user loading issues
+  React.useEffect(() => {
+    const fetchTestCasesFallback = async () => {
+      // Only run fallback if we have the required data but no test cases after a delay
+      if (cycleIdNum && reportIdNum && user && user.role !== UserRole.DATA_OWNER && !testCasesLoading && !testCases?.length) {
+        console.log('[RFI] Fallback: Manually fetching test cases due to empty result');
+        try {
+          const response = await apiClient.get(`/request-info/${cycleIdNum}/reports/${reportIdNum}/test-cases`);
+          if (response.data && response.data.length > 0) {
+            console.log('[RFI] Fallback: Got test cases:', response.data.length);
+            // Manually update the query cache
+            queryClient.setQueryData(['test-cases', cycleIdNum, reportIdNum, filterStatus, filterDataOwner, user?.role], response.data);
+          }
+        } catch (error) {
+          console.error('[RFI] Fallback fetch error:', error);
+        }
+      }
+    };
+    
+    // Wait a bit to see if the normal query works first
+    const timer = setTimeout(fetchTestCasesFallback, 1000);
+    return () => clearTimeout(timer);
+  }, [cycleIdNum, reportIdNum, user, testCasesLoading, testCases, filterStatus, filterDataOwner, queryClient]);
 
   // Mutations
   const startPhaseMutation = useMutation({
@@ -798,14 +849,14 @@ const NewRequestInfoPage: React.FC = () => {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="body2">Completion Progress</Typography>
                 <Typography variant="body2" fontWeight="bold">
-                  {portalData.completion_percentage.toFixed(1)}%
+                  {(portalData.completion_percentage ?? 0).toFixed(1)}%
                 </Typography>
               </Box>
               <LinearProgress 
                 variant="determinate" 
-                value={portalData.completion_percentage} 
+                value={portalData.completion_percentage ?? 0} 
                 sx={{ height: 8, borderRadius: 4 }}
-                color={portalData.completion_percentage === 100 ? 'success' : 'primary'}
+                color={(portalData.completion_percentage ?? 0) === 100 ? 'success' : 'primary'}
               />
             </Box>
             
@@ -852,182 +903,35 @@ const NewRequestInfoPage: React.FC = () => {
           </Card>
         )}
 
-        {/* Test Cases */}
+        {/* Test Cases - Using the same TestCasesTable component as Tester view */}
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Your Test Cases ({portalData.test_cases?.length || 0})
             </Typography>
             
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Please provide evidence for the following test cases. Click on each test case to upload documents.
+            </Typography>
+            
             {portalData.test_cases && portalData.test_cases.length > 0 ? (
-              <Box sx={{ overflow: 'auto' }}>
-                {/* Group test cases by sample */}
-                {Object.entries(
-                  portalData.test_cases.reduce((acc: any, testCase: any) => {
-                    const sampleId = testCase.sample_identifier;
-                    if (!acc[sampleId]) {
-                      acc[sampleId] = [];
-                    }
-                    acc[sampleId].push(testCase);
-                    return acc;
-                  }, {})
-                ).map(([sampleId, sampleTestCases]: [string, any]) => (
-                  <Card key={sampleId} variant="outlined" sx={{ mb: 3 }}>
-                    <CardContent>
-                      {/* Sample Header */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, pb: 1, borderBottom: 1, borderColor: 'divider' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <Typography variant="h6" fontFamily="monospace" color="primary.main">
-                            {sampleId}
-                          </Typography>
-                          <Chip 
-                            label={`${sampleTestCases.length} attributes`}
-                            size="small"
-                            variant="outlined"
-                            color="info"
-                          />
-                        </Box>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          <Chip 
-                            label={`${sampleTestCases.filter((tc: any) => tc.status === 'Submitted').length} submitted`}
-                            size="small"
-                            color="success"
-                            variant="outlined"
-                          />
-                          <Chip 
-                            label={`${sampleTestCases.filter((tc: any) => tc.status === 'Pending').length} pending`}
-                            size="small"
-                            color="warning"
-                            variant="outlined"
-                          />
-                        </Box>
-                      </Box>
-
-                      {/* Attributes for this sample */}
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        {sampleTestCases.map((testCase: any) => (
-                          <Box 
-                            key={testCase.test_case_id}
-                            sx={{ 
-                              p: 2,
-                              bgcolor: testCase.status === 'Submitted' ? 'success.50' : 'grey.50',
-                              borderRadius: 1,
-                              border: 1,
-                              borderColor: testCase.status === 'Submitted' ? 'success.main' : 'grey.200'
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                              <Box sx={{ flex: 1 }}>
-                                <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 0.5 }}>
-                                  {testCase.attribute_name}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                  Expected Evidence: {testCase.expected_evidence_type || 'Supporting documentation'}
-                                </Typography>
-                                {testCase.special_instructions && (
-                                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontStyle: 'italic' }}>
-                                    Instructions: {testCase.special_instructions}
-                                  </Typography>
-                                )}
-                                {testCase.submission_deadline && (
-                                  <Typography variant="caption" color="text.secondary">
-                                    Due: {new Date(testCase.submission_deadline).toLocaleDateString()}
-                                  </Typography>
-                                )}
-                              </Box>
-                              
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Chip 
-                                  label={testCase.status || 'Pending'}
-                                  size="small"
-                                  color={
-                                    testCase.status === 'Submitted' ? 'success' :
-                                    testCase.status === 'Overdue' ? 'error' : 'warning'
-                                  }
-                                  variant="filled"
-                                />
-                              </Box>
-                            </Box>
-
-                            {/* Document Upload Section */}
-                            {testCase.status !== 'Submitted' ? (
-                              <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
-                                <Typography variant="subtitle2" gutterBottom>
-                                  Upload Supporting Document
-                                </Typography>
-                                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-                                  <Button
-                                    variant="outlined"
-                                    component="label"
-                                    size="small"
-                                    startIcon={<CloudUpload />}
-                                  >
-                                    Choose File
-                                    <input
-                                      type="file"
-                                      hidden
-                                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                                      onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) {
-                                          console.log('File selected for test case:', testCase.test_case_id, file.name);
-                                          // Handle file selection
-                                        }
-                                      }}
-                                    />
-                                  </Button>
-                                  <Button
-                                    variant="contained"
-                                    size="small"
-                                    disabled
-                                    startIcon={<CloudUpload />}
-                                  >
-                                    Upload
-                                  </Button>
-                                </Box>
-                                <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-                                  Accepted formats: PDF, JPG, PNG, DOC, DOCX (Max 20MB)
-                                </Typography>
-                              </Box>
-                            ) : (
-                              // Show submitted document info
-                              testCase.document_submission && (
-                                <Box sx={{ mt: 2, p: 2, bgcolor: 'success.50', borderRadius: 1, border: 1, borderColor: 'success.main' }}>
-                                  <Typography variant="subtitle2" gutterBottom color="success.main">
-                                    Document Submitted
-                                  </Typography>
-                                  <Typography variant="body2" sx={{ mb: 1 }}>
-                                    File: {testCase.document_submission.document_filename}
-                                  </Typography>
-                                  <Typography variant="caption" color="text.secondary">
-                                    Submitted: {new Date(testCase.document_submission.submitted_at).toLocaleString()}
-                                  </Typography>
-                                  {testCase.document_submission.submission_notes && (
-                                    <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
-                                      Notes: {testCase.document_submission.submission_notes}
-                                    </Typography>
-                                  )}
-                                </Box>
-                              )
-                            )}
-                          </Box>
-                        ))}
-                      </Box>
-                    </CardContent>
-                  </Card>
-                ))}
-                
-                <Box sx={{ textAlign: 'center', mt: 2 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Total: {portalData.test_cases.length} test cases across {Object.keys(
-                      portalData.test_cases.reduce((acc: any, testCase: any) => {
-                        acc[testCase.sample_identifier] = true;
-                        return acc;
-                      }, {})
-                    ).length} samples
-                  </Typography>
-                </Box>
-              </Box>
+              <TestCasesTable 
+                testCases={portalData.test_cases}
+                userRole="Data Owner"
+                onUploadEvidence={(testCase) => {
+                  // Data Owners upload evidence
+                  setSelectedTestCase(testCase);
+                  setUploadDialogOpen(true);
+                }}
+                onViewEvidence={(testCase) => {
+                  setSelectedTestCase(testCase);
+                  setViewEvidenceDialogOpen(true);
+                }}
+                onViewSampleDetails={(testCase) => {
+                  setSelectedSampleDetails(testCase);
+                  setSampleDetailsDialogOpen(true);
+                }}
+              />
             ) : (
               <Alert severity="info">
                 No test cases assigned to you yet. Please check back later or contact the tester if you believe this is an error.
@@ -1035,6 +939,125 @@ const NewRequestInfoPage: React.FC = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Evidence Upload Dialog for Data Owner */}
+        <EvidenceUploadDialog
+          open={uploadDialogOpen}
+          onClose={() => {
+            setUploadDialogOpen(false);
+            setSelectedTestCase(null);
+          }}
+          testCase={selectedTestCase}
+          onSuccess={() => {
+            setUploadDialogOpen(false);
+            setSelectedTestCase(null);
+            // Refresh the data
+            refetchPhaseData();
+            toast.success('Evidence uploaded successfully');
+          }}
+        />
+
+        {/* Evidence View Dialog for Data Owner */}
+        {viewEvidenceDialogOpen && selectedTestCase && (
+          <EvidenceModal
+            open={viewEvidenceDialogOpen}
+            testCaseId={selectedTestCase.test_case_id}
+            onClose={() => {
+              setViewEvidenceDialogOpen(false);
+              setSelectedTestCase(null);
+            }}
+          />
+        )}
+
+        {/* Sample Details Dialog - shared with Tester view */}
+        <Dialog
+          open={sampleDetailsDialogOpen}
+          onClose={() => {
+            setSampleDetailsDialogOpen(false);
+            setSelectedSampleDetails(null);
+          }}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Visibility />
+              Sample Details
+            </Box>
+          </DialogTitle>
+          <DialogContent dividers>
+            {selectedSampleDetails && (
+              <Stack spacing={3} sx={{ p: 2 }}>
+                <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                  <Box sx={{ flex: '1 1 45%', minWidth: '250px' }}>
+                    <Typography variant="subtitle2" color="text.secondary">Sample ID</Typography>
+                    <Typography variant="body1" sx={{ mb: 2, fontFamily: 'monospace' }}>
+                      {selectedSampleDetails.sample_id}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ flex: '1 1 45%', minWidth: '250px' }}>
+                    <Typography variant="subtitle2" color="text.secondary">Test Case ID</Typography>
+                    <Typography variant="body1" sx={{ mb: 2 }}>
+                      {selectedSampleDetails.test_case_number || selectedSampleDetails.test_case_id}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>Primary Key Values</Typography>
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Attribute</TableCell>
+                          <TableCell>Value</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {selectedSampleDetails.primary_key_attributes && typeof selectedSampleDetails.primary_key_attributes === 'object' ? (
+                          Object.entries(selectedSampleDetails.primary_key_attributes).map(([key, value]) => (
+                            <TableRow key={key}>
+                              <TableCell>{key}</TableCell>
+                              <TableCell>{String(value)}</TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={2} align="center">No primary key values</TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                  <Box sx={{ flex: '1 1 45%', minWidth: '250px' }}>
+                    <Typography variant="subtitle2" color="text.secondary">Attribute Name</Typography>
+                    <Typography variant="body1" sx={{ mb: 2 }}>
+                      {selectedSampleDetails.attribute_name}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ flex: '1 1 45%', minWidth: '250px' }}>
+                    <Typography variant="subtitle2" color="text.secondary">Data Owner</Typography>
+                    <Typography variant="body1" sx={{ mb: 1 }}>
+                      {selectedSampleDetails.data_owner_name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {selectedSampleDetails.data_owner_email}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Stack>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => {
+              setSampleDetailsDialogOpen(false);
+              setSelectedSampleDetails(null);
+            }}>
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     );
   }
@@ -1072,46 +1095,12 @@ const NewRequestInfoPage: React.FC = () => {
               </Box>
               
               {/* Right side - Key metadata in compact format */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-                {reportInfoLoading ? (
-                  <Box sx={{ width: 200 }}>
-                    <LinearProgress />
-                  </Box>
-                ) : (
-                  <>
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Business color="action" fontSize="small" />
-                    <Typography variant="body2" color="text.secondary">LOB:</Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {reportInfo?.lob_name || 'Unknown'}
-                    </Typography>
-                  </Box>
-                    
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Person color="action" fontSize="small" />
-                    <Typography variant="body2" color="text.secondary">Tester:</Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {reportInfo?.tester_name || 'Not assigned'}
-                    </Typography>
-                  </Box>
-                    
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Person color="action" fontSize="small" />
-                    <Typography variant="body2" color="text.secondary">Owner:</Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {reportInfo?.report_owner_name || 'Not specified'}
-                    </Typography>
-                  </Box>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body2" color="text.secondary">ID:</Typography>
-                      <Typography variant="body2" fontWeight="medium" fontFamily="monospace">
-                        {reportInfo?.report_id || reportId}
-                      </Typography>
-                    </Box>
-                  </>
-                )}
-              </Box>
+              <ReportMetadataCard
+                metadata={reportInfo ?? null}
+                loading={reportInfoLoading}
+                variant="compact"
+                showFields={['lob', 'tester', 'owner']}
+              />
             </Box>
           </CardContent>
         </Card>
@@ -1200,46 +1189,12 @@ const NewRequestInfoPage: React.FC = () => {
             </Box>
             
             {/* Right side - Key metadata in compact format */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-              {reportInfoLoading ? (
-                <Box sx={{ width: 200 }}>
-                  <LinearProgress />
-                </Box>
-              ) : (
-                <>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Business color="action" fontSize="small" />
-                    <Typography variant="body2" color="text.secondary">LOB:</Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {reportInfo?.lob_name || 'Unknown'}
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Person color="action" fontSize="small" />
-                    <Typography variant="body2" color="text.secondary">Tester:</Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {reportInfo?.tester_name || 'Not assigned'}
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Person color="action" fontSize="small" />
-                    <Typography variant="body2" color="text.secondary">Owner:</Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {reportInfo?.report_owner_name || 'Not specified'}
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" color="text.secondary">ID:</Typography>
-                    <Typography variant="body2" fontWeight="medium" fontFamily="monospace">
-                      {reportInfo?.report_id || reportId}
-                    </Typography>
-                  </Box>
-                </>
-              )}
-            </Box>
+            <ReportMetadataCard
+              metadata={reportInfo ?? null}
+              loading={reportInfoLoading}
+              variant="compact"
+              showFields={['lob', 'tester', 'owner']}
+            />
           </Box>
         </CardContent>
       </Card>
@@ -1298,7 +1253,7 @@ const NewRequestInfoPage: React.FC = () => {
           <Card sx={{ textAlign: 'center', height: '100%' }}>
             <CardContent>
               <Typography variant="h4" color="error.main" fontWeight="bold">
-                {(testerData?.phase?.uploaded_test_cases || requestInfoStatus?.uploaded_test_cases || requestInfoStatus?.submitted_test_cases || 0)}/{(testerData?.phase?.total_test_cases || requestInfoStatus?.total_test_cases || 0)}
+                {(testerData?.phase?.uploaded_test_cases || requestInfoStatus?.uploaded_test_cases || requestInfoStatus?.submitted_test_cases || 0)}/{(testCases?.length || testerData?.phase?.total_test_cases || requestInfoStatus?.total_test_cases || 0)}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Test Cases (Uploaded/Total)
@@ -1538,7 +1493,7 @@ const NewRequestInfoPage: React.FC = () => {
                 
                 <TestCasesTable 
                   testCases={testCases}
-                  userRole={user?.role || 'Tester'}
+                  userRole="Tester"
                   onEdit={(testCase) => {
                     // Handle edit action
                     console.log('Edit test case:', testCase);

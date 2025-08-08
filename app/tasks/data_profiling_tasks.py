@@ -73,9 +73,11 @@ async def _execute_profiling_rules_async(
     # Get background job ID if provided
     bg_job_id = execution_config.get("background_job_id") if execution_config else None
     
-    # Import job manager if we have a background job
+    # Import Redis job manager for Celery tasks
+    job_manager = None
     if bg_job_id:
-        from app.core.background_jobs import job_manager
+        from app.core.redis_job_manager import get_redis_job_manager
+        job_manager = get_redis_job_manager()
         job_manager.update_job_progress(
             bg_job_id,
             status="running",
@@ -164,6 +166,32 @@ async def _execute_profiling_rules_async(
                     summary_stats["total_records_processed"] += result.get("records_processed", 0)
                     summary_stats["total_anomalies_found"] += len(result.get("anomaly_details", []))
                     
+                    # Save execution result to database
+                    from app.models.data_profiling import ProfilingResult
+                    execution_result = ProfilingResult(
+                        phase_id=rule.phase_id,
+                        rule_id=rule.rule_id,
+                        attribute_id=rule.attribute_id,
+                        execution_status="success",
+                        execution_time_ms=result.get("execution_time_ms", 0),
+                        passed_count=result.get("records_passed", 0),
+                        failed_count=result.get("records_failed", 0),
+                        total_count=result.get("records_processed", 0),
+                        pass_rate=result.get("pass_rate", 0.0),
+                        result_summary=result.get("quality_scores", {}),
+                        failed_records=result.get("anomaly_details", []),
+                        result_details=json.dumps({
+                            "statistical_summary": result.get("statistical_summary", {}),
+                            "version_id": str(version_id),
+                            "job_id": bg_job_id or celery_task_id
+                        }),
+                        quality_impact=result.get("quality_impact", 0.0),
+                        severity=rule.severity,
+                        created_by_id=executed_by,
+                        updated_by_id=executed_by
+                    )
+                    db.add(execution_result)
+                    
                     logger.info(f"Rule {rule.rule_name} executed successfully")
                     
                 except Exception as rule_error:
@@ -175,8 +203,37 @@ async def _execute_profiling_rules_async(
                         "execution_time_ms": 0
                     }
                     
+                    # Save failed execution result to database
+                    from app.models.data_profiling import ProfilingResult
+                    failed_result = ProfilingResult(
+                        phase_id=rule.phase_id,
+                        rule_id=rule.rule_id,
+                        attribute_id=rule.attribute_id,
+                        execution_status="failed",
+                        execution_time_ms=0,
+                        passed_count=0,
+                        failed_count=0,
+                        total_count=0,
+                        pass_rate=0.0,
+                        result_summary={},
+                        failed_records=[],
+                        result_details=json.dumps({
+                            "error": str(rule_error),
+                            "version_id": str(version_id),
+                            "job_id": bg_job_id or celery_task_id
+                        }),
+                        quality_impact=0.0,
+                        severity=rule.severity,
+                        created_by_id=executed_by,
+                        updated_by_id=executed_by
+                    )
+                    db.add(failed_result)
+                    
                     summary_stats["failed_rules"] += 1
                     logger.error(f"Rule {rule.rule_name} failed: {str(rule_error)}")
+            
+            # Commit all execution results to database
+            await db.commit()
             
             # Update version with results (keep status as APPROVED)
             version.execution_completed_at = datetime.utcnow()
@@ -283,9 +340,11 @@ async def _generate_profiling_rules_async(
 ) -> Dict[str, Any]:
     """Async helper for profiling rule generation"""
     
-    # Import job manager if we have a background job
+    # Import Redis job manager for Celery tasks
+    job_manager = None
     if background_job_id:
-        from app.core.background_jobs import job_manager
+        from app.core.redis_job_manager import get_redis_job_manager
+        job_manager = get_redis_job_manager()
         job_manager.update_job_progress(
             background_job_id,
             status="running",

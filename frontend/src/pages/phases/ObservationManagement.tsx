@@ -67,6 +67,7 @@ import { usePhaseStatus, getStatusColor, getStatusIcon, formatStatusText } from 
 import { useUniversalAssignments } from '../../hooks/useUniversalAssignments';
 import { UniversalAssignmentAlert } from '../../components/UniversalAssignmentAlert';
 import { DynamicActivityCards } from '../../components/phase/DynamicActivityCards';
+import { ReportMetadataCard } from '../../components/common/ReportMetadataCard';
 import { TestExecutionTable } from '../../components/test-execution/TestExecutionTable';
 import ObservationDetailsModal from '../../components/observations/ObservationDetailsModal';
 import ObservationReportOwnerFeedback from '../../components/observation-management/ObservationReportOwnerFeedback';
@@ -940,7 +941,7 @@ const ObservationManagementEnhanced: React.FC = () => {
               <TableRow key={group.group_id}>
                 <TableCell>{group.group_id}</TableCell>
                 <TableCell>{group.attribute_name}</TableCell>
-                <TableCell>{reportInfo?.lob || 'Unknown'}</TableCell>
+                <TableCell>{reportInfo?.lob_name || 'Unknown'}</TableCell>
                 <TableCell>{group.issue_type}</TableCell>
                 <TableCell align="center">
                   <Tooltip title="Click to view test case details">
@@ -1132,46 +1133,12 @@ const ObservationManagementEnhanced: React.FC = () => {
             </Box>
             
             {/* Right side - Key metadata in compact format */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-              {reportInfoLoading ? (
-                <Box sx={{ width: 200 }}>
-                  <LinearProgress />
-                </Box>
-              ) : (
-                <>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Business color="action" fontSize="small" />
-                    <Typography variant="body2" color="text.secondary">LOB:</Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {reportInfo?.lob || 'Unknown'}
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Person color="action" fontSize="small" />
-                    <Typography variant="body2" color="text.secondary">Tester:</Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {reportInfo?.assigned_tester || 'Not assigned'}
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Person color="action" fontSize="small" />
-                    <Typography variant="body2" color="text.secondary">Owner:</Typography>
-                    <Typography variant="body2" fontWeight="medium">
-                      {reportInfo?.report_owner || 'Not specified'}
-                    </Typography>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" color="text.secondary">ID:</Typography>
-                    <Typography variant="body2" fontWeight="medium" fontFamily="monospace">
-                      {reportInfo?.report_id || reportId}
-                    </Typography>
-                  </Box>
-                </>
-              )}
-            </Box>
+            <ReportMetadataCard
+              metadata={reportInfo ?? null}
+              loading={false}
+              variant="compact"
+              showFields={['lob', 'tester', 'owner']}
+            />
           </Box>
         </CardContent>
       </Card>

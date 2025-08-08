@@ -35,6 +35,10 @@ celery_app.conf.task_routes = {
     'app.tasks.testing.*': {'queue': 'testing'},
     'app.tasks.planning_tasks.*': {'queue': 'llm'},  # Planning tasks use LLM queue
     'app.tasks.planning_celery_tasks.*': {'queue': 'llm'},  # Planning tasks use LLM queue
+    'app.tasks.data_profiling_tasks.*': {'queue': 'data_processing'},  # Original data profiling tasks
+    'app.tasks.data_profiling_celery_tasks.*': {'queue': 'data_processing'},  # New data profiling tasks
+    'app.tasks.scoping_tasks.*': {'queue': 'llm'},  # Original scoping tasks use LLM queue
+    'app.tasks.scoping_celery_tasks.*': {'queue': 'llm'},  # New scoping tasks use LLM queue
 }
 
 # Define exchanges and queues
@@ -60,8 +64,11 @@ celery_app.conf.task_default_routing_key = 'celery'
 # Import task modules
 celery_app.conf.imports = [
     'app.tasks.data_profiling_tasks',
+    'app.tasks.data_profiling_celery_tasks',  # New data profiling tasks with pause/resume
     'app.tasks.test_execution_tasks',
     'app.tasks.planning_celery_tasks',  # New planning tasks with pause/resume
+    'app.tasks.scoping_celery_tasks',  # New scoping tasks with pause/resume
+    'app.tasks.sample_selection_tasks',  # Sample selection tasks for intelligent sampling
     # Temporarily disabled due to import errors
     # 'app.tasks.llm_tasks',
     # 'app.tasks.report_tasks',

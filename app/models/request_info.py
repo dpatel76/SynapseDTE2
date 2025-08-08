@@ -375,8 +375,8 @@ class TestCaseSourceEvidence(CustomPKModel):
     # report_id = Column(Integer, ForeignKey('reports.id'), nullable=False)  # Not in database
     test_case_id = Column(Integer, ForeignKey('cycle_report_test_cases.id'), nullable=False)
     sample_id = Column(String(255), nullable=False)
-    # Attribute reference updated - attributes now managed through WorkflowPhase -> PlanningVersion -> PlanningAttribute
-    # attribute_id = Column(UUID(as_uuid=True), ForeignKey('cycle_report_planning_attributes.id'), nullable=False)
+    # Attribute reference - storing attribute_id for easier retrieval
+    attribute_id = Column(Integer, nullable=True)  # References cycle_report_planning_attributes.id
     
     # Evidence type and source
     evidence_type = Column(evidence_type_enum, nullable=False)
@@ -390,6 +390,7 @@ class TestCaseSourceEvidence(CustomPKModel):
     
     # Data source evidence fields  
     data_source_id = Column(Integer, ForeignKey('cycle_report_planning_data_sources.id'), nullable=True)
+    rfi_data_source_id = Column(UUID(as_uuid=True), ForeignKey('cycle_report_rfi_data_sources.data_source_id'), nullable=True)
     query_text = Column(Text, nullable=True)
     query_parameters = Column(JSONB, nullable=True)
     query_result_sample = Column(JSONB, nullable=True)  # Sample of query results for verification

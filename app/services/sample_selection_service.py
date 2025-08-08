@@ -190,6 +190,7 @@ class SampleSelectionService(BaseService[SampleSelectionVersion]):
                     version_id=version_id,
                     phase_id=version.phase_id,
                     lob_id=sample_data['lob_id'],
+                    attribute_id=sample_data.get('attribute_id'),  # Add attribute_id
                     sample_identifier=sample_data['sample_identifier'],
                     sample_data=sample_data['sample_data'],
                     sample_category=SampleCategory(sample_data['sample_category']),
@@ -326,6 +327,7 @@ class SampleSelectionService(BaseService[SampleSelectionVersion]):
                     version_id=target_version_id,
                     phase_id=target_version.phase_id,
                     lob_id=source_sample.lob_id,
+                    attribute_id=source_sample.attribute_id,  # Carry forward attribute_id
                     sample_identifier=source_sample.sample_identifier,
                     sample_data=source_sample.sample_data,
                     sample_category=source_sample.sample_category,
@@ -673,6 +675,7 @@ class SampleSelectionService(BaseService[SampleSelectionVersion]):
                 version_id=version.version_id,
                 phase_id=version.phase_id,
                 lob_id=1,  # Default LOB, would be determined by data source
+                attribute_id=None,  # Would be set based on the attribute being sampled
                 sample_identifier=f"CLEAN_{i+1:04d}",
                 sample_data={
                     'type': 'clean',
@@ -709,6 +712,7 @@ class SampleSelectionService(BaseService[SampleSelectionVersion]):
                 version_id=version.version_id,
                 phase_id=version.phase_id,
                 lob_id=1,  # Default LOB
+                attribute_id=None,  # Would be set based on the attribute being sampled
                 sample_identifier=f"ANOMALY_{i+1:04d}",
                 sample_data={
                     'type': 'anomaly',
@@ -746,6 +750,7 @@ class SampleSelectionService(BaseService[SampleSelectionVersion]):
                 version_id=version.version_id,
                 phase_id=version.phase_id,
                 lob_id=1,  # Default LOB
+                attribute_id=None,  # Would be set based on the attribute being sampled
                 sample_identifier=f"BOUNDARY_{i+1:04d}",
                 sample_data={
                     'type': 'boundary',

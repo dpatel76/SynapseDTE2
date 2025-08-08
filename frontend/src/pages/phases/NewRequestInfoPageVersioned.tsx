@@ -568,7 +568,7 @@ const NewRequestInfoPageVersioned: React.FC = () => {
           <Card sx={{ textAlign: 'center' }}>
             <CardContent>
               <Typography variant="h4" color="warning.main">
-                {Math.round(currentVersion.completion_percentage)}%
+                {Math.round(currentVersion.completion_percentage ?? 0)}%
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Complete

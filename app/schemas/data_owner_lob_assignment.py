@@ -31,12 +31,12 @@ class DataOwnerLOBAttributeVersionBase(BaseModel):
 class DataOwnerLOBAttributeMappingBase(BaseModel):
     """Base schema for data owner LOB attribute mapping"""
     phase_id: int = Field(..., description="Phase ID")
-    sample_id: int = Field(..., description="Sample ID")
+    sample_id: Optional[UUID] = Field(None, description="Sample ID")  # Changed to UUID to match database
     attribute_id: int = Field(..., description="Attribute ID")
     lob_id: int = Field(..., description="LOB ID")
     data_owner_id: Optional[int] = Field(None, description="Assigned data owner ID")
-    data_executive_id: int = Field(..., description="Data executive who made the assignment")
-    assigned_by_data_executive_at: datetime = Field(..., description="When assignment was made")
+    data_executive_id: Optional[int] = Field(None, description="Data executive who made the assignment")  # Made optional to match database
+    assigned_by_data_executive_at: Optional[datetime] = Field(None, description="When assignment was made")  # Made optional to match database
     assignment_rationale: Optional[str] = Field(None, description="Rationale for assignment")
     previous_data_owner_id: Optional[int] = Field(None, description="Previous data owner if changed")
     change_reason: Optional[str] = Field(None, description="Reason for change")
@@ -59,7 +59,7 @@ class CreateVersionRequest(BaseModel):
 class AssignmentRequest(BaseModel):
     """Request to assign a data owner to a LOB-attribute combination"""
     phase_id: int = Field(..., description="Phase ID")
-    sample_id: int = Field(..., description="Sample ID")
+    sample_id: Optional[UUID] = Field(None, description="Sample ID")  # Changed to UUID to match database
     attribute_id: int = Field(..., description="Attribute ID")
     lob_id: int = Field(..., description="LOB ID")
     data_owner_id: Optional[int] = Field(None, description="Data owner to assign (null for unassign)")
@@ -103,8 +103,8 @@ class DataOwnerLOBAttributeVersionResponse(DataOwnerLOBAttributeVersionBase):
 
 class DataOwnerLOBAttributeMappingResponse(DataOwnerLOBAttributeMappingBase):
     """Full response schema for data owner LOB attribute assignment"""
-    assignment_id: UUID = Field(..., description="Assignment ID")
-    version_id: UUID = Field(..., description="Version ID")
+    mapping_id: UUID = Field(..., description="Mapping ID")  # Changed from assignment_id to match model
+    version_id: Optional[UUID] = Field(None, description="Version ID")  # Made optional since it can be NULL in database
     created_at: datetime = Field(..., description="Creation timestamp")
     created_by_id: int = Field(..., description="User who created this assignment")
     updated_at: datetime = Field(..., description="Last update timestamp")
@@ -192,12 +192,12 @@ class AssignmentChange(BaseModel):
     version_number: int = Field(..., description="Version number when change occurred")
     version_date: datetime = Field(..., description="Date of version")
     data_executive_id: int = Field(..., description="Data executive who made the change")
-    assignment_id: UUID = Field(..., description="Assignment ID")
+    mapping_id: UUID = Field(..., description="Mapping ID")  # Changed from assignment_id to match model
     lob_id: int = Field(..., description="LOB ID")
     lob_name: Optional[str] = Field(None, description="LOB name")
     attribute_id: int = Field(..., description="Attribute ID")
     attribute_name: Optional[str] = Field(None, description="Attribute name")
-    sample_id: int = Field(..., description="Sample ID")
+    sample_id: Optional[UUID] = Field(None, description="Sample ID")  # Changed to UUID to match database
     data_owner_id: Optional[int] = Field(None, description="Current data owner ID")
     data_owner_name: Optional[str] = Field(None, description="Current data owner name")
     previous_data_owner_id: Optional[int] = Field(None, description="Previous data owner ID")

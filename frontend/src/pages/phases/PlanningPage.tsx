@@ -76,6 +76,7 @@ import { planningApi, ReportAttribute } from '../../api/planning';
 import { dataDictionaryAPI, RegulatoryDataDictionaryEntry, DataDictionaryFilter } from '../../api/dataDictionary';
 import apiClient from '../../api/client';
 import { VersionHistoryViewer } from '../../components/common/VersionHistoryViewer';
+import { ReportMetadataCard } from '../../components/common/ReportMetadataCard';
 import { BatchProgressIndicator } from '../../components/common/BatchProgressIndicator';
 // Removed unused import - using unified status hook instead
 import { ActivityStateManager } from '../../components/common/ActivityStateManager';
@@ -276,11 +277,18 @@ const PlanningPage: React.FC<PlanningPageProps> = ({ cycleId, reportId, reportNa
         const currentVer = response.data.versions.find((v: any) => v.is_current) || response.data.versions[0];
         setSelectedVersionId(currentVer.version_id);
         setCurrentVersion(currentVer);
+      } else {
+        // No versions exist yet
+        setVersions([]);
+        setSelectedVersionId('');
+        setCurrentVersion(null);
       }
     } catch (error) {
       console.error('Error loading planning versions:', error);
       // Planning might not have versioning enabled yet
       setVersions([]);
+      setSelectedVersionId('');
+      setCurrentVersion(null);
     }
   };
 
@@ -1000,40 +1008,12 @@ const PlanningPage: React.FC<PlanningPageProps> = ({ cycleId, reportId, reportNa
             </Box>
             
             {/* Right side - Key metadata */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <BusinessIcon color="action" fontSize="small" />
-                <Typography variant="body2" color="text.secondary">LOB:</Typography>
-                <Typography variant="body2" fontWeight="medium">
-                  {reportInfo?.lob || 'Unknown'}
-                </Typography>
-              </Box>
-              
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PersonIcon color="action" fontSize="small" />
-                <Typography variant="body2" color="text.secondary">Tester:</Typography>
-                <Typography variant="body2" fontWeight="medium">
-                  {reportInfo?.assigned_tester || 'Not assigned'}
-                </Typography>
-              </Box>
-              
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PersonIcon color="action" fontSize="small" />
-                <Typography variant="body2" color="text.secondary">Owner:</Typography>
-                <Typography variant="body2" fontWeight="medium">
-                  {reportInfo?.report_owner || 'Not specified'}
-                </Typography>
-              </Box>
-              
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="body2" color="text.secondary">ID:</Typography>
-                <Typography variant="body2" fontWeight="medium" fontFamily="monospace">
-                  {reportId}
-                </Typography>
-              </Box>
-              
-              {/* Removed planning system status indicator - using only primary planning API */}
-            </Box>
+            <ReportMetadataCard
+              metadata={reportInfo ?? null}
+              loading={false}
+              variant="compact"
+              showFields={['lob', 'tester', 'owner']}
+            />
           </Box>
         </CardContent>
       </Card>
@@ -1407,6 +1387,7 @@ const PlanningPage: React.FC<PlanningPageProps> = ({ cycleId, reportId, reportNa
                       color="success"
                       startIcon={<CheckCircleIcon />}
                       onClick={() => handleBulkApproval('approved', selectedAttributes)}
+                      disabled={selectedAttributes.length === 0}
                     >
                       Approve Selected
                     </Button>
@@ -1415,6 +1396,7 @@ const PlanningPage: React.FC<PlanningPageProps> = ({ cycleId, reportId, reportNa
                       color="error"
                       startIcon={<CancelIcon />}
                       onClick={() => handleBulkApproval('rejected', selectedAttributes)}
+                      disabled={selectedAttributes.length === 0}
                     >
                       Reject Selected
                     </Button>

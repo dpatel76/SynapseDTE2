@@ -139,24 +139,73 @@ class TestExecutionService:
             # 7. Execute test case synchronously (like RFI)
             logger.info(f"Executing test case synchronously for execution {execution.id}")
             
-            try:
-                # Execute the test case immediately
-                await self._execute_test_case(execution.id, sample_data, evidence)
-            except Exception as exec_error:
-                logger.error(f"Error during test execution: {str(exec_error)}")
-                logger.error(f"Error type: {type(exec_error).__name__}")
-                logger.error(f"Error traceback: ", exc_info=True)
-                # Update execution status to failed
-                execution.execution_status = "failed"
-                execution.error_message = str(exec_error)
-                execution.error_details = {
-                    "error_type": type(exec_error).__name__,
-                    "error_details": str(exec_error),
-                    "traceback": traceback.format_exc()
-                }
-                execution.completed_at = datetime.utcnow()
+            # Check if we should execute in background (for data source tests)
+            if request.configuration and request.configuration.get("execute_in_background", False):
+                # Use Celery for background execution
+                from app.tasks.test_execution_tasks import execute_test_case_celery_task
+                from app.core.background_jobs import job_manager
+                from app.core.redis_job_manager import get_redis_job_manager
+                import uuid
+                
+                # Generate job ID
+                job_id = str(uuid.uuid4())
+                
+                # Use Redis job manager for cross-container state
+                redis_job_manager = get_redis_job_manager()
+                
+                # Create job record in Redis
+                redis_job_manager.create_job(
+                    job_id,
+                    job_type="test_execution",
+                    metadata={
+                        "execution_id": execution.id,
+                        "test_case_id": request.test_case_id,
+                        "evidence_id": request.evidence_id,
+                        "phase_id": phase_id,
+                        "cycle_id": cycle_id,
+                        "report_id": report_id
+                    }
+                )
+                
+                # Submit Celery task
+                result = execute_test_case_celery_task.apply_async(
+                    args=[
+                        job_id,
+                        execution.id,
+                        sample_data,
+                        evidence,
+                        executed_by
+                    ],
+                    task_id=job_id,  # Use the same job_id as task_id
+                    queue='testing'
+                )
+                
+                logger.info(f"Started test execution as Celery task {result.id} for execution {execution.id}")
+                
+                # Update execution with job ID
+                execution.background_job_id = job_id
+                execution.execution_status = "pending"
                 await self.db.commit()
-                raise
+                
+            else:
+                # Execute the test case immediately (synchronous)
+                try:
+                    await self._execute_test_case(execution.id, sample_data, evidence)
+                except Exception as exec_error:
+                    logger.error(f"Error during test execution: {str(exec_error)}")
+                    logger.error(f"Error type: {type(exec_error).__name__}")
+                    logger.error(f"Error traceback: ", exc_info=True)
+                    # Update execution status to failed
+                    execution.execution_status = "failed"
+                    execution.error_message = str(exec_error)
+                    execution.error_details = {
+                        "error_type": type(exec_error).__name__,
+                        "error_details": str(exec_error),
+                        "traceback": traceback.format_exc()
+                    }
+                    execution.completed_at = datetime.utcnow()
+                    await self.db.commit()
+                    raise
             
             # Refresh execution to get updated data
             await self.db.refresh(execution)

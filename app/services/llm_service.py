@@ -744,38 +744,38 @@ Consider:
                         logger.info(f"🔍 Starting JSON extraction. Text length: {len(text)}")
                         logger.info(f"🔍 Text preview: {text[:200]}...")
                         
-                        # Strategy 1: Look for markdown code blocks
-                        logger.info("🔍 Trying markdown extraction strategy...")
+                        # Strategy 1: Look for JSON array pattern
+                        logger.info("🔍 Trying to find JSON array pattern...")
                         try:
-                            extracted = self._extract_from_markdown_blocks(text)
-                            logger.info(f"🔍 Markdown extracted: {len(extracted) if extracted else 0} chars")
-                            if extracted:
-                                extracted = self._fix_json_issues(extracted)
-                                logger.info(f"🔍 After JSON fixes: {len(extracted)} chars, starts with: {extracted[:50]}")
+                            # Look for JSON array starting with [
+                            import re
+                            json_match = re.search(r'\[\s*\{.*\}\s*\]', text, re.DOTALL)
+                            if json_match:
+                                extracted = json_match.group(0)
+                                logger.info(f"🔍 Found JSON array: {len(extracted)} chars")
                                 parsed = json.loads(extracted)
-                                logger.info(f"🔍 SUCCESS: Markdown strategy worked!")
+                                logger.info(f"🔍 SUCCESS: JSON array extraction worked! Found {len(parsed)} items")
                                 return parsed
                             else:
-                                logger.info("🔍 No markdown blocks found")
+                                logger.info("🔍 No JSON array pattern found")
                         except Exception as e:
-                            logger.error(f"❌ Markdown strategy failed: {type(e).__name__}: {e}")
+                            logger.error(f"❌ JSON array extraction failed: {type(e).__name__}: {e}")
                         
-                        # Strategy 2: Find balanced JSON array/object
-                        logger.info("🔍 Trying balanced JSON extraction strategy...")
+                        # Strategy 2: Look for markdown code blocks manually
+                        logger.info("🔍 Trying markdown code block extraction...")
                         try:
-                            extracted = self._extract_balanced_json(text)
-                            logger.info(f"🔍 Balanced JSON extracted: {len(extracted) if extracted else 0} chars")
-                            if extracted:
-                                logger.info(f"🔍 Balanced JSON preview: {extracted[:100]}...")
-                                extracted = self._fix_json_issues(extracted)
-                                logger.info(f"🔍 After JSON fixes: {len(extracted)} chars")
+                            # Look for ```json or ``` blocks
+                            json_block_match = re.search(r'```(?:json)?\s*\n(.*?)\n```', text, re.DOTALL)
+                            if json_block_match:
+                                extracted = json_block_match.group(1).strip()
+                                logger.info(f"🔍 Found markdown JSON block: {len(extracted)} chars")
                                 parsed = json.loads(extracted)
-                                logger.info(f"🔍 SUCCESS: Balanced JSON strategy worked!")
+                                logger.info(f"🔍 SUCCESS: Markdown block extraction worked!")
                                 return parsed
                             else:
-                                logger.info("🔍 No JSON found with balanced strategy")
+                                logger.info("🔍 No markdown code blocks found")
                         except Exception as e:
-                            logger.error(f"❌ Balanced JSON strategy failed: {type(e).__name__}: {e}")
+                            logger.error(f"❌ Markdown block extraction failed: {type(e).__name__}: {e}")
                         
                         # Strategy 3: Direct parsing
                         logger.info("🔍 Trying direct parsing strategy...")

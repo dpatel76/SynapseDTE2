@@ -28,6 +28,8 @@ import {
   HourglassEmpty as PendingIcon,
   PlayCircle as RunningIcon,
   Info as InfoIcon,
+  Pause as PauseIcon,
+  PlayArrow as ResumeIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
@@ -37,7 +39,7 @@ import { formatDistanceToNow } from 'date-fns';
 interface BackgroundJob {
   job_id: string;
   job_type: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled' | 'paused' | 'pausing';
   progress_percentage: number;
   current_step: string;
   message: string;
@@ -109,6 +111,28 @@ const BackgroundJobsPage: React.FC = () => {
     }
   };
 
+  // Pause a job
+  const handlePauseJob = async (jobId: string) => {
+    try {
+      await apiClient.post(`/jobs/${jobId}/pause`);
+      showSuccess('Job pause requested');
+      fetchJobs();
+    } catch (error: any) {
+      showError(`Failed to pause job: ${error.response?.data?.detail || error.message}`);
+    }
+  };
+
+  // Resume a job
+  const handleResumeJob = async (jobId: string) => {
+    try {
+      await apiClient.post(`/jobs/${jobId}/resume`);
+      showSuccess('Job resume requested');
+      fetchJobs();
+    } catch (error: any) {
+      showError(`Failed to resume job: ${error.response?.data?.detail || error.message}`);
+    }
+  };
+
   // Get job type display name
   const getJobTypeDisplay = (jobType: string): string => {
     const typeMap: Record<string, string> = {
@@ -136,6 +160,9 @@ const BackgroundJobsPage: React.FC = () => {
         return <ErrorIcon color="error" />;
       case 'cancelled':
         return <CancelIcon color="disabled" />;
+      case 'paused':
+      case 'pausing':
+        return <PauseIcon color="warning" />;
       default:
         return <InfoIcon color="action" />;
     }
@@ -153,6 +180,8 @@ const BackgroundJobsPage: React.FC = () => {
       case 'failed':
         return 'error';
       case 'cancelled':
+      case 'paused':
+      case 'pausing':
         return 'warning';
       default:
         return 'default';
@@ -165,7 +194,7 @@ const BackgroundJobsPage: React.FC = () => {
     
     // Status filter
     if (filter === 'active') {
-      filtered = filtered.filter(job => ['pending', 'running'].includes(job.status));
+      filtered = filtered.filter(job => ['pending', 'running', 'paused', 'pausing'].includes(job.status));
     } else if (filter === 'completed') {
       filtered = filtered.filter(job => ['completed', 'failed', 'cancelled'].includes(job.status));
     }
@@ -247,7 +276,7 @@ const BackgroundJobsPage: React.FC = () => {
     
     // Set up auto-refresh every 2 seconds for active jobs
     const interval = setInterval(() => {
-      const hasActiveJobs = jobs.some(job => ['pending', 'running'].includes(job.status));
+      const hasActiveJobs = jobs.some(job => ['pending', 'running', 'paused', 'pausing'].includes(job.status));
       if (hasActiveJobs) {
         fetchJobs();
       }
@@ -263,7 +292,7 @@ const BackgroundJobsPage: React.FC = () => {
   }, []);
 
   const filteredJobs = getFilteredJobs();
-  const activeJobsCount = jobs.filter(job => ['pending', 'running'].includes(job.status)).length;
+  const activeJobsCount = jobs.filter(job => ['pending', 'running', 'paused', 'pausing'].includes(job.status)).length;
 
   return (
     <Box>
@@ -459,17 +488,46 @@ const BackgroundJobsPage: React.FC = () => {
                     </Typography>
                   </TableCell>
                   <TableCell align="center">
-                    {['pending', 'running'].includes(job.status) && (
-                      <Tooltip title="Cancel Job">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleCancelJob(job.job_id)}
-                          color="error"
-                        >
-                          <CancelIcon />
-                        </IconButton>
-                      </Tooltip>
-                    )}
+                    <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
+                      {/* Pause button for running jobs */}
+                      {job.status === 'running' && job.metadata?.celery_task_id && (
+                        <Tooltip title="Pause Job">
+                          <IconButton
+                            size="small"
+                            onClick={() => handlePauseJob(job.job_id)}
+                            color="warning"
+                          >
+                            <PauseIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      
+                      {/* Resume button for paused jobs */}
+                      {['paused', 'pausing'].includes(job.status) && (
+                        <Tooltip title="Resume Job">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleResumeJob(job.job_id)}
+                            color="primary"
+                          >
+                            <ResumeIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      
+                      {/* Cancel button for pending, running, and paused jobs */}
+                      {['pending', 'running', 'paused', 'pausing'].includes(job.status) && (
+                        <Tooltip title="Cancel Job">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleCancelJob(job.job_id)}
+                            color="error"
+                          >
+                            <CancelIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Box>
                   </TableCell>
                 </TableRow>
               ))

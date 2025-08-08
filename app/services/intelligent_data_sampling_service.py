@@ -620,8 +620,8 @@ class IntelligentDataSamplingService:
                 
                 # Apply DQ rule filtering to clean samples - they should pass all rules with good pass rates
                 high_pass_rules = [r for r in attribute_rules if hasattr(r, 'pass_rate') and r.pass_rate >= 80]
+                dq_conditions = []  # Initialize outside the if block
                 if high_pass_rules:
-                    dq_conditions = []
                     for rule in high_pass_rules:
                         if hasattr(rule, 'rule_parameters') and rule.rule_parameters:
                             params = rule.rule_parameters

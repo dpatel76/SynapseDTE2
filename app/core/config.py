@@ -24,9 +24,9 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     
     # Database
-    database_url: str = "postgresql+asyncpg://synapse_user:synapse_password@localhost:5432/synapse_dt"
+    database_url: str = "postgresql+asyncpg://synapse_user:synapse_password@localhost:5433/synapse_dt"
     database_host: str = "localhost"
-    database_port: int = 5432
+    database_port: int = 5433
     database_name: str = "synapse_dt"
     database_user: str = "synapse_user"
     database_password: str = "synapse_password"

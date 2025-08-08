@@ -676,16 +676,15 @@ class SubmitCDOAssignmentsUseCase(UseCase):
                 raise ValueError(f"Data provider {assignment_req.data_owner_id} not found in your LOB")
             
             # Find the universal assignment for this CDO
-            # Multiple assignments might contain this attribute, get the most recent one
+            # Look for LOB Assignment for this user's LOB
             cdo_assignment = await db.execute(
                 select(UniversalAssignment)
                 .where(and_(
                     UniversalAssignment.assignment_type == 'LOB Assignment',
                     UniversalAssignment.to_user_id == current_user.user_id,
-                    UniversalAssignment.status == 'Assigned',
                     UniversalAssignment.context_data['cycle_id'].astext == str(cycle_id),
                     UniversalAssignment.context_data['report_id'].astext == str(report_id),
-                    UniversalAssignment.context_data['attribute_ids'].astext.contains(str(attribute_id_int))
+                    UniversalAssignment.context_data['lob_id'].astext == str(current_user.lob_id)
                 ))
                 .order_by(UniversalAssignment.created_at.desc())
                 .limit(1)
@@ -693,17 +692,22 @@ class SubmitCDOAssignmentsUseCase(UseCase):
             cdo_assignment = cdo_assignment.scalar_one_or_none()
             
             if cdo_assignment:
-                # Update the CDO assignment to completed
-                cdo_assignment.status = 'Completed'
-                cdo_assignment.completed_at = current_time
+                # Update the CDO assignment status if not already completed
+                if cdo_assignment.status != 'Completed':
+                    cdo_assignment.status = 'In Progress'
                 cdo_assignment.updated_at = current_time
                 cdo_assignment.updated_by_id = user_id
                 
                 # Add data owner info to context
-                context_data = cdo_assignment.context_data
-                context_data['data_owner_id'] = assignment_req.data_owner_id
-                context_data['data_owner_name'] = f"{data_owner.first_name} {data_owner.last_name}"
-                context_data['assignment_notes'] = assignment_req.assignment_notes
+                context_data = cdo_assignment.context_data or {}
+                if 'assigned_data_owners' not in context_data:
+                    context_data['assigned_data_owners'] = {}
+                context_data['assigned_data_owners'][str(attribute_id_int)] = {
+                    'data_owner_id': assignment_req.data_owner_id,
+                    'data_owner_name': f"{data_owner.first_name} {data_owner.last_name}",
+                    'attribute_name': attribute.attribute_name,
+                    'assignment_notes': assignment_req.assignment_notes
+                }
                 cdo_assignment.context_data = context_data
                 
                 # Create a new universal assignment for the data owner
@@ -872,7 +876,8 @@ class GetAssignmentMatrixUseCase(UseCase):
         self,
         cycle_id: int,
         report_id: int,
-        db: AsyncSession
+        db: AsyncSession,
+        current_user: Optional[User] = None  # Add current user parameter
     ) -> AssignmentMatrixDTO:
         """Get assignment matrix"""
         logger.info(f"GetAssignmentMatrixUseCase.execute called for cycle {cycle_id}, report {report_id}")
@@ -902,21 +907,23 @@ class GetAssignmentMatrixUseCase(UseCase):
                 status_summary={"Assigned": 0, "In Progress": 0, "Completed": 0, "Overdue": 0}
             )
         
-        # Get scoping phase to find approved non-PK attributes
-        from app.models.scoping import ScopingAttribute
-        scoping_phase = await db.execute(
+        # Get planning phase to find approved non-PK attributes
+        # We use planning attributes as the source of truth for CDE, PK, and issue information
+        from app.models.report_attribute import ReportAttribute as PlanningAttribute
+        
+        planning_phase = await db.execute(
             select(WorkflowPhase)
             .where(and_(
                 WorkflowPhase.cycle_id == cycle_id,
                 WorkflowPhase.report_id == report_id,
-                WorkflowPhase.phase_name == 'Scoping',
-                WorkflowPhase.status == 'Complete'
+                WorkflowPhase.phase_name == 'Planning'
             ))
         )
-        scoping_phase = scoping_phase.scalar_one_or_none()
+        planning_phase = planning_phase.scalar_one_or_none()
         
-        if not scoping_phase:
-            # Return empty if scoping phase not found
+        if not planning_phase:
+            logger.warning(f"No Planning phase found for cycle {cycle_id}, report {report_id}")
+            # Return empty if planning phase not found
             return AssignmentMatrixDTO(
                 cycle_id=cycle_id,
                 report_id=report_id,
@@ -927,72 +934,83 @@ class GetAssignmentMatrixUseCase(UseCase):
                 status_summary={"Assigned": 0, "In Progress": 0, "Completed": 0, "Overdue": 0}
             )
         
-        # Get approved scoping version first
-        from app.models.scoping import ScopingVersion
-        approved_scoping_version = await db.execute(
-            text('''
-                SELECT version_id FROM cycle_report_scoping_versions 
-                WHERE phase_id = :phase_id 
-                AND version_status = 'approved'
-                ORDER BY version_number DESC 
-                LIMIT 1
-            '''),
-            {'phase_id': scoping_phase.phase_id}
-        )
-        approved_version_row = approved_scoping_version.first()
+        # Get unique attribute IDs from approved samples instead of all planning attributes
+        # This ensures we only show assignments for attributes that have samples
+        from app.models.sample_selection import SampleSelectionSample, SampleSelectionVersion
         
-        if not approved_version_row:
-            logger.warning(f"No approved scoping version found")
-            return AssignmentMatrixDTO(
-                cycle_id=cycle_id,
-                report_id=report_id,
-                assignments=[],
-                data_owners=[],
-                lob_summary={},
-                cdo_summary={},
-                status_summary={"Assigned": 0, "In Progress": 0, "Completed": 0, "Overdue": 0}
-            )
-            
-        approved_version_id = approved_version_row.version_id
-        
-        # Get only non-primary key scoped attributes with planning attribute info
-        from app.models.report_attribute import ReportAttribute as PlanningAttribute
-        
-        scoped_attrs_query = await db.execute(
-            select(ScopingAttribute, PlanningAttribute)
-            .join(PlanningAttribute, ScopingAttribute.planning_attribute_id == PlanningAttribute.id)
+        # Get the approved sample selection version
+        sample_version = await db.execute(
+            select(SampleSelectionVersion)
+            .join(WorkflowPhase, SampleSelectionVersion.phase_id == WorkflowPhase.phase_id)
             .where(and_(
-                ScopingAttribute.version_id == approved_version_id,
-                ScopingAttribute.is_primary_key == False,
-                ScopingAttribute.tester_decision == 'accept'
+                WorkflowPhase.cycle_id == cycle_id,
+                WorkflowPhase.report_id == report_id,
+                WorkflowPhase.phase_name == 'Sample Selection',
+                SampleSelectionVersion.version_status == 'approved'
             ))
+            .order_by(SampleSelectionVersion.version_number.desc())
         )
-        scoped_attr_results = scoped_attrs_query.all()
+        sample_version = sample_version.scalar_one_or_none()
         
-        # Create a list of attribute objects with the name attached, filtering out PKs
-        scoped_attributes = []
-        for scoping_attr, planning_attr in scoped_attr_results:
-            # Skip if this is actually a primary key in the planning attributes
-            if planning_attr.is_primary_key:
-                logger.info(f"Skipping primary key attribute: {planning_attr.attribute_name}")
-                continue
-            # Add attribute_name to the scoping attribute for easier access
-            scoping_attr.attribute_name = planning_attr.attribute_name
-            scoped_attributes.append(scoping_attr)
-            
-        logger.info(f"Found {len(scoped_attributes)} scoped non-PK attributes (after filtering PKs)")
+        if not sample_version:
+            logger.warning(f"No approved sample selection version found")
+            return AssignmentMatrixDTO(
+                cycle_id=cycle_id,
+                report_id=report_id,
+                assignments=[],
+                data_owners=[],
+                lob_summary={},
+                cdo_summary={},
+                status_summary={"Assigned": 0, "In Progress": 0, "Completed": 0, "Overdue": 0}
+            )
+        
+        # Get unique attribute IDs from approved samples (using calculated_status)
+        unique_attr_result = await db.execute(
+            select(SampleSelectionSample.attribute_id)
+            .where(and_(
+                SampleSelectionSample.version_id == sample_version.version_id,
+                SampleSelectionSample.calculated_status == 'approved',  # Use calculated_status column
+                SampleSelectionSample.attribute_id.isnot(None)
+            ))
+            .distinct()
+        )
+        unique_attribute_ids = [row[0] for row in unique_attr_result.all()]
+        
+        logger.info(f"Found {len(unique_attribute_ids)} unique attributes from approved samples: {unique_attribute_ids}")
+        
+        # Now get the planning attributes for these specific IDs
+        if not unique_attribute_ids:
+            logger.warning("No attributes found in approved samples")
+            scoped_attributes = []
+        else:
+            scoped_attrs_query = await db.execute(
+                select(PlanningAttribute)
+                .where(PlanningAttribute.id.in_(unique_attribute_ids))
+            )
+            scoped_attributes = scoped_attrs_query.scalars().all()
+            logger.info(f"Found {len(scoped_attributes)} planning attributes for approved samples")
         
         # Import the mapping model
         from app.models.data_owner_lob_assignment import DataOwnerLOBAttributeMapping
         
         # Get attribute LOB mappings from the mapping table
-        mappings_query = await db.execute(
-            select(DataOwnerLOBAttributeMapping, LOB, User)
-            .join(LOB, DataOwnerLOBAttributeMapping.lob_id == LOB.lob_id)
-            .outerjoin(User, DataOwnerLOBAttributeMapping.data_owner_id == User.user_id)
-            .where(DataOwnerLOBAttributeMapping.phase_id == workflow_phase.phase_id)
+        mappings_query = select(DataOwnerLOBAttributeMapping, LOB, User).join(
+            LOB, DataOwnerLOBAttributeMapping.lob_id == LOB.lob_id
+        ).outerjoin(
+            User, DataOwnerLOBAttributeMapping.data_owner_id == User.user_id
+        ).where(
+            DataOwnerLOBAttributeMapping.phase_id == workflow_phase.phase_id
         )
-        mappings = mappings_query.all()
+        
+        # Filter by LOB if current user is a Data Executive
+        if current_user and current_user.role == 'Data Executive' and current_user.lob_id:
+            logger.info(f"Data Executive {current_user.email} with LOB {current_user.lob_id} - filtering assignments")
+            mappings_query = mappings_query.where(
+                DataOwnerLOBAttributeMapping.lob_id == current_user.lob_id
+            )
+        
+        mappings_result = await db.execute(mappings_query)
+        mappings = mappings_result.all()
         
         logger.info(f"Found {len(mappings)} mappings in database for phase_id {workflow_phase.phase_id}")
         
@@ -1013,14 +1031,14 @@ class GetAssignmentMatrixUseCase(UseCase):
         status_summary = {"Assigned": 0, "In Progress": 0, "Completed": 0, "Overdue": 0}
         
         for attribute in scoped_attributes:
-            attribute_mappings = mapping_lookup.get(attribute.planning_attribute_id, [])
-            logger.info(f"Processing attribute {attribute.planning_attribute_id} ({attribute.attribute_name}), found {len(attribute_mappings)} mappings")
+            attribute_mappings = mapping_lookup.get(attribute.id, [])
+            logger.info(f"Processing attribute {attribute.id} ({attribute.attribute_name}), found {len(attribute_mappings)} mappings")
             
             # If no mappings exist for this attribute, it needs LOB assignment
             if not attribute_mappings:
-                logger.info(f"No mappings for attribute {attribute.planning_attribute_id}, creating pending assignment status")
+                logger.info(f"No mappings for attribute {attribute.id}, creating pending assignment status")
                 assignment_status = AttributeAssignmentStatusDTO(
-                    attribute_id=str(attribute.planning_attribute_id),  # Use planning attribute ID (integer) not scoping UUID
+                    attribute_id=str(attribute.id),  # Use planning attribute ID
                     attribute_name=attribute.attribute_name,
                     is_primary_key=False,
                     assigned_lobs=[],
@@ -1050,11 +1068,21 @@ class GetAssignmentMatrixUseCase(UseCase):
                 else:
                     assignment_status_val = AssignmentStatusEnum.IN_PROGRESS
                 
+                # Build LOB assignment with executive details
+                lob_assignment = {
+                    "lob_id": lob.lob_id,
+                    "lob_name": lob.lob_name,
+                    "data_owner_id": data_owner.user_id if data_owner else None,
+                    "data_owner_name": f"{data_owner.first_name} {data_owner.last_name}" if data_owner else None,
+                    "data_executive_id": mapping.data_executive_id,
+                    "can_assign": current_user and current_user.user_id == mapping.data_executive_id if mapping.data_executive_id else False
+                }
+                
                 assignment_status = AttributeAssignmentStatusDTO(
-                    attribute_id=str(attribute.planning_attribute_id),
+                    attribute_id=str(attribute.id),
                     attribute_name=attribute.attribute_name,
                     is_primary_key=False,
-                    assigned_lobs=[{"lob_id": lob.lob_id, "lob_name": lob.lob_name}],
+                    assigned_lobs=[lob_assignment],
                     data_owner_id=data_owner.user_id if data_owner else None,
                     data_owner_name=f"{data_owner.first_name} {data_owner.last_name}" if data_owner else None,
                     assigned_by=mapping.created_by_id,

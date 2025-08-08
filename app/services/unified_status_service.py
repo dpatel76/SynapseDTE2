@@ -169,36 +169,12 @@ class UnifiedStatusService:
         
         if completed == total and total > 0:
             phase_status = "completed"
-            # Update workflow phase state if all activities are complete
-            if workflow_phase and workflow_phase.state != 'Complete':
-                workflow_phase.state = 'Complete'
-                workflow_phase.state = 'Complete'  # Update legacy status field too
-                if not workflow_phase.actual_end_date:
-                    workflow_phase.actual_end_date = datetime.utcnow()
-                if not workflow_phase.completed_by:
-                    # Get the user who completed the last activity
-                    for activity in db_activities:
-                        if activity.get('completed_by'):
-                            workflow_phase.completed_by = activity['completed_by']
-                            break
-                await self.db.commit()
-                logger.info(f"Updated {phase_name} phase state to Complete")
+            # Don't update the database during a read operation
+            # Phase state updates should be handled by activity transitions
         elif active > 0 or completed > 0:
             phase_status = "in_progress"
-            # Update workflow phase state if it's not already in progress
-            if workflow_phase and workflow_phase.state == 'Not Started':
-                workflow_phase.state = 'In Progress'
-                workflow_phase.state = 'In Progress'  # Update legacy status field too
-                if not workflow_phase.actual_start_date:
-                    workflow_phase.actual_start_date = datetime.utcnow()
-                if not workflow_phase.started_by:
-                    # Get the user who started the first activity
-                    for activity in db_activities:
-                        if activity.get('started_by'):
-                            workflow_phase.started_by = activity['started_by']
-                            break
-                await self.db.commit()
-                logger.info(f"Updated {phase_name} phase state to In Progress")
+            # Don't update the database during a read operation
+            # Phase state updates should be handled by activity transitions
         else:
             phase_status = "not_started"
         
@@ -643,24 +619,97 @@ class UnifiedStatusService:
         else:
             total_completion = 0
         
-        # Get profiling metrics
-        total_attrs_query = select(func.count(ReportAttribute.id)).where(
+        # Get profiling metrics from Planning phase
+        from app.models.planning import PlanningAttribute
+        
+        # Get planning phase_id
+        planning_phase_query = select(WorkflowPhase.phase_id).where(
             and_(
-                ReportAttribute.cycle_id == cycle_id,
-                ReportAttribute.report_id == report_id,
-                ReportAttribute.is_active == True
+                WorkflowPhase.cycle_id == cycle_id,
+                WorkflowPhase.report_id == report_id,
+                WorkflowPhase.phase_name == "Planning"
             )
         )
-        total_attrs = await self.db.scalar(total_attrs_query) or 0
+        planning_phase_id = await self.db.scalar(planning_phase_query)
+        
+        # Count total attributes from planning phase
+        total_attrs = 0
+        if planning_phase_id:
+            # Use the correct table name for planning attributes
+            from app.models.planning import PlanningAttribute
+            total_attrs_query = select(func.count(PlanningAttribute.attribute_id)).where(
+                PlanningAttribute.phase_id == planning_phase_id
+            )
+            total_attrs = await self.db.scalar(total_attrs_query) or 0
+        
+        # Get data profiling phase_id
+        data_profiling_phase_id = None
+        if workflow_phase:
+            data_profiling_phase_id = workflow_phase.phase_id
+        
+        # Count attributes with rules
+        attributes_with_rules = 0
+        total_profiling_rules = 0
+        if data_profiling_phase_id:
+            # Get latest version
+            from app.models.data_profiling import DataProfilingRuleVersion, ProfilingRule
+            latest_version_query = select(DataProfilingRuleVersion).where(
+                DataProfilingRuleVersion.phase_id == data_profiling_phase_id
+            ).order_by(DataProfilingRuleVersion.version_number.desc()).limit(1)
+            latest_version_result = await self.db.execute(latest_version_query)
+            latest_version = latest_version_result.scalar_one_or_none()
+            
+            if latest_version:
+                # Count distinct attributes with rules (only approved by both tester and report owner)
+                from app.models.data_profiling import Decision
+                attrs_with_rules_query = select(func.count(func.distinct(ProfilingRule.attribute_id))).where(
+                    and_(
+                        ProfilingRule.version_id == latest_version.version_id,
+                        ProfilingRule.tester_decision == Decision.APPROVED,
+                        ProfilingRule.report_owner_decision == Decision.APPROVED
+                    )
+                )
+                attributes_with_rules = await self.db.scalar(attrs_with_rules_query) or 0
+                
+                # Count total rules (only approved by both tester and report owner)
+                total_rules_query = select(func.count(ProfilingRule.rule_id)).where(
+                    and_(
+                        ProfilingRule.version_id == latest_version.version_id,
+                        ProfilingRule.tester_decision == Decision.APPROVED,
+                        ProfilingRule.report_owner_decision == Decision.APPROVED
+                    )
+                )
+                total_profiling_rules = await self.db.scalar(total_rules_query) or 0
         
         # Count profiled attributes (those with profiling results)
         profiled_attrs_query = select(func.count(func.distinct(ProfilingResult.attribute_id))).where(
             and_(
-                ProfilingResult.cycle_id == cycle_id,
-                ProfilingResult.report_id == report_id
+                ProfilingResult.phase_id == data_profiling_phase_id
             )
         )
         profiled_attrs = await self.db.scalar(profiled_attrs_query) or 0
+        
+        # Count attributes with anomalies (simplified - just count those with failed results)
+        attributes_with_anomalies = 0
+        cdes_with_anomalies = 0
+        if data_profiling_phase_id:
+            # Count attributes with any failed results
+            anomaly_query = select(func.count(func.distinct(ProfilingResult.attribute_id))).where(
+                and_(
+                    ProfilingResult.phase_id == data_profiling_phase_id,
+                    ProfilingResult.has_anomaly == True
+                )
+            )
+            attributes_with_anomalies = await self.db.scalar(anomaly_query) or 0
+            
+            # For CDEs, we'd need to join with planning attributes to check is_cde flag
+            # For now, just use 0
+            cdes_with_anomalies = 0
+        
+        # Calculate completion percentage
+        completion_percentage = 0
+        if total_attrs > 0:
+            completion_percentage = int((attributes_with_rules / total_attrs) * 100)
         
         return PhaseStatus(
             phase_name="Data Profiling",
@@ -675,6 +724,13 @@ class UnifiedStatusService:
             metadata={
                 "total_attributes": total_attrs,
                 "profiled_attributes": profiled_attrs,
+                "attributes_with_rules": attributes_with_rules,
+                "total_profiling_rules": total_profiling_rules,
+                "rules_generated": total_profiling_rules,  # Same as total for now
+                "attributes_with_anomalies": attributes_with_anomalies,
+                "cdes_with_anomalies": cdes_with_anomalies,
+                "days_elapsed": 1,  # TODO: Calculate from phase start date
+                "completion_percentage": completion_percentage,
                 "started_at": workflow_phase.actual_start_date if workflow_phase else None,
                 "completed_at": workflow_phase.actual_end_date if workflow_phase else None
             }

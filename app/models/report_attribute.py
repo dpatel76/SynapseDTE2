@@ -70,7 +70,7 @@ class ReportAttribute(CustomPKModel, AuditMixin):
     historical_issues_flag = Column('has_issues', Boolean, default=False, nullable=False)
     is_scoped = Column(Boolean, default=False, nullable=False)
     llm_generated = Column(Boolean, default=False, nullable=False)
-    llm_rationale = Column(Text, nullable=True)
+    # llm_rationale moved to scoping phase - not in planning database
     tester_notes = Column(Text, nullable=True)
     
     # Data dictionary import fields
@@ -78,15 +78,17 @@ class ReportAttribute(CustomPKModel, AuditMixin):
     technical_line_item_name = Column(String(255), nullable=True, comment='Technical line item name from data dictionary')
     mdrm = Column(String(50), nullable=True, comment='MDRM code from regulatory data dictionary')
     
-    # Enhanced LLM-generated fields for better testing guidance
-    validation_rules = Column(Text, nullable=True)
-    typical_source_documents = Column(Text, nullable=True)
-    keywords_to_look_for = Column(Text, nullable=True)
-    testing_approach = Column(Text, nullable=True)
+    # NOTE: The following fields have been moved to scoping phase:
+    # - validation_rules -> moved to cycle_report_scoping_attributes
+    # - typical_source_documents -> mapped to expected_source_documents in scoping
+    # - keywords_to_look_for -> mapped to search_keywords in scoping
+    # - testing_approach -> moved to cycle_report_scoping_attributes
+    # - risk_score -> moved to scoping as part of LLM recommendation
+    # - llm_rationale -> moved to scoping phase
+    # These columns don't exist in the database anymore
     
-    # Risk assessment fields
-    risk_score = Column(Float, nullable=True, comment='LLM-provided risk score (0-10) based on regulatory importance')
-    llm_risk_rationale = Column(Text, nullable=True, comment='LLM explanation for the assigned risk score')
+    # llm_risk_rationale exists in database
+    llm_risk_rationale = Column(Text, nullable=True, comment='LLM risk rationale')
     
     # Primary key support fields
     is_primary_key = Column(Boolean, default=False, nullable=False, comment='Whether this attribute is part of the primary key')
@@ -98,12 +100,16 @@ class ReportAttribute(CustomPKModel, AuditMixin):
     # Approval workflow field
     approval_status = Column('status', String(20), default='pending', nullable=False, comment='Approval status: pending, approved, rejected')
     
+    # AUDIT FIELDS (Added per requirements)
+    created_by = Column(Integer, ForeignKey('users.user_id'), nullable=True, comment='User who created this attribute')
+    updated_by = Column(Integer, ForeignKey('users.user_id'), nullable=True, comment='User who last updated this attribute')
+    
     # VERSIONING FIELDS
     # Master attribute reference (links all versions of the same logical attribute)
     master_attribute_id = Column(Integer, ForeignKey("cycle_report_planning_attributes.id"), nullable=True)
     
     # Version information
-    version_number = Column('version', Integer, default=1, nullable=False, comment='Version number of this attribute')
+    version = Column(Integer, default=1, nullable=False, comment='Version number of this attribute')
     is_latest_version = Column(Boolean, default=True, nullable=False, comment='Whether this is the latest version')
     is_active = Column(Boolean, default=True, nullable=False, comment='Whether this version is active')
     
@@ -152,6 +158,10 @@ class ReportAttribute(CustomPKModel, AuditMixin):
                                     primaryjoin="ReportAttribute.replaced_attribute_id==ReportAttribute.id",
                                     remote_side="ReportAttribute.id")
     
+    # Audit tracking relationships (Added per requirements)
+    created_by_user = relationship("User", foreign_keys=[created_by])
+    updated_by_user = relationship("User", foreign_keys=[updated_by])
+    
     # Version tracking relationships
     version_created_by_user = relationship("User", foreign_keys=[version_created_by])
     approved_by_user = relationship("User", foreign_keys=[approved_by])
@@ -169,6 +179,16 @@ class ReportAttribute(CustomPKModel, AuditMixin):
     def attribute_id(self, value):
         """Backward compatibility setter for attribute_id"""
         self.id = value
+    
+    @property
+    def version_number(self):
+        """Backward compatibility property for version_number"""
+        return self.version
+    
+    @version_number.setter
+    def version_number(self, value):
+        """Backward compatibility setter for version_number"""
+        self.version = value
     
     @hybrid_property
     def cycle_id(self):
@@ -230,7 +250,7 @@ class ReportAttribute(CustomPKModel, AuditMixin):
                 historical_issues_flag=self.historical_issues_flag,
                 is_scoped=self.is_scoped,
                 llm_generated=self.llm_generated,
-                llm_rationale=self.llm_rationale,
+                # llm_rationale field moved to scoping - skip it
                 tester_notes=self.tester_notes,
                 
                 # Data dictionary import fields
@@ -238,14 +258,11 @@ class ReportAttribute(CustomPKModel, AuditMixin):
                 technical_line_item_name=self.technical_line_item_name,
                 mdrm=self.mdrm,
                 
-                # Enhanced LLM-generated fields for better testing guidance
-                validation_rules=self.validation_rules,
-                typical_source_documents=self.typical_source_documents,
-                keywords_to_look_for=self.keywords_to_look_for,
-                testing_approach=self.testing_approach,
+                # Fields moved to scoping - skip them
+                # validation_rules, typical_source_documents, keywords_to_look_for, testing_approach
+                # risk_score moved to scoping
                 
-                # Risk assessment fields
-                risk_score=self.risk_score,
+                # Risk assessment fields that still exist
                 llm_risk_rationale=self.llm_risk_rationale,
                 
                 # Primary key support fields
@@ -260,7 +277,7 @@ class ReportAttribute(CustomPKModel, AuditMixin):
                 master_attribute_id=self.master_attribute_id or self.attribute_id,
                 
                 # Version information
-                version_number=self.version_number + 1,
+                version=self.version + 1,
                 is_latest_version=True,
                 is_active=True,
                 
@@ -271,7 +288,7 @@ class ReportAttribute(CustomPKModel, AuditMixin):
                 version_created_by=updated_by_user_id
             )
             
-            logger.info(f"Created new version {new_version.version_number} for attribute {self.attribute_id}")
+            logger.info(f"Created new version {new_version.version} for attribute {self.attribute_id}")
             return new_version
             
         except Exception as e:
@@ -290,10 +307,10 @@ class ReportAttribute(CustomPKModel, AuditMixin):
             change_type='approved',
             changed_by=approved_by_user_id,
             change_notes=approval_notes,
-            version_number=self.version_number
+            version_number=self.version
         )
         
-        logger.info(f"Approved attribute version {self.attribute_id} v{self.version_number} by user {approved_by_user_id}")
+        logger.info(f"Approved attribute version {self.attribute_id} v{self.version} by user {approved_by_user_id}")
         return change_log
     
     def reject_version(self, rejected_by_user_id: int, rejection_reason: str = None):
@@ -307,10 +324,10 @@ class ReportAttribute(CustomPKModel, AuditMixin):
             change_type='rejected',
             changed_by=rejected_by_user_id,
             change_notes=rejection_reason,
-            version_number=self.version_number
+            version_number=self.version
         )
         
-        logger.info(f"Rejected attribute version {self.attribute_id} v{self.version_number} by user {rejected_by_user_id}")
+        logger.info(f"Rejected attribute version {self.attribute_id} v{self.version} by user {rejected_by_user_id}")
         return change_log
     
     def archive_version(self, archived_by_user_id: int, archive_reason: str = None):
@@ -325,10 +342,10 @@ class ReportAttribute(CustomPKModel, AuditMixin):
             change_type='archived',
             changed_by=archived_by_user_id,
             change_notes=archive_reason,
-            version_number=self.version_number
+            version_number=self.version
         )
         
-        logger.info(f"Archived attribute version {self.attribute_id} v{self.version_number} by user {archived_by_user_id}")
+        logger.info(f"Archived attribute version {self.attribute_id} v{self.version} by user {archived_by_user_id}")
         return change_log
     
     def restore_version(self, restored_by_user_id: int, restore_reason: str = None):
@@ -348,10 +365,10 @@ class ReportAttribute(CustomPKModel, AuditMixin):
             change_type='restored',
             changed_by=restored_by_user_id,
             change_notes=restore_reason,
-            version_number=self.version_number
+            version_number=self.version
         )
         
-        logger.info(f"Restored attribute version {self.attribute_id} v{self.version_number} by user {restored_by_user_id}")
+        logger.info(f"Restored attribute version {self.attribute_id} v{self.version} by user {restored_by_user_id}")
         return change_log
     
     def get_version_summary(self) -> dict:
@@ -386,14 +403,16 @@ class ReportAttribute(CustomPKModel, AuditMixin):
             'attribute_name', 'description', 'data_type', 'mandatory_flag',
             'cde_flag', 'historical_issues_flag', 'is_scoped', 'tester_notes',
             'line_item_number', 'technical_line_item_name', 'mdrm',
-            'validation_rules', 'typical_source_documents', 'keywords_to_look_for',
-            'testing_approach', 'risk_score', 'llm_risk_rationale',
+            # Fields moved to scoping - removed from comparison
+            # 'validation_rules', 'typical_source_documents', 'keywords_to_look_for',
+            # 'testing_approach', 'risk_score',
+            'llm_risk_rationale',
             'is_primary_key', 'primary_key_order'
         ]
         
         for field in fields_to_compare:
-            old_value = getattr(compared_to_version, field)
-            new_value = getattr(self, field)
+            old_value = getattr(compared_to_version, field, None)
+            new_value = getattr(self, field, None)
             
             if old_value != new_value:
                 changes.append({
@@ -404,11 +423,11 @@ class ReportAttribute(CustomPKModel, AuditMixin):
         
         return {
             "changes": changes,
-            "summary": f"{len(changes)} field(s) changed from version {compared_to_version.version_number} to {self.version_number}"
+            "summary": f"{len(changes)} field(s) changed from version {compared_to_version.version} to {self.version}"
         }
     
     def __repr__(self):
-        return f"<ReportAttribute(id={self.attribute_id}, name='{self.attribute_name}', v{self.version_number}, status='{self.approval_status}')>"
+        return f"<ReportAttribute(id={self.attribute_id}, name='{self.attribute_name}', v{self.version}, status='{self.approval_status}')>"
 
 
 class AttributeVersionChangeLog(CustomPKModel, AuditMixin):
@@ -437,7 +456,7 @@ class AttributeVersionChangeLog(CustomPKModel, AuditMixin):
     changed_by_user = relationship("User", foreign_keys=[changed_by])
     
     def __repr__(self):
-        return f"<AttributeVersionChangeLog(id={self.log_id}, attr={self.attribute_id}, type='{self.change_type}', v{self.version_number})>"
+        return f"<AttributeVersionChangeLog(id={self.log_id}, attr={self.attribute_id}, type='{self.change_type}', v{self.version})>"
 
 
 class AttributeVersionComparison(CustomPKModel, AuditMixin):

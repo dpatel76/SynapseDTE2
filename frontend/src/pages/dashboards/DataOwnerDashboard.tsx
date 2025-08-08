@@ -174,7 +174,9 @@ const DataOwnerDashboard: React.FC = () => {
           phase.pending_test_cases++;
         }
         
-        phase.completion_percentage = (phase.submitted_test_cases / phase.total_test_cases) * 100;
+        phase.completion_percentage = phase.total_test_cases > 0 
+          ? (phase.submitted_test_cases / phase.total_test_cases) * 100
+          : 0;
         
         // Calculate days remaining
         if (testCase.submission_deadline) {
@@ -383,14 +385,14 @@ const DataOwnerDashboard: React.FC = () => {
                     Completion
                   </Typography>
                   <Typography variant="h4" color="primary.main">
-                    {metrics.completion_percentage.toFixed(0)}%
+                    {(metrics.completion_percentage ?? 0).toFixed(0)}%
                   </Typography>
                 </Box>
                 <DescriptionIcon color="primary" sx={{ fontSize: 40 }} />
               </Box>
               <LinearProgress 
                 variant="determinate" 
-                value={metrics.completion_percentage} 
+                value={metrics.completion_percentage ?? 0} 
                 sx={{ mt: 1 }}
               />
             </CardContent>
@@ -434,11 +436,11 @@ const DataOwnerDashboard: React.FC = () => {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <LinearProgress 
                             variant="determinate" 
-                            value={phase.completion_percentage} 
+                            value={phase.completion_percentage ?? 0} 
                             sx={{ width: 100 }}
                           />
                           <Typography variant="body2">
-                            {phase.completion_percentage.toFixed(0)}%
+                            {(phase.completion_percentage ?? 0).toFixed(0)}%
                           </Typography>
                         </Box>
                       </TableCell>

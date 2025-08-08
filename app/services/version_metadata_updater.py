@@ -257,7 +257,14 @@ class VersionMetadataUpdater:
             return
             
         # Check if both approvals exist
-        metadata = version.metadata or {}
+        # Handle different metadata field names for different version types
+        if hasattr(version, 'version_metadata'):
+            metadata = version.version_metadata or {}
+        elif hasattr(version, 'metadata') and not isinstance(version.metadata, type):
+            metadata = version.metadata or {}
+        else:
+            metadata = {}
+            
         reviewed_by_ro = metadata.get('reviewed_by_report_owner', False)
         ro_decision = metadata.get('report_owner_decision')
         approved_by_tester = metadata.get('approved_by_tester', False)
@@ -285,9 +292,14 @@ class VersionMetadataUpdater:
                 )
             )
             
-            # Flag metadata as modified
+            # Flag metadata as modified and update the correct field
             from sqlalchemy.orm.attributes import flag_modified
-            flag_modified(version, 'metadata')
+            if hasattr(version, 'version_metadata'):
+                flag_modified(version, 'version_metadata')
+                version.version_metadata = metadata
+            else:
+                flag_modified(version, 'metadata')
+                version.metadata = metadata
             
             version.updated_at = datetime.utcnow()
             

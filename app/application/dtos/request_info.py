@@ -35,12 +35,15 @@ class DocumentTypeEnum(str, Enum):
 
 
 class TestCaseStatusEnum(str, Enum):
-    """Test case status"""
+    """Test case status - matches database phase_status_enum"""
+    NOT_STARTED = "Not Started"
+    IN_PROGRESS = "In Progress"
+    COMPLETE = "Complete"
+    PENDING_APPROVAL = "Pending Approval"
+    # Legacy values for backward compatibility
     PENDING = "Pending"
     SUBMITTED = "Submitted"
     OVERDUE = "Overdue"
-    IN_PROGRESS = "In Progress"
-    COMPLETE = "Complete"
 
 
 class RequestInfoPhaseStartDTO(BaseModel):
@@ -78,7 +81,7 @@ class TestCaseResponseDTO(BaseModel):
     primary_key_attributes: Dict[str, Any]
     expected_evidence_type: Optional[str]
     special_instructions: Optional[str]
-    status: TestCaseStatusEnum
+    status: str  # Using str to be flexible with database enum values
     submission_deadline: Optional[datetime]
     submitted_at: Optional[datetime]
     acknowledged_at: Optional[datetime]
@@ -195,6 +198,14 @@ class DataOwnerPortalDataDTO(BaseModel):
     total_overdue: int
     submission_deadline: Optional[datetime]
     instructions: Optional[str]
+    # Additional fields expected by frontend
+    cycle_name: Optional[str] = None
+    report_name: Optional[str] = None
+    days_remaining: Optional[int] = None
+    total_test_cases: int = 0  # Alias for total_assigned
+    submitted_test_cases: int = 0  # Alias for total_submitted
+    pending_test_cases: int = 0  # Alias for total_pending
+    completion_percentage: float = 0.0
 
 
 class PhaseProgressSummaryDTO(BaseModel):

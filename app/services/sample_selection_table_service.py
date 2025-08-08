@@ -98,7 +98,7 @@ class SampleSelectionTableService:
             actual_sample_size=0,
             created_by_id=user_id,
             updated_by_id=user_id,
-            metadata={}
+            version_metadata={}
         )
         
         db.add(version)
@@ -263,6 +263,7 @@ class SampleSelectionTableService:
                 version_id=version_id,
                 phase_id=version.phase_id,
                 lob_id=lob_id,  # Can be None - tester will assign later
+                attribute_id=sample_data.get('attribute_id'),  # Add attribute_id
                 sample_identifier=sample_data.get('primary_attribute_value', ''),
                 sample_data=_serialize_for_json(sample_data.get('data_row_snapshot', {})),
                 sample_category=SampleCategory(sample_data.get('sample_category', 'clean')),
@@ -404,7 +405,7 @@ class SampleSelectionTableService:
             actual_sample_size=0,
             created_by_id=user_id,
             updated_by_id=user_id,
-            metadata={
+            version_metadata={
                 "created_from": f"version_{parent_version.version_number}",
                 "change_reason": change_reason,
                 "parent_version_id": str(parent_version_id)
@@ -430,6 +431,7 @@ class SampleSelectionTableService:
                 version_id=new_version.version_id,
                 phase_id=phase_id,
                 lob_id=sample.lob_id,
+                attribute_id=sample.attribute_id,  # Carry forward attribute_id
                 sample_identifier=sample.sample_identifier,
                 sample_data=sample.sample_data,
                 sample_category=sample.sample_category,
@@ -493,7 +495,7 @@ class SampleSelectionTableService:
             actual_sample_size=0,
             created_by_id=user_id,
             updated_by_id=user_id,
-            metadata={
+            version_metadata={
                 "generation_method": generation_method or "manual",
                 "change_reason": change_reason or "Created new version"
             }
@@ -657,6 +659,7 @@ class SampleSelectionTableService:
                 version_id=new_version.version_id,
                 phase_id=sample.phase_id,
                 lob_id=sample.lob_id,
+                attribute_id=sample.attribute_id,  # Preserve attribute_id
                 sample_identifier=sample.sample_identifier,
                 sample_data=sample.sample_data,
                 sample_category=sample.sample_category,
@@ -740,7 +743,7 @@ class SampleSelectionTableService:
                 created_at=datetime.fromisoformat(v_data['created_at']) if 'created_at' in v_data else datetime.utcnow(),
                 created_by_id=v_data.get('created_by', user_id),
                 updated_by_id=user_id,
-                metadata=v_data.get('metadata', {})
+                version_metadata=v_data.get('metadata', {})
             )
             
             db.add(version)
@@ -766,6 +769,7 @@ class SampleSelectionTableService:
                 version_id=version_id,
                 phase_id=phase.phase_id,
                 lob_id=lob.lob_id,
+                attribute_id=s_data.get('attribute_id'),  # Add attribute_id
                 sample_identifier=s_data.get('primary_attribute_value', ''),
                 sample_data=s_data.get('data_row_snapshot', {}),
                 sample_category=SampleCategory.CLEAN,

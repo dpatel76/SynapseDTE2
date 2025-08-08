@@ -304,7 +304,7 @@ const ObservationManagementDashboard: React.FC<ObservationManagementDashboardPro
                       Completion
                     </Typography>
                     <Typography variant="h4">
-                      {Math.round(workflowStatus.workflow_completion_percentage)}%
+                      {Math.round(workflowStatus.workflow_completion_percentage ?? 0)}%
                     </Typography>
                   </Box>
                   <TrendingUp color="success" sx={{ fontSize: 40 }} />

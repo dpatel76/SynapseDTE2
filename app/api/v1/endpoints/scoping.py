@@ -55,33 +55,53 @@ router = APIRouter(tags=["scoping"])
 
 # Helper functions for calculating metrics
 async def _calculate_cdes_count(db: AsyncSession, phase_id: int) -> int:
-    """Calculate number of CDEs in the phase"""
-    from app.models.report_attribute import ReportAttribute
+    """Calculate number of CDEs in the planning phase for this report"""
+    from sqlalchemy import text
     
-    query = await db.execute(
-        select(func.count()).select_from(ReportAttribute)
-        .where(
-            and_(
-                ReportAttribute.phase_id == phase_id,
-                ReportAttribute.is_cde == True
-            )
-        )
-    )
+    # Get the planning phase_id for the same cycle/report
+    planning_phase_query = await db.execute(text("""
+        SELECT p2.phase_id 
+        FROM workflow_phases p1
+        JOIN workflow_phases p2 ON p1.cycle_id = p2.cycle_id AND p1.report_id = p2.report_id
+        WHERE p1.phase_id = :phase_id AND p2.phase_name = 'Planning'
+    """), {"phase_id": phase_id})
+    
+    planning_phase_result = planning_phase_query.scalar_one_or_none()
+    if not planning_phase_result:
+        return 0
+    
+    # Count CDEs in planning attributes
+    query = await db.execute(text("""
+        SELECT COUNT(*) 
+        FROM cycle_report_planning_attributes 
+        WHERE phase_id = :phase_id AND is_cde = true
+    """), {"phase_id": planning_phase_result})
+    
     return query.scalar() or 0
 
 async def _calculate_historical_issues(db: AsyncSession, phase_id: int) -> int:
-    """Calculate number of attributes with historical issues"""
-    from app.models.report_attribute import ReportAttribute
+    """Calculate number of attributes with historical issues in the planning phase"""
+    from sqlalchemy import text
     
-    query = await db.execute(
-        select(func.count()).select_from(ReportAttribute)
-        .where(
-            and_(
-                ReportAttribute.phase_id == phase_id,
-                ReportAttribute.has_issues == True
-            )
-        )
-    )
+    # Get the planning phase_id for the same cycle/report
+    planning_phase_query = await db.execute(text("""
+        SELECT p2.phase_id 
+        FROM workflow_phases p1
+        JOIN workflow_phases p2 ON p1.cycle_id = p2.cycle_id AND p1.report_id = p2.report_id
+        WHERE p1.phase_id = :phase_id AND p2.phase_name = 'Planning'
+    """), {"phase_id": phase_id})
+    
+    planning_phase_result = planning_phase_query.scalar_one_or_none()
+    if not planning_phase_result:
+        return 0
+    
+    # Count historical issues in planning attributes
+    query = await db.execute(text("""
+        SELECT COUNT(*) 
+        FROM cycle_report_planning_attributes 
+        WHERE phase_id = :phase_id AND has_issues = true
+    """), {"phase_id": planning_phase_result})
+    
     return query.scalar() or 0
 
 async def _calculate_attributes_with_anomalies_scoping(db: AsyncSession, cycle_id: int, report_id: int) -> int:
@@ -207,12 +227,12 @@ async def add_attributes_to_version(
         service = ScopingService(db)
         
         # Extract data for service call
-        planning_attribute_ids = [attr.planning_attribute_id for attr in attributes_data.attributes]
+        attribute_ids = [attr.attribute_id for attr in attributes_data.attributes]
         llm_recommendations = [attr.llm_recommendation.dict() for attr in attributes_data.attributes]
         
         attributes = await service.add_attributes_to_version(
             version_id=version_id,
-            planning_attribute_ids=planning_attribute_ids,
+            attribute_ids=attribute_ids,
             llm_recommendations=llm_recommendations,
             user_id=current_user.user_id
         )
@@ -226,21 +246,34 @@ async def add_attributes_to_version(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
 
-@router.post("/attributes/{attribute_id}/tester-decision", response_model=ScopingAttributeResponse)
-async def make_tester_decision(
-    attribute_id: UUID = Path(..., description="Attribute ID"),
+@router.post("/versions/{version_id}/attributes/{attribute_id}/tester-decision")
+async def make_tester_decision_by_planning_id(
+    version_id: UUID = Path(..., description="Version ID"),
+    attribute_id: int = Path(..., description="Planning Attribute ID"),
     decision_data: TesterDecisionCreate = Body(...),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Make a tester decision on a scoping attribute.
-    
-    Records the tester's decision (accept, decline, or override) for an attribute.
-    """
+    """Make tester decision using planning attribute ID (new approach)"""
     try:
         service = ScopingService(db)
-        attribute = await service.make_tester_decision(
+        
+        # Get planning attribute to validate it exists
+        from app.models.report_attribute import ReportAttribute
+        planning_attr_query = await db.execute(
+            select(ReportAttribute).where(ReportAttribute.id == attribute_id)
+        )
+        planning_attr = planning_attr_query.scalar_one_or_none()
+        
+        if not planning_attr:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Planning attribute {attribute_id} not found"
+            )
+        
+        # Make decision using new method
+        attribute = await service.make_tester_decision_by_attribute_id(
+            version_id=version_id,
             attribute_id=attribute_id,
             decision=decision_data.decision,
             final_scoping=decision_data.final_scoping,
@@ -248,42 +281,147 @@ async def make_tester_decision(
             override_reason=decision_data.override_reason,
             user_id=current_user.user_id
         )
-        return attribute
-    except (ValidationError, BusinessLogicError) as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except NotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except ConflictError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        
+        logger.info(f"Tester decision made for planning attribute {attribute_id} in version {version_id}")
+        
+        # Return response with attribute_id as primary identifier
+        return {
+            "attribute_id": str(attribute.attribute_id),  # Keep for backward compatibility
+            "attribute_id": attribute_id,
+            "version_id": str(version_id),
+            "tester_decision": attribute.tester_decision,
+            "final_scoping": attribute.final_scoping,
+            "tester_rationale": attribute.tester_rationale,
+            "has_tester_decision": True,
+            "updated_at": attribute.updated_at
+        }
+    except Exception as e:
+        logger.error(f"Error making tester decision: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
-
-@router.post("/attributes/{attribute_id}/report-owner-decision", response_model=ScopingAttributeResponse)
-async def make_report_owner_decision(
-    attribute_id: UUID = Path(..., description="Attribute ID"),
-    decision_data: ReportOwnerDecisionCreate = Body(...),
+@router.post("/attributes/{attribute_id}/tester-decision", deprecated=True)
+async def make_tester_decision_deprecated(
+    attribute_id: int = Path(..., description="Attribute ID"),
+    decision_data: TesterDecisionCreate = Body(...),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Make a report owner decision on a scoping attribute.
+    DEPRECATED: Legacy endpoint for backward compatibility.
     
-    Records the report owner's decision (approved, rejected, etc.) for an attribute.
+    This endpoint finds the latest draft version and makes the decision on that version.
+    Please update to use POST /versions/{version_id}/attributes/{attribute_id}/tester-decision instead.
     """
     try:
         service = ScopingService(db)
-        attribute = await service.make_report_owner_decision(
+        
+        # Find the scoping attribute by planning attribute ID in any draft version
+        from sqlalchemy import select, and_
+        from app.models.scoping import ScopingAttribute, ScopingVersion, VersionStatus
+        
+        # Find the latest draft version that contains this attribute
+        query = select(ScopingAttribute, ScopingVersion).join(
+            ScopingVersion,
+            ScopingAttribute.version_id == ScopingVersion.version_id
+        ).where(
+            and_(
+                ScopingAttribute.attribute_id == attribute_id,
+                ScopingVersion.version_status == VersionStatus.DRAFT
+            )
+        ).order_by(ScopingVersion.created_at.desc())
+        
+        result = await db.execute(query)
+        row = result.first()
+        
+        if not row:
+            raise NotFoundError(f"No draft version found containing attribute {attribute_id}")
+        
+        scoping_attr, version = row
+        
+        # Now call the service to update the tester decision
+        updated_attr = await service.make_tester_decision_by_attribute_id(
+            version_id=version.version_id,
+            attribute_id=attribute_id,
+            decision=decision_data.decision,
+            final_scoping=decision_data.final_scoping,
+            rationale=decision_data.rationale,
+            override_reason=decision_data.override_reason,
+            user_id=current_user.user_id
+        )
+        
+        return ScopingAttributeResponse.from_orm(updated_attr)
+        
+    except NotFoundError:
+        raise HTTPException(status_code=404, detail="Attribute not found in any draft version")
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error making tester decision: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.post("/versions/{version_id}/attributes/{attribute_id}/report-owner-decision")
+async def make_report_owner_decision_by_planning_id(
+    version_id: UUID = Path(..., description="Version ID"),
+    attribute_id: int = Path(..., description="Planning Attribute ID"),
+    decision_data: ReportOwnerDecisionCreate = Body(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Make report owner decision using planning attribute ID (new approach)"""
+    try:
+        service = ScopingService(db)
+        
+        # Make decision using new method
+        attribute = await service.make_report_owner_decision_by_attribute_id(
+            version_id=version_id,
             attribute_id=attribute_id,
             decision=decision_data.decision,
             notes=decision_data.notes,
             user_id=current_user.user_id
         )
-        return attribute
-    except (ValidationError, BusinessLogicError) as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except NotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except ConflictError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        
+        logger.info(f"Report owner decision made for planning attribute {attribute_id} in version {version_id}")
+        
+        # Return a simple success response
+        return {
+            "message": "Report owner decision saved successfully",
+            "attribute_id": attribute_id,
+            "version_id": str(version_id),
+            "report_owner_decision": attribute.report_owner_decision,
+            "report_owner_notes": attribute.report_owner_notes,
+            "has_report_owner_decision": True,
+            "updated_at": attribute.updated_at
+        }
+    except Exception as e:
+        logger.error(f"Error making report owner decision: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.post("/attributes/{attribute_id}/report-owner-decision", deprecated=True)
+async def make_report_owner_decision_deprecated(
+    attribute_id: UUID = Path(..., description="Attribute ID (deprecated - use /versions/{version_id}/attributes/{attribute_id}/report-owner-decision)"),
+    decision_data: ReportOwnerDecisionCreate = Body(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    DEPRECATED: This endpoint is no longer supported.
+    
+    Please use POST /versions/{version_id}/attributes/{attribute_id}/report-owner-decision instead,
+    where attribute_id is the planning phase attribute ID (integer).
+    """
+    raise HTTPException(
+        status_code=status.HTTP_410_GONE,
+        detail="This endpoint has been removed. Use POST /versions/{version_id}/attributes/{attribute_id}/report-owner-decision instead."
+    )
 
 
 @router.post("/versions/{version_id}/submit")
@@ -703,7 +841,7 @@ async def generate_scoping_recommendations(
             raise BusinessLogicError("No planning attributes found. Please complete the planning phase first.")
         
         # Get existing scoping attributes to identify which need recommendations
-        existing_attrs_query = select(ScopingAttribute.planning_attribute_id).where(
+        existing_attrs_query = select(ScopingAttribute.attribute_id).where(
             ScopingAttribute.version_id == version_id
         )
         existing_attrs_result = await db.execute(existing_attrs_query)
@@ -749,60 +887,39 @@ async def generate_scoping_recommendations(
         job_manager = BackgroundJobManager()
         job_id = str(uuid.uuid4())
         
-        # Create progress tracker
-        progress = job_manager.create_job(job_id, "scoping_llm_recommendations")
-        progress.total_steps = len(attributes_to_process)
-        progress.message = f"Starting LLM recommendation generation for {len(attributes_to_process)} attributes..."
-        progress.metadata = {
-            "version_id": str(version_id),
-            "phase_id": version.phase_id,
-            "cycle_id": phase.cycle_id,
-            "report_id": phase.report_id,
-            "total_attributes": len(attributes_to_process)
-        }
+        # Use Redis job manager for cross-container state
+        from app.core.redis_job_manager import get_redis_job_manager
+        redis_job_manager = get_redis_job_manager()
         
-        # Use the correct threading approach from the legacy function
-        from app.tasks.scoping_tasks import _generate_scoping_recommendations_async
-        import threading
-        import asyncio
+        # Create job record in Redis
+        redis_job_manager.create_job(
+            job_id,
+            job_type="scoping_llm_recommendations",
+            metadata={
+                "version_id": str(version_id),
+                "phase_id": version.phase_id,
+                "cycle_id": phase.cycle_id,
+                "report_id": phase.report_id,
+                "total_attributes": len(attributes_to_process)
+            }
+        )
         
-        # Prepare context data for async function
-        cycle_context = {"cycle_id": phase.cycle_id, "cycle_name": cycle.name if cycle else ""}
-        report_context = {"report_id": phase.report_id, "report_name": report.report_name if report else ""}
+        # Import the Celery task
+        from app.tasks.scoping_celery_tasks import generate_llm_recommendations_celery_task
         
-        def run_in_background():
-            try:
-                # Create new event loop for this thread
-                new_loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(new_loop)
-                
-                # Run the async task function
-                new_loop.run_until_complete(
-                    _generate_scoping_recommendations_async(
-                        job_id=job_id,
-                        cycle_id=phase.cycle_id,
-                        report_id=phase.report_id,
-                        phase_id=version.phase_id,
-                        version_id=version_id,
-                        user_id=current_user.user_id,
-                        attributes_to_process=attributes_to_process,
-                        report_context=report_context,
-                        cycle_context=cycle_context
-                    )
-                )
-                new_loop.close()
-            except Exception as e:
-                logger.error(f"Background task failed: {str(e)}")
-                job_manager.update_job_progress(
-                    job_id,
-                    status="failed",
-                    error=str(e),
-                    message=f"Failed to generate recommendations: {str(e)}"
-                )
-        
-        # Start the background thread
-        thread = threading.Thread(target=run_in_background, daemon=True)
-        thread.start()
+        # Submit Celery task
+        result = generate_llm_recommendations_celery_task.apply_async(
+            args=[
+                str(version_id),
+                version.phase_id,
+                phase.cycle_id,
+                phase.report_id,
+                attributes_to_process,
+                current_user.user_id
+            ],
+            task_id=job_id,  # Use the same job_id as task_id
+            queue='llm'
+        )
         
         logger.info(f"Started LLM recommendation generation job {job_id} for version {version_id}")
         
@@ -995,7 +1112,7 @@ async def get_attribute_decision_history(
     try:
         service = ScopingService(db)
         history = await service.get_attribute_decision_history(
-            planning_attribute_id=attribute_id,
+            attribute_id=attribute_id,
             phase_id=phase_id
         )
         return history
@@ -1412,13 +1529,22 @@ async def generate_scoping_recommendations_legacy(
             existing_result = await db.execute(existing_query)
             existing_attrs = existing_result.scalars().all()
             
-            # Build map of planning_attribute_id -> has_recommendation
+            # Build map of attribute_id -> has_recommendation
             for scoping_attr in existing_attrs:
-                attr_id = scoping_attr.planning_attribute_id  # This is an integer
+                attr_id = scoping_attr.attribute_id  # This is an integer
                 existing_scoping_attrs[attr_id] = scoping_attr
                 # Only mark as having recommendation if not forcing regeneration and it actually has one
                 if not force_regenerate and scoping_attr.llm_recommendation:
-                    existing_recommendations[attr_id] = True
+                    # Check if the recommendation has actual content (not just placeholder)
+                    rec = scoping_attr.llm_recommendation
+                    has_content = (
+                        rec.get('provider') is not None or
+                        rec.get('confidence_score') is not None or
+                        (rec.get('rationale') is not None and rec.get('rationale') != '') or
+                        rec.get('recommendation') is not None
+                    )
+                    if has_content:
+                        existing_recommendations[attr_id] = True
         
         # Prepare attributes for LLM processing
         attributes_to_process = []
@@ -1471,205 +1597,59 @@ async def generate_scoping_recommendations_legacy(
         cycle_result = await db.execute(cycle_query)
         cycle = cycle_result.scalar_one_or_none()
         
-        # Create background job
-        job_id = job_manager.create_job("scoping_recommendations", {
-            "cycle_id": cycle_id,
-            "report_id": report_id,
-            "user_id": current_user.user_id,
-            "cycle_name": cycle.cycle_name if cycle else f"Cycle {cycle_id}",
-            "report_name": report.report_name if report else f"Report {report_id}",
-            "phase": "Scoping",
-            "version_id": str(version_id),
-            "total_attributes": len(attributes_to_process)
-        })
+        # Use Redis job manager for Celery task compatibility
+        from app.core.redis_job_manager import get_redis_job_manager
+        redis_job_manager = get_redis_job_manager()
+        
+        # Create background job using Redis job manager
+        job_id = redis_job_manager.create_job(
+            job_type="scoping_recommendations",
+            metadata={
+                "cycle_id": cycle_id,
+                "report_id": report_id,
+                "user_id": current_user.user_id,
+                "cycle_name": cycle.cycle_name if cycle else f"Cycle {cycle_id}",
+                "report_name": report.report_name if report else f"Report {report_id}",
+                "phase": "Scoping",
+                "version_id": str(version_id),
+                "total_attributes": len(attributes_to_process)
+            }
+        )
         
         # Update initial progress
-        job_manager.update_job_progress(
+        redis_job_manager.update_job_progress(
             job_id,
+            status="pending",
             total_steps=len(attributes_to_process),
+            current_step="Initializing",
+            progress_percentage=0,
             message="Starting LLM recommendation generation..."
         )
         
-        # Capture necessary variables for async function
+        # Capture necessary variables for Celery task
         user_id = current_user.user_id
         report_name = report.report_name if report else None
         
-        async def run_scoping_recommendations():
-            try:
-                logger.info(f"🚀 Started scoping recommendations for job {job_id}")
-                # Get a new database session for the background task
-                from app.core.database import AsyncSessionLocal
-                async with AsyncSessionLocal() as task_db:
-                    # Start the job - update status to running
-                    job_manager.update_job_progress(
-                        job_id,
-                        status="running",
-                        current_step="Starting recommendation generation",
-                        progress_percentage=0,
-                        message="Initializing LLM service..."
-                    )
-                    
-                    # Get LLM service
-                    llm_service = get_llm_service()
-                    
-                    # Get service with task db session
-                    service = ScopingService(task_db)
-                    
-                    # Process attributes in batches
-                    all_recommendations = []
-                    total_batches = (len(attributes_to_process) + batch_size - 1) // batch_size
-                    updated_count = 0
-                    
-                    for batch_num, i in enumerate(range(0, len(attributes_to_process), batch_size)):
-                        batch = attributes_to_process[i:i + batch_size]
-                        
-                        # Update job progress
-                        job_manager.update_job_progress(
-                            job_id,
-                            progress_percentage=int((batch_num / total_batches) * 80),
-                            current_step=f"Processing batch {batch_num + 1} of {total_batches}",
-                            message=f"Generating recommendations for {len(batch)} attributes..."
-                        )
-                        
-                        # Log what we're sending
-                        logger.info(f"Sending batch {batch_num + 1} with {len(batch)} attributes to LLM")
-                        if batch and logger.isEnabledFor(logging.DEBUG):
-                            logger.debug(f"First attribute in batch: id={batch[0].get('id')}, attribute_id={batch[0].get('attribute_id')}, name={batch[0].get('attribute_name')}")
-                        
-                        # Generate recommendations for this batch
-                        result = await llm_service.generate_scoping_recommendations(
-                            attributes=batch,
-                            report_type=report_name
-                        )
-                        
-                        batch_recommendations = result.get("recommendations", [])
-                        all_recommendations.extend(batch_recommendations)
-                        
-                        logger.info(f"Received {len(batch_recommendations)} recommendations from LLM for batch {batch_num + 1}")
-                        if batch_recommendations and logger.isEnabledFor(logging.DEBUG):
-                            logger.debug(f"First recommendation structure: {batch_recommendations[0] if batch_recommendations else 'None'}")
-                        
-                        # Save recommendations incrementally after each batch
-                        if batch_recommendations:
-                            planning_attr_ids = []
-                            llm_recommendations = []
-                            
-                            for rec in batch_recommendations:
-                                # Try to match by attribute_id first, then by attribute_name
-                                attr_id = None
-                                
-                                # First try to match by attribute_id if present
-                                if rec.get("attribute_id"):
-                                    for orig_attr in attributes_to_process:
-                                        # Handle both string and int comparisons
-                                        if str(orig_attr["id"]) == str(rec["attribute_id"]) or orig_attr["attribute_id"] == rec.get("attribute_id"):
-                                            attr_id = orig_attr["attribute_id"]
-                                            break
-                                
-                                # If no match by ID, try to match by attribute_name
-                                if not attr_id and rec.get("attribute_name"):
-                                    for orig_attr in attributes_to_process:
-                                        if orig_attr["attribute_name"] == rec["attribute_name"]:
-                                            attr_id = orig_attr["attribute_id"]
-                                            break
-                                
-                                # Log if we couldn't find a match
-                                if not attr_id:
-                                    logger.warning(f"Could not match LLM recommendation for attribute: {rec.get('attribute_name', 'Unknown')} (id: {rec.get('attribute_id', 'None')})")
-                                    continue
-                                    
-                                if attr_id:
-                                        planning_attr_ids.append(attr_id)
-                                        llm_recommendations.append({
-                                        "recommendation": rec.get("recommendation", "include"),
-                                        "confidence_score": rec.get("confidence_score", 0.8),
-                                        "rationale": rec.get("rationale", ""),
-                                        "provider": "anthropic",
-                                        "is_cde": rec.get("is_cde", False),
-                                        "is_primary_key": rec.get("is_primary_key", False),
-                                        "has_historical_issues": rec.get("has_historical_issues", False),
-                                        "data_quality_score": rec.get("data_quality_score"),
-                                        "risk_factors": rec.get("risk_factors", []),
-                                        "processing_time_ms": rec.get("processing_time_ms", 0),
-                                        "request_payload": {
-                                            "model": result.get("model_used", "claude-3"),
-                                            "temperature": 0.3
-                                        },
-                                        "response_payload": rec
-                                    })
-                            
-                            if planning_attr_ids:
-                                logger.info(f"Saving {len(planning_attr_ids)} recommendations for batch {batch_num + 1}")
-                                # Save this batch of recommendations
-                                await service.add_attributes_to_version(
-                                    version_id=version_id,
-                                    planning_attribute_ids=planning_attr_ids,
-                                    llm_recommendations=llm_recommendations,
-                                    user_id=user_id
-                                )
-                                updated_count += len(planning_attr_ids)
-                                logger.info(f"Successfully saved batch {batch_num + 1}. Total saved: {updated_count}")
-                                
-                                # Update progress with saved count
-                                job_manager.update_job_progress(
-                                    job_id,
-                                    message=f"Saved {updated_count} recommendations so far..."
-                                )
-                            else:
-                                logger.warning(f"No valid planning_attr_ids found for batch {batch_num + 1} - skipping save")
-                    
-                    # Commit any remaining changes
-                    await task_db.commit()
-                    
-                    # Mark job as completed
-                    job_manager.update_job_progress(
-                        job_id,
-                        status="completed",
-                        progress_percentage=100,
-                        current_step="Completed",
-                        message=f"Successfully generated recommendations for {updated_count} attributes"
-                    )
-                    job_manager.complete_job(job_id, result={
-                        "test_recommendations": updated_count,
-                        "attributes_processed": len(attributes_to_process),
-                        "incremental_update": not force_regenerate,
-                        "force_regenerate": force_regenerate
-                    })
-                    
-                    logger.info(f"✅ Completed scoping recommendations for job {job_id}")
-                    
-            except Exception as e:
-                logger.error(f"Error in scoping recommendations: {str(e)}")
-                job_manager.update_job_progress(
-                    job_id,
-                    message=f"Recommendation generation failed: {str(e)}"
-                )
-                job_manager.complete_job(job_id, error=str(e))
+        # Use Celery task instead of background thread to avoid event loop issues
+        from app.tasks.scoping_celery_tasks import generate_llm_recommendations_celery_task
         
-        # Run the task using background jobs manager with proper async handling
-        import asyncio
-        from concurrent.futures import ThreadPoolExecutor
-        import threading
+        logger.info(f"Submitting scoping recommendations to Celery for job {job_id}")
         
-        logger.info(f"Running scoping recommendations using background jobs manager for job {job_id}")
+        # Submit Celery task
+        result = generate_llm_recommendations_celery_task.apply_async(
+            args=[
+                str(version_id),
+                phase.phase_id,
+                phase.cycle_id,
+                phase.report_id,
+                attributes_to_process,
+                current_user.user_id
+            ],
+            task_id=job_id,  # Use the same job_id as task_id
+            queue='llm'
+        )
         
-        # Run in a separate thread to avoid blocking
-        def run_in_background():
-            try:
-                # Create new event loop for this thread
-                new_loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(new_loop)
-                new_loop.run_until_complete(run_scoping_recommendations())
-                new_loop.close()
-            except Exception as e:
-                logger.error(f"Background task failed: {str(e)}")
-                job_manager.complete_job(job_id, error=str(e))
-        
-        # Start the background thread
-        thread = threading.Thread(target=run_in_background, daemon=True)
-        thread.start()
-        
-        logger.info(f"✅ Started background thread for job {job_id}")
+        logger.info(f"✅ Started Celery task for job {job_id}")
         
         return {
             "message": f"LLM recommendation generation started in background ({('incremental' if not force_regenerate else 'force regeneration')})",
@@ -1741,55 +1721,51 @@ async def get_scoping_decisions_legacy(
         if not phase_result:
             return []  # Return empty array if no phase found
         
-        # Get existing scoping decisions
-        decisions_query = """
-        SELECT 
-            decision_id,
-            attribute_id,
-            phase_id,
-            tester_decision,
-            final_scoping,
-            tester_rationale,
-            tester_decided_by,
-            tester_decided_at,
-            report_owner_decision,
-            report_owner_notes,
-            report_owner_decided_by,
-            report_owner_decided_at,
-            override_reason,
-            created_at,
-            version
-        FROM cycle_report_scoping_decisions 
-        WHERE phase_id = :phase_id
-        ORDER BY created_at DESC
-        """
+        # Get existing scoping decisions from the new model
+        from app.models.scoping import ScopingAttribute, ScopingVersion
         
-        result = await db.execute(text(decisions_query), {"phase_id": phase_result.phase_id})
-        rows = result.fetchall()
+        # Get the latest approved or draft version
+        version_query = select(ScopingVersion).where(
+            ScopingVersion.phase_id == phase_result.phase_id
+        ).order_by(ScopingVersion.version_number.desc()).limit(1)
+        
+        version_result = await db.execute(version_query)
+        version = version_result.scalar_one_or_none()
+        
+        if not version:
+            return []
+        
+        # Get scoping attributes/decisions
+        decisions_query = select(ScopingAttribute).where(
+            ScopingAttribute.version_id == version.version_id
+        ).order_by(ScopingAttribute.created_at.desc())
+        
+        result = await db.execute(decisions_query)
+        attributes = result.scalars().all()
         
         # Convert to expected format
         decisions = []
-        for row in rows:
+        for attr in attributes:
             try:
                 decisions.append({
-                    "decision_id": row.decision_id,
-                    "attribute_id": row.attribute_id,
-                    "phase_id": row.phase_id,
-                    "tester_decision": row.tester_decision,
-                    "final_scoping": row.final_scoping,
-                    "tester_rationale": row.tester_rationale,
-                    "tester_decided_by": row.tester_decided_by,
-                    "tester_decided_at": row.tester_decided_at.isoformat() if row.tester_decided_at else None,
-                    "report_owner_decision": row.report_owner_decision,
-                    "report_owner_notes": row.report_owner_notes,
-                    "report_owner_decided_by": row.report_owner_decided_by,
-                    "report_owner_decided_at": row.report_owner_decided_at.isoformat() if row.report_owner_decided_at else None,
-                    "override_reason": row.override_reason,
-                    "created_at": row.created_at.isoformat() if row.created_at else None,
-                    "version": row.version
+                    "decision_id": str(attr.attribute_id),  # Use attribute_id as decision_id
+                    "attribute_id": attr.attribute_id,
+                    "phase_id": attr.phase_id,
+                    "tester_decision": attr.tester_decision.value if attr.tester_decision else None,
+                    "final_scoping": attr.final_scoping,
+                    "tester_rationale": attr.tester_rationale,
+                    "tester_decided_by": attr.tester_decided_by_id,
+                    "tester_decided_at": attr.tester_decided_at.isoformat() if attr.tester_decided_at else None,
+                    "report_owner_decision": attr.report_owner_decision.value if attr.report_owner_decision else None,
+                    "report_owner_notes": attr.report_owner_notes,
+                    "report_owner_decided_by": attr.report_owner_decided_by_id,
+                    "report_owner_decided_at": attr.report_owner_decided_at.isoformat() if attr.report_owner_decided_at else None,
+                    "override_reason": attr.override_reason,
+                    "created_at": attr.created_at.isoformat() if attr.created_at else None,
+                    "version": version.version_number
                 })
             except Exception as row_error:
-                logger.error(f"Error processing decision row {row.decision_id}: {str(row_error)}")
+                logger.error(f"Error processing scoping attribute {attr.attribute_id}: {str(row_error)}")
                 continue
         
         return decisions
@@ -1866,11 +1842,7 @@ async def start_scoping_phase(
             # Import approved planning attributes
             from app.models.report_attribute import ReportAttribute
             planning_attrs_query = select(ReportAttribute).where(
-                and_(
-                    ReportAttribute.phase_id == planning_phase.phase_id,
-                    ReportAttribute.approval_status == "approved",
-                    ReportAttribute.is_active == True
-                )
+                ReportAttribute.phase_id == planning_phase.phase_id
             ).order_by(ReportAttribute.line_item_number)
             
             attrs_result = await db.execute(planning_attrs_query)
@@ -1882,13 +1854,20 @@ async def start_scoping_phase(
                 scoping_attr = ScopingAttribute(
                     version_id=new_version.version_id,
                     phase_id=phase.phase_id,
-                    planning_attribute_id=attr.id,
-                    # Default selections based on attribute properties
-                    tester_decision="include" if (attr.is_primary_key or attr.cde_flag) else None,
-                    tester_rationale="Primary key attribute - required for testing" if attr.is_primary_key else None,
-                    final_status="pending"
+                    attribute_id=attr.id,
+                    # Initialize with empty LLM recommendation - will be populated later
+                    llm_recommendation={},
+                    # Mark critical attributes
+                    is_cde=attr.cde_flag,
+                    is_primary_key=attr.is_primary_key,
+                    has_historical_issues=attr.historical_issues_flag,
+                    # Set status
+                    status="pending"
                 )
                 db.add(scoping_attr)
+            
+            # Update version with total attributes count
+            new_version.total_attributes = len(planning_attributes)
             
             await db.commit()
             
@@ -1969,7 +1948,7 @@ async def get_scoping_attributes_legacy(
             return []
             
         # Get planning attribute IDs
-        planning_attr_ids = [attr.planning_attribute_id for attr in scoping_attrs]
+        planning_attr_ids = [attr.attribute_id for attr in scoping_attrs]
         
         # Query planning attributes
         planning_attrs_query = select(ReportAttribute).where(
@@ -2051,7 +2030,7 @@ async def get_scoping_attributes_legacy(
         # Convert to frontend expected format
         attributes = []
         for scoping_attr in scoping_attrs:
-            planning_attr = planning_attrs_map.get(str(scoping_attr.planning_attribute_id))
+            planning_attr = planning_attrs_map.get(str(scoping_attr.attribute_id))
             if planning_attr:
                 attributes.append({
                     "id": str(scoping_attr.attribute_id),
@@ -2065,9 +2044,9 @@ async def get_scoping_attributes_legacy(
                     "is_required": planning_attr.mandatory_flag == 'Mandatory',
                     "cde_flag": planning_attr.is_cde,
                     "historical_issues_flag": planning_attr.historical_issues_flag,
-                    "keywords_to_look_for": planning_attr.keywords_to_look_for,
-                    "testing_approach": planning_attr.testing_approach,
-                    "validation_rules": planning_attr.validation_rules,
+                    "keywords_to_look_for": scoping_attr.search_keywords if scoping_attr else None,
+                    "testing_approach": scoping_attr.testing_approach if scoping_attr else None,
+                    "validation_rules": scoping_attr.validation_rules if scoping_attr else None,
                     
                     # Scoping specific fields
                     "tester_decision": scoping_attr.tester_decision.value if scoping_attr.tester_decision and hasattr(scoping_attr.tester_decision, 'value') else scoping_attr.tester_decision,
@@ -2100,9 +2079,9 @@ async def get_scoping_attributes_legacy(
                     "llm_provider": scoping_attr.llm_provider,
                     
                     # Data Quality fields
-                    "composite_dq_score": dq_scores_map.get(scoping_attr.planning_attribute_id),
-                    "has_profiling_data": scoping_attr.planning_attribute_id in dq_scores_map,
-                    "dq_rules_count": dq_rule_counts.get(scoping_attr.planning_attribute_id, 0),
+                    "composite_dq_score": dq_scores_map.get(scoping_attr.attribute_id),
+                    "has_profiling_data": scoping_attr.attribute_id in dq_scores_map,
+                    "dq_rules_count": dq_rule_counts.get(scoping_attr.attribute_id, 0),
                     
                     # Additional scoping fields from model
                     "tester_rationale": scoping_attr.tester_rationale,
@@ -2112,7 +2091,7 @@ async def get_scoping_attributes_legacy(
                     "is_override": scoping_attr.is_override,
                     "override_reason": scoping_attr.override_reason,
                     "final_scoping": scoping_attr.final_scoping,
-                    "is_cde": scoping_attr.is_cde,
+                    "is_cde": planning_attr.is_cde if planning_attr else False,
                     "status": scoping_attr.status.value if hasattr(scoping_attr.status, 'value') else scoping_attr.status
                 })
         

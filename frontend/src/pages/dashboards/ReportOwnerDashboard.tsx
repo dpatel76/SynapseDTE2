@@ -354,7 +354,14 @@ const ReportOwnerDashboard: React.FC = () => {
         }
       });
       console.log('✅ Pending assignments loaded successfully:', response.data);
-      setPendingAssignments(response.data);
+      
+      // Filter out Scoping Approval and Sample Selection Approval assignments as they're already shown in pendingReviews/pendingSampleReviews
+      const filteredAssignments = response.data.filter((assignment: any) => 
+        assignment.assignment_type !== 'Scoping Approval' && 
+        assignment.assignment_type !== 'Sample Selection Approval'
+      );
+      
+      setPendingAssignments(filteredAssignments);
       
     } catch (error: any) {
       console.error('Error loading universal assignments:', error);

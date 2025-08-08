@@ -149,8 +149,8 @@ class DataSourceSamplingService:
                     
                     logger.info(f"Selected target attribute for intelligent sampling: {target_attribute}")
                     
-                    from app.services.intelligent_data_sampling_service import IntelligentDataSamplingService
-                    intelligent_service = IntelligentDataSamplingService()
+                    from app.services.intelligent_data_sampling_service_v2 import IntelligentDataSamplingServiceV2
+                    intelligent_service = IntelligentDataSamplingServiceV2()
                     
                     # Get PDE mappings first
                     pde_mappings = await self._get_pde_mappings(db, cycle_id, report_id)

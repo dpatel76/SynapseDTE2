@@ -834,9 +834,9 @@ class GetDataOwnerCycleReportTestCasesUseCase(UseCase):
                     revision_deadline = revision_evidence.revision_deadline if hasattr(revision_evidence, 'revision_deadline') else revision_evidence.resubmission_deadline
             
             # Use the actual test case status from the database
-            # Only override if it's null or we need to check for overdue
+            # Map 'Not Started' to 'Pending' for API compatibility
             dto_status = tc.status
-            if not dto_status:
+            if not dto_status or dto_status == 'Not Started':
                 dto_status = 'Pending'
             
             # Check if overdue (only if not already submitted/complete)
@@ -890,6 +890,22 @@ class GetDataOwnerCycleReportTestCasesUseCase(UseCase):
         total_pending = sum(1 for tc in test_case_dtos if tc.status == TestCaseStatusEnum.PENDING)
         total_overdue = sum(1 for tc in test_case_dtos if tc.status == TestCaseStatusEnum.OVERDUE)
         
+        # Calculate completion percentage
+        completion_percentage = (total_submitted / total_assigned * 100) if total_assigned > 0 else 0.0
+        
+        # Calculate days remaining
+        days_remaining = None
+        if submission_deadline:
+            time_diff = submission_deadline - datetime.now(timezone.utc)
+            days_remaining = time_diff.days
+        
+        # Get cycle and report names (from first test case if available)
+        cycle_name = None
+        report_name = None
+        if test_case_dtos:
+            cycle_name = test_case_dtos[0].cycle_name
+            report_name = test_case_dtos[0].report_name
+        
         return DataOwnerPortalDataDTO(
             test_cases=test_case_dtos,
             total_assigned=total_assigned,
@@ -897,7 +913,15 @@ class GetDataOwnerCycleReportTestCasesUseCase(UseCase):
             total_pending=total_pending,
             total_overdue=total_overdue,
             submission_deadline=submission_deadline,
-            instructions=instructions
+            instructions=instructions,
+            # Additional fields for frontend compatibility
+            cycle_name=cycle_name,
+            report_name=report_name,
+            days_remaining=days_remaining,
+            total_test_cases=total_assigned,  # Alias
+            submitted_test_cases=total_submitted,  # Alias
+            pending_test_cases=total_pending,  # Alias
+            completion_percentage=completion_percentage
         )
 
 
@@ -976,12 +1000,19 @@ class SubmitDocumentUseCase(UseCase):
                 .values(is_current=False)
             )
         
+        # Get cycle_id and report_id from phase (since they're properties on test_case)
+        if not test_case.phase:
+            raise ValueError("Test case is missing phase information")
+        
+        cycle_id = test_case.phase.cycle_id
+        report_id = test_case.phase.report_id
+        
         # Create unified evidence record
         evidence = TestCaseEvidence(
             test_case_id=test_case.id,
             phase_id=test_case.phase_id,
-            cycle_id=test_case.cycle_id,
-            report_id=test_case.report_id,
+            cycle_id=cycle_id,
+            report_id=report_id,
             sample_id=test_case.sample_id,
             evidence_type="document",
             version_number=next_version,
@@ -1001,12 +1032,12 @@ class SubmitDocumentUseCase(UseCase):
             updated_by=user_id
         )
         
-        # Update test case status to Submitted
+        # Update test case status to Pending Approval (since "Submitted" is not a valid enum value)
         # This should happen for all cases including revisions (In Progress)
         import logging
         logger = logging.getLogger(__name__)
-        logger.info(f"Updating test case {test_case.id} status from '{test_case.status}' to 'Submitted'")
-        test_case.status = 'Submitted'
+        logger.info(f"Updating test case {test_case.id} status from '{test_case.status}' to 'Pending Approval'")
+        test_case.status = 'Pending Approval'
         
         test_case.submitted_at = datetime.now(timezone.utc)
         test_case.updated_at = datetime.now(timezone.utc)

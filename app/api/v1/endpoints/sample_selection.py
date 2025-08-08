@@ -14,6 +14,7 @@ import json
 import os
 import logging
 import asyncio
+import traceback
 
 from app.core.database import get_db
 from app.api.v1.deps import get_current_user
@@ -40,6 +41,7 @@ from pydantic import BaseModel
 from app.models.cycle_report_data_source import CycleReportDataSource
 from app.models.planning import PlanningPDEMapping
 from app.core.background_jobs import job_manager, BackgroundJobManager
+from app.core.redis_job_manager import get_redis_job_manager
 from app.core.database import AsyncSessionLocal
 from app.tasks.sample_selection_tasks import execute_intelligent_sampling_task
 from app.api.v1.utils.deprecation import deprecated_endpoint
@@ -121,6 +123,9 @@ class SampleGenerationRequest(BaseModel):
     regulatory_context: Optional[str] = None
     scoped_attributes: Optional[List[Dict[str, Any]]] = None
     strategy: Optional[str] = "basic"  # "basic", "intelligent", "enhanced"
+    generation_method: Optional[str] = None  # Frontend sends this instead of strategy
+    metadata: Optional[Dict[str, Any]] = None  # For enhanced parameters
+    data_source_id: Optional[str] = None  # For enhanced data source
     
 class UnifiedSampleGenerationRequest(BaseModel):
     """Unified request model for all sample generation strategies"""
@@ -258,10 +263,10 @@ async def get_sample_selection_versions(
         
         # Format response
         formatted_versions = []
-        current_approved_version = max(
-            [v.version_number for v in versions if (v.version_status.value if hasattr(v.version_status, 'value') else v.version_status) == "approved"],
-            default=0
-        )
+        
+        # Determine which version is the latest (current)
+        # Current = simply the highest version number
+        latest_version_number = max([v.version_number for v in versions], default=0)
         
         for v in versions:
             # Skip sample counting for now to avoid recursion
@@ -269,14 +274,19 @@ async def get_sample_selection_versions(
             rejected_samples = 0
             pending_samples = 0
             
+            version_status_val = v.version_status.value if hasattr(v.version_status, 'value') else v.version_status
+            
+            # is_current = true for the latest version only
+            is_current = (v.version_number == latest_version_number)
+            
             version_info = {
                 "version_id": str(v.version_id),
                 "version_number": v.version_number,
-                "version_status": v.version_status.value if hasattr(v.version_status, 'value') else v.version_status,
+                "version_status": version_status_val,
                 "created_at": v.created_at.isoformat() if v.created_at else None,
                 "created_by": v.created_by_id,
                 "created_by_name": users.get(v.created_by_id, "Unknown"),
-                "is_current": (v.version_status.value if hasattr(v.version_status, 'value') else v.version_status) == "approved" and v.version_number == current_approved_version,
+                "is_current": is_current,
                 "total_samples": v.actual_sample_size,
                 "approved_samples": approved_samples,
                 "rejected_samples": rejected_samples,
@@ -541,6 +551,15 @@ async def generate_samples(
     """Generate samples using LLM"""
     if current_user.role not in ["Tester", "Test Manager"]:
         raise HTTPException(status_code=403, detail="Not authorized to generate samples")
+    
+    # Check if this is an enhanced generation request
+    is_enhanced = (request.generation_method == "enhanced" or 
+                   request.strategy == "enhanced")
+    
+    if is_enhanced:
+        logger.info(f"Enhanced sample generation requested with metadata: {request.metadata}")
+        # For now, we'll process it as regular generation but log the enhanced parameters
+        # In the future, we can implement enhanced logic here
     
     # Get report info
     report_query = await db.execute(
@@ -884,18 +903,36 @@ async def generate_samples(
             # Don't auto-assign LOB - let tester assign it
             # LOB assignment should be done by tester, not inherited from report
             
+            # Determine sample category based on generation method
+            sample_category = "clean"
+            if is_enhanced and request.metadata:
+                # Use distribution from metadata if available
+                distribution = request.metadata.get("distribution", {})
+                # Simple logic: assign categories based on index distribution
+                total_samples = len(generated_samples)
+                clean_count = int(total_samples * distribution.get("clean", 0.3))
+                anomaly_count = int(total_samples * distribution.get("anomaly", 0.5))
+                
+                if idx < clean_count:
+                    sample_category = "clean"
+                elif idx < clean_count + anomaly_count:
+                    sample_category = "anomaly"
+                else:
+                    sample_category = "boundary"
+            
             # Create sample data record
             sample_record = {
                 "primary_attribute_value": primary_key_value,
                 "data_row_snapshot": sample_data,
-                "sample_category": "clean",
+                "sample_category": sample_category,
                 "sample_source": "tester",
-                "risk_score": 0.5,
+                "risk_score": 0.5 if sample_category == "clean" else 0.8,
                 "confidence_score": 0.85,
                 "metadata": {
-                    "generation_method": "LLM Generated",
+                    "generation_method": "Enhanced LLM Generated" if is_enhanced else "LLM Generated",
                     "generated_at": datetime.utcnow().isoformat(),
-                    "generated_by": f"{current_user.first_name} {current_user.last_name}"
+                    "generated_by": f"{current_user.first_name} {current_user.last_name}",
+                    "enhanced_params": request.metadata if is_enhanced else None
                 }
             }
             
@@ -909,9 +946,11 @@ async def generate_samples(
         # Update version metadata
         version.target_sample_size = request.sample_size
         version.selection_criteria = {
-            "method": "LLM Generated",
+            "method": "Enhanced LLM Generated" if is_enhanced else "LLM Generated",
             "regulatory_context": request.regulatory_context or "FR Y-14M Schedule D.1",
-            "scoped_attributes": request.scoped_attributes
+            "scoped_attributes": request.scoped_attributes,
+            "enhanced": is_enhanced,
+            "enhanced_params": request.metadata if is_enhanced else None
         }
         version.updated_at = datetime.utcnow()
         version.updated_by_id = current_user.user_id
@@ -954,7 +993,9 @@ async def generate_samples(
         
         return {
             "samples_generated": len(samples_created),
-            "message": f"Successfully generated {len(samples_created)} samples"
+            "message": f"Successfully generated {len(samples_created)} samples using {'enhanced' if is_enhanced else 'standard'} method",
+            "method": "enhanced" if is_enhanced else "standard",
+            "total_samples": len(samples_created)
         }
         
     except Exception as e:
@@ -1807,7 +1848,7 @@ async def submit_report_owner_review(
         version.report_owner_reviewed_at = datetime.utcnow()
         version.report_owner_reviewed_by_id = current_user.user_id
         
-        # Update individual sample decisions if provided
+        # Update individual sample decisions 
         if request.sample_decisions:
             logger.info(f"Processing {len(request.sample_decisions)} sample decisions")
             for sample_id, decision_data in request.sample_decisions.items():
@@ -1830,6 +1871,28 @@ async def submit_report_owner_review(
                     db.add(sample)  # Important: Add the modified object to the session
                 else:
                     logger.warning(f"Sample {sample_id} not found or version mismatch. Sample version: {sample.version_id if sample else 'None'}, Expected: {version_id}")
+        else:
+            # If no individual sample decisions provided but overall decision is approve/reject,
+            # apply that decision to all samples
+            if request.decision in ["approved", "rejected"]:
+                logger.info(f"No individual sample decisions provided, applying overall decision '{request.decision}' to all samples")
+                samples_query = await db.execute(
+                    select(SampleSelectionSample).where(
+                        SampleSelectionSample.version_id == version_id
+                    )
+                )
+                samples = samples_query.scalars().all()
+                
+                for sample in samples:
+                    sample.report_owner_decision = request.decision
+                    sample.report_owner_decision_notes = f"{request.decision.capitalize()} with version"
+                    sample.report_owner_decision_at = datetime.utcnow()
+                    sample.report_owner_decision_by_id = current_user.user_id
+                    sample.updated_at = datetime.utcnow()
+                    sample.updated_by_id = current_user.user_id
+                    db.add(sample)
+                
+                logger.info(f"Updated {len(samples)} samples with overall decision")
         
         # Update workflow phase status
         phase_query = await db.execute(
@@ -1857,11 +1920,10 @@ async def submit_report_owner_review(
         
         # Complete the assignment
         if request.assignment_id:
-            assignment_service = UniversalAssignmentService()
+            assignment_service = UniversalAssignmentService(db)
             await assignment_service.complete_assignment(
-                db=db,
                 assignment_id=request.assignment_id,
-                completed_by_user_id=current_user.user_id,
+                user_id=current_user.user_id,
                 completion_notes=request.feedback,
                 completion_data={
                     "decision": request.decision,
@@ -1890,185 +1952,209 @@ async def get_sample_analytics(
     cycle_id: int,
     report_id: int,
     version_id: Optional[str] = Query(None),
-    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Get analytics for sample selection phase"""
-    try:
-        # Use Universal Metrics Service like other pages do
-        from app.services.universal_metrics_service import get_universal_metrics_service, MetricsContext
-        
-        context = MetricsContext(
-            cycle_id=cycle_id,
-            report_id=report_id,
-            user_id=current_user.user_id,
-            user_role=current_user.role,
-            phase_name="Sample Selection"
-        )
-        
-        metrics_service = get_universal_metrics_service(db)
-        universal_metrics = await metrics_service.get_metrics(context)
-        
-        # Map universal metrics to sample selection format
-        metrics_dict = {
-            "total_attributes": universal_metrics.total_attributes,
-            "scoped_attributes_non_pk": universal_metrics.scoped_attributes_non_pk,
-            "scoped_attributes_pk": universal_metrics.scoped_attributes_pk,
-            "lobs_count": universal_metrics.lobs_count,
-            "data_providers_count": universal_metrics.data_providers_count
-        }
-        
-        # Get workflow phase for phase-specific data
-        # Use text query to avoid enum issues
-        phase_query = await db.execute(
-            text("""
-                SELECT * FROM workflow_phases 
-                WHERE cycle_id = :cycle_id 
-                AND report_id = :report_id 
-                AND phase_name::text = 'Sample Selection'
-            """),
-            {"cycle_id": cycle_id, "report_id": report_id}
-        )
-        phase_row = phase_query.first()
-        
-        if phase_row:
-            # Convert to object-like structure
-            class PhaseObj:
-                def __init__(self, row):
-                    self.phase_id = row.phase_id
-                    self.status = row.status
-                    self.phase_data = row.phase_data
-                    self.actual_start_date = row.actual_start_date
-                    self.created_at = row.created_at
-            phase = PhaseObj(phase_row)
-        else:
+    # Create a fresh database session to avoid transaction issues
+    from app.core.database import AsyncSessionLocal
+    
+    async with AsyncSessionLocal() as db:
+        try:
+            # Get workflow phase first, before any potential transaction errors
+            phase_query = await db.execute(
+                text("""
+                    SELECT phase_id, cycle_id, report_id, phase_name, status, phase_data, 
+                           actual_start_date, created_at
+                    FROM workflow_phases 
+                    WHERE cycle_id = :cycle_id 
+                    AND report_id = :report_id 
+                    AND phase_name::text = 'Sample Selection'
+                """),
+                {"cycle_id": cycle_id, "report_id": report_id}
+            )
+            phase_row = phase_query.first()
+            
+            # Default metrics in case service fails
+            metrics_dict = {
+                "total_attributes": 0,
+                "scoped_attributes_non_pk": 0,
+                "scoped_attributes_pk": 0,
+                "lobs_count": 0,
+                "data_providers_count": 0
+            }
+            
+            # Try to get metrics from universal service in a separate transaction
+            try:
+                # Use a separate session for metrics to avoid transaction contamination
+                async with AsyncSessionLocal() as metrics_db:
+                    from app.services.universal_metrics_service import get_universal_metrics_service, MetricsContext
+                    
+                    context = MetricsContext(
+                        cycle_id=cycle_id,
+                        report_id=report_id,
+                        user_id=current_user.user_id,
+                        user_role=current_user.role,
+                        phase_name="Sample Selection"
+                    )
+                    
+                    metrics_service = get_universal_metrics_service(metrics_db)
+                    
+                    # Get phase-specific metrics directly to avoid enum issues
+                    phase_metrics = await metrics_service.get_phase_specific_metrics(context)
+                    
+                    # Update metrics if we got them
+                    if phase_metrics:
+                        metrics_dict.update({
+                            "total_attributes": phase_metrics.get("total_attributes", 0),
+                            "scoped_attributes_non_pk": phase_metrics.get("scoped_attributes_non_pk", 0),
+                            "scoped_attributes_pk": phase_metrics.get("scoped_attributes_pk", 0),
+                            "lobs_count": phase_metrics.get("lobs_count", 0),
+                            "data_providers_count": phase_metrics.get("data_providers_count", 0)
+                        })
+            except Exception as e:
+                logger.warning(f"Failed to get universal metrics, using defaults: {e}")
+            
+            # Convert to object-like structure if found
             phase = None
-        
-        
-        if not phase:
+            if phase_row:
+                from types import SimpleNamespace
+                phase = SimpleNamespace(
+                    phase_id=phase_row.phase_id,
+                    status=phase_row.status,
+                    phase_data=phase_row.phase_data,
+                    actual_start_date=phase_row.actual_start_date,
+                    created_at=phase_row.created_at
+                )
+            
+            if not phase:
+                return {
+                    "total_samples": 0,
+                    "included_samples": 0,
+                    "excluded_samples": 0,
+                    "pending_samples": 0,
+                    "submitted_samples": 0,
+                    "approved_samples": 0,
+                    "rejected_samples": 0,
+                    "revision_required_samples": 0,
+                    "phase_status": "Not Started",
+                    "can_complete_phase": False,
+                    "total_submissions": 0,
+                    "latest_submission": None,
+                    # Metrics from Universal Metrics Service
+                    "total_attributes": metrics_dict["total_attributes"],
+                    "scoped_attributes": metrics_dict["scoped_attributes_non_pk"],  # Non-PK for consistency
+                    "pk_attributes": metrics_dict["scoped_attributes_pk"],
+                    "total_lobs": metrics_dict["lobs_count"],
+                    "total_data_providers": metrics_dict["data_providers_count"],
+                    "started_at": None,
+                    # Add days elapsed
+                    "days_elapsed": 0
+                }
+            
+            # Calculate stats from samples table
+            from app.models.sample_selection import SampleSelectionSample, SampleSelectionVersion
+            
+            # Get the latest approved version
+            version_query = await db.execute(
+                select(SampleSelectionVersion).where(
+                    and_(
+                        SampleSelectionVersion.phase_id == phase.phase_id,
+                        SampleSelectionVersion.version_status == VersionStatus.APPROVED
+                    )
+                ).order_by(SampleSelectionVersion.version_number.desc()).limit(1)
+            )
+            approved_version = version_query.scalar_one_or_none()
+            
+            if not approved_version:
+                # If no approved version, get the latest version
+                version_query = await db.execute(
+                    select(SampleSelectionVersion).where(
+                        SampleSelectionVersion.phase_id == phase.phase_id
+                    ).order_by(SampleSelectionVersion.version_number.desc()).limit(1)
+                )
+                approved_version = version_query.scalar_one_or_none()
+            
+            # Get samples from the specific version
+            if approved_version:
+                samples_query = await db.execute(
+                    select(SampleSelectionSample).where(
+                        and_(
+                            SampleSelectionSample.phase_id == phase.phase_id,
+                            SampleSelectionSample.version_id == approved_version.version_id
+                        )
+                    )
+                )
+                samples = samples_query.scalars().all()
+            else:
+                samples = []
+            
+            stats = {
+                'total': len(samples),
+                'included': sum(1 for s in samples if s.tester_decision == 'approved'),
+                'excluded': sum(1 for s in samples if s.tester_decision == 'rejected'),
+                'pending': sum(1 for s in samples if not s.tester_decision),
+                'submitted': sum(1 for s in samples if s.report_owner_decision is not None),
+                'approved': sum(1 for s in samples if s.report_owner_decision == 'approved'),  # Report owner approved samples
+                'rejected': sum(1 for s in samples if s.report_owner_decision == 'rejected'),
+                'revision_required': sum(1 for s in samples if s.report_owner_decision == 'revision_required')
+            }
+            
+            # Get latest submission info
+            submissions = phase.phase_data.get('submissions', []) if phase.phase_data else []
+            latest_submission = None
+            
+            if submissions:
+                # Sort by version number to get latest
+                sorted_submissions = sorted(submissions, key=lambda x: x.get('version_number', 0), reverse=True)
+                latest = sorted_submissions[0]
+                latest_submission = {
+                    "submission_id": latest.get('submission_id'),
+                    "version": latest.get('version_number'),
+                    "status": latest.get('status', 'pending'),
+                    "submitted_at": latest.get('submitted_at'),
+                    "submitted_by": latest.get('submitted_by'),
+                    "included_samples": latest.get('included_samples', 0),
+                    "total_samples": latest.get('total_samples', 0)
+                }
+            
+            # Determine if can complete phase
+            can_complete = (
+                phase.status == "Pending Approval" and
+                stats['approved'] > 0 and
+                latest_submission and
+                latest_submission['status'] == 'approved'
+            )
+            
             return {
-                "total_samples": 0,
-                "included_samples": 0,
-                "excluded_samples": 0,
-                "pending_samples": 0,
-                "submitted_samples": 0,
-                "approved_samples": 0,
-                "rejected_samples": 0,
-                "revision_required_samples": 0,
-                "phase_status": "Not Started",
-                "can_complete_phase": False,
-                "total_submissions": 0,
-                "latest_submission": None,
+                "total_samples": stats['total'],
+                "included_samples": stats['included'],
+                "excluded_samples": stats['excluded'],
+                "pending_samples": stats['pending'],
+                "submitted_samples": stats['submitted'],
+                "approved_samples": stats['approved'],
+                "rejected_samples": stats['rejected'],
+                "revision_required_samples": stats['revision_required'],
+                "phase_status": phase.status,
+                "can_complete_phase": can_complete,
+                "total_submissions": len(submissions),
+                "latest_submission": latest_submission,
                 # Metrics from Universal Metrics Service
                 "total_attributes": metrics_dict["total_attributes"],
                 "scoped_attributes": metrics_dict["scoped_attributes_non_pk"],  # Non-PK for consistency
                 "pk_attributes": metrics_dict["scoped_attributes_pk"],
                 "total_lobs": metrics_dict["lobs_count"],
                 "total_data_providers": metrics_dict["data_providers_count"],
-                "started_at": None
+                "started_at": phase.actual_start_date.isoformat() if phase.actual_start_date else None,
+                # Add days elapsed
+                "days_elapsed": (datetime.now(timezone.utc) - phase.created_at).days if phase.created_at else 0
             }
-        
-        # Calculate stats from samples table
-        from app.models.sample_selection import SampleSelectionSample, SampleSelectionVersion
-        
-        # Get the latest approved version
-        version_query = await db.execute(
-            select(SampleSelectionVersion).where(
-                and_(
-                    SampleSelectionVersion.phase_id == phase.phase_id,
-                    SampleSelectionVersion.version_status == VersionStatus.APPROVED
-                )
-            ).order_by(SampleSelectionVersion.version_number.desc()).limit(1)
-        )
-        approved_version = version_query.scalar_one_or_none()
-        
-        if not approved_version:
-            # If no approved version, get the latest version
-            version_query = await db.execute(
-                select(SampleSelectionVersion).where(
-                    SampleSelectionVersion.phase_id == phase.phase_id
-                ).order_by(SampleSelectionVersion.version_number.desc()).limit(1)
-            )
-            approved_version = version_query.scalar_one_or_none()
-        
-        # Get samples from the specific version
-        if approved_version:
-            samples_query = await db.execute(
-                select(SampleSelectionSample).where(
-                    and_(
-                        SampleSelectionSample.phase_id == phase.phase_id,
-                        SampleSelectionSample.version_id == approved_version.version_id
-                    )
-                )
-            )
-            samples = samples_query.scalars().all()
-        else:
-            samples = []
-        
-        stats = {
-            'total': len(samples),
-            'included': sum(1 for s in samples if s.tester_decision == 'approved'),
-            'excluded': sum(1 for s in samples if s.tester_decision == 'rejected'),
-            'pending': sum(1 for s in samples if not s.tester_decision),
-            'submitted': sum(1 for s in samples if s.report_owner_decision is not None),
-            'approved': sum(1 for s in samples if s.report_owner_decision == 'approved'),  # Report owner approved samples
-            'rejected': sum(1 for s in samples if s.report_owner_decision == 'rejected'),
-            'revision_required': sum(1 for s in samples if s.report_owner_decision == 'revision_required')
-        }
-        
-        # Get latest submission info
-        submissions = phase.phase_data.get('submissions', []) if phase.phase_data else []
-        latest_submission = None
-        
-        if submissions:
-            # Sort by version number to get latest
-            sorted_submissions = sorted(submissions, key=lambda x: x.get('version_number', 0), reverse=True)
-            latest = sorted_submissions[0]
-            latest_submission = {
-                "submission_id": latest.get('submission_id'),
-                "version": latest.get('version_number'),
-                "status": latest.get('status', 'pending'),
-                "submitted_at": latest.get('submitted_at'),
-                "submitted_by": latest.get('submitted_by'),
-                "included_samples": latest.get('included_samples', 0),
-                "total_samples": latest.get('total_samples', 0)
-            }
-        
-        # Determine if can complete phase
-        can_complete = (
-            phase.status == "Pending Approval" and
-            stats['approved'] > 0 and
-            latest_submission and
-            latest_submission['status'] == 'approved'
-        )
-        
-        return {
-            "total_samples": stats['total'],
-            "included_samples": stats['included'],
-            "excluded_samples": stats['excluded'],
-            "pending_samples": stats['pending'],
-            "submitted_samples": stats['submitted'],
-            "approved_samples": stats['approved'],
-            "rejected_samples": stats['rejected'],
-            "revision_required_samples": stats['revision_required'],
-            "phase_status": phase.status,
-            "can_complete_phase": can_complete,
-            "total_submissions": len(submissions),
-            "latest_submission": latest_submission,
-            # Metrics from Universal Metrics Service
-            "total_attributes": metrics_dict["total_attributes"],
-            "scoped_attributes": metrics_dict["scoped_attributes_non_pk"],  # Non-PK for consistency
-            "pk_attributes": metrics_dict["scoped_attributes_pk"],
-            "total_lobs": metrics_dict["lobs_count"],
-            "total_data_providers": metrics_dict["data_providers_count"],
-            "started_at": phase.actual_start_date.isoformat() if phase.actual_start_date else None,
-            # Add days elapsed
-            "days_elapsed": (datetime.now(timezone.utc) - phase.created_at).days if phase.created_at else 0
-        }
-        
-    except Exception as e:
-        logger.error(f"Error in get_sample_analytics: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+            
+        except Exception as e:
+            logger.error(f"Error in get_sample_analytics: {str(e)}")
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            # Rollback the transaction if it's in a bad state
+            await db.rollback()
+            raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 @router.get("/cycles/{cycle_id}/reports/{report_id}/samples/feedback")
@@ -2308,8 +2394,10 @@ async def generate_intelligent_samples(
     
     logger.info(f"Starting intelligent sample generation job for cycle {cycle_id}, report {report_id}")
     
-    # Create background job
-    job_id = job_manager.create_job(
+    # Create background job using Redis job manager
+    redis_job_manager = get_redis_job_manager()
+    
+    job_id = redis_job_manager.create_job(
         job_type="intelligent_sampling",
         metadata={
             "cycle_id": cycle_id,
@@ -2322,44 +2410,27 @@ async def generate_intelligent_samples(
         }
     )
     
-    # Run the task using background thread (same pattern as data profiling)
-    import threading
+    # Use Celery for background processing
+    from app.core.celery_app import celery_app
     
-    def run_in_background():
-        """Run the async sample generation in a background thread"""
-        logger.info(f"🧵 Background thread started for job {job_id}")
-        try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            
-            logger.info(f"📦 Importing execute_intelligent_sampling_task...")
-            from app.tasks.sample_selection_tasks import execute_intelligent_sampling_task
-            
-            logger.info(f"🚀 Starting execute_intelligent_sampling_task for job {job_id}")
-            loop.run_until_complete(execute_intelligent_sampling_task(
-                job_id=job_id,
-                cycle_id=cycle_id,
-                report_id=report_id,
-                target_sample_size=request.target_sample_size,
-                use_data_source=request.use_data_source,
-                distribution=request.distribution,
-                include_file_samples=request.include_file_samples,
-                current_user_id=current_user.user_id,
-                current_user_name=f"{current_user.first_name} {current_user.last_name}"
-            ))
-            logger.info(f"✅ Background task completed for job {job_id}")
-        except Exception as e:
-            logger.error(f"❌ Background task failed for job {job_id}: {str(e)}", exc_info=True)
-            job_manager.complete_job(job_id, error=str(e))
-        finally:
-            logger.info(f"🔚 Closing event loop for job {job_id}")
-            loop.close()
+    # Create a Celery task
+    celery_task = celery_app.send_task(
+        'app.tasks.sample_selection_tasks.execute_intelligent_sampling_celery_task',
+        kwargs={
+            'job_id': job_id,
+            'cycle_id': cycle_id,
+            'report_id': report_id,
+            'target_sample_size': request.target_sample_size,
+            'use_data_source': request.use_data_source,
+            'distribution': request.distribution,
+            'include_file_samples': request.include_file_samples,
+            'current_user_id': current_user.user_id,
+            'current_user_name': f"{current_user.first_name} {current_user.last_name}"
+        },
+        queue='celery'
+    )
     
-    # Start the background thread
-    thread = threading.Thread(target=run_in_background, daemon=True)
-    thread.start()
-    
-    logger.info(f"✅ Started background thread for intelligent sampling job {job_id}")
+    logger.info(f"✅ Started Celery task {celery_task.id} for intelligent sampling job {job_id}")
     
     return {
         "job_id": job_id,
@@ -3107,13 +3178,18 @@ async def create_sample_selection_version(
         
         await db.commit()
         
+        # Handle version_status - it might be a string or enum
+        version_status_value = new_version.version_status
+        if hasattr(version_status_value, 'value'):
+            version_status_value = version_status_value.value
+        
         return {
             "success": True,
             "message": f"Created sample selection version {new_version.version_number} with {sample_count} samples",
             "version": {
                 "version_id": str(new_version.version_id),
                 "version_number": new_version.version_number,
-                "version_status": new_version.version_status.value,
+                "version_status": version_status_value,
                 "created_at": new_version.created_at.isoformat(),
                 "created_by": new_version.created_by_id,
                 "created_by_name": f"{current_user.first_name} {current_user.last_name}",
@@ -3121,8 +3197,8 @@ async def create_sample_selection_version(
                 "approved_samples": decision_counts.get('approved', 0),
                 "rejected_samples": decision_counts.get('rejected', 0),
                 "pending_samples": sample_count - sum(decision_counts.values()),
-                "generation_method": new_version.metadata.get("generation_method", "manual") if new_version.metadata else "manual",
-                "change_reason": new_version.metadata.get("change_reason", "Created new version") if new_version.metadata else "Created new version"
+                "generation_method": new_version.version_metadata.get("generation_method", "manual") if new_version.version_metadata else "manual",
+                "change_reason": new_version.version_metadata.get("change_reason", "Created new version") if new_version.version_metadata else "Created new version"
             }
         }
         
@@ -3274,8 +3350,8 @@ async def submit_version_for_approval(
                     task_instructions=f"Review the {version_metadata.get('total_samples', 0)} samples in version {version_metadata['version_number']} and provide your approval decision.",
                     priority="High",
                     due_date=None,
-                    requires_approval=False,
-                    approval_role=None,
+                    requires_approval=True,  # Sample Selection review requires Report Owner approval
+                    approval_role="Report Owner",  # Report Owner approves Sample Selection
                     assignment_metadata={
                         "version_id": version_id,
                         "version_number": version_metadata["version_number"]
@@ -3501,7 +3577,7 @@ async def resubmit_after_feedback(
                 "version": {
                     "version_id": str(new_version.version_id),
                     "version_number": new_version.version_number,
-                    "version_status": new_version.version_status.value,
+                    "version_status": new_version.version_status.value if hasattr(new_version.version_status, 'value') else new_version.version_status,
                     "created_at": new_version.created_at.isoformat(),
                     "created_by": current_user.user_id,
                     "created_by_name": f"{current_user.first_name} {current_user.last_name}",

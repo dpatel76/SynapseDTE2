@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Table,
   TableBody,
@@ -26,7 +26,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  DialogContentText
+  DialogContentText,
+  LinearProgress
 } from '@mui/material';
 import {
   CheckCircle as ApproveIcon,
@@ -133,6 +134,8 @@ const CompressedRulesTable: React.FC<CompressedRulesTableProps> = ({
   const [hasReportOwnerFeedback, setHasReportOwnerFeedback] = useState(false);
   const [needsResubmission, setNeedsResubmission] = useState(false);
   const [resubmitDialogOpen, setResubmitDialogOpen] = useState(false);
+  const [jobProgress, setJobProgress] = useState<any>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Determine if the interface should be read-only based on version status
   const isReadOnly = (): boolean => {
@@ -163,44 +166,105 @@ const CompressedRulesTable: React.FC<CompressedRulesTableProps> = ({
     }
   }, [cycleId, reportId, selectedVersionId, versionsLoaded]);
   
-  // Poll for new versions when a job is active
-  useEffect(() => {
-    const jobId = localStorage.getItem(`data-profiling-job-${cycleId}-${reportId}`);
-    if (!jobId) return;
-    
-    const interval = setInterval(async () => {
+  // Poll job status function (similar to MapPDEsActivity)
+  const pollJobStatus = (jobId: string) => {
+    // Clear any existing polling
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+    }
+
+    const poll = async () => {
       try {
-        // Check job status
-        const jobStatus = await apiClient.get(`/jobs/${jobId}/status`);
+        console.log('📡 Polling job status for:', jobId);
+        const response = await apiClient.get(`/jobs/${jobId}/status`);
+        const jobData = response.data;
+        console.log('📈 Job status response:', jobData);
         
-        if (jobStatus.data.status === 'completed') {
-          // Job completed, reload versions and switch to the new one
-          const versionList = await dataProfilingApi.getVersions(cycleId, reportId);
-          setVersions(versionList);
-          
-          // Find the newest version (highest version number)
-          if (versionList.length > 0) {
-            const newestVersion = versionList.reduce((prev, current) => 
-              current.version_number > prev.version_number ? current : prev
-            );
-            setSelectedVersionId(newestVersion.version_id);
+        setJobProgress(jobData);
+        
+        if (jobData.status === 'completed') {
+          // Job completed, reload versions
+          await loadVersions();
+          localStorage.removeItem(`data-profiling-job-${cycleId}-${reportId}`);
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
           }
-          
-          // Clear the job from localStorage
+          setJobProgress(null);
+        } else if (jobData.status === 'failed') {
+          setError(`Rule generation failed: ${jobData.error || 'Unknown error'}`);
           localStorage.removeItem(`data-profiling-job-${cycleId}-${reportId}`);
-          clearInterval(interval);
-        } else if (jobStatus.data.status === 'failed') {
-          // Job failed, clear it
-          localStorage.removeItem(`data-profiling-job-${cycleId}-${reportId}`);
-          clearInterval(interval);
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          setJobProgress(null);
         }
       } catch (error) {
-        console.error('Error checking job status:', error);
+        console.error('Error polling job status:', error);
       }
-    }, 5000); // Check every 5 seconds
+    };
+
+    // Poll immediately
+    poll();
     
-    return () => clearInterval(interval);
+    // Then poll every 2 seconds
+    pollingIntervalRef.current = setInterval(poll, 2000);
+  };
+
+  // Check for active jobs related to this cycle/report
+  const checkForActiveJobs = async () => {
+    try {
+      console.log('🔍 Checking for active data profiling jobs...');
+      const response = await apiClient.get('/jobs/active');
+      const activeJobs = response.data.active_jobs || [];
+      console.log('📊 Active jobs response:', activeJobs);
+      
+      // Find any active data profiling job for this cycle/report
+      const activeProfilingJob = activeJobs.find((job: any) => 
+        job.job_type === 'data_profiling_llm_generation' && 
+        job.metadata?.cycle_id === cycleId &&
+        job.metadata?.report_id === reportId &&
+        (job.status === 'pending' || job.status === 'running')
+      );
+      
+      if (activeProfilingJob) {
+        console.log('✅ Found active data profiling job:', activeProfilingJob);
+        const jobId = activeProfilingJob.job_id || activeProfilingJob.id;
+        if (jobId) {
+          // Store in localStorage for faster access
+          localStorage.setItem(`data-profiling-job-${cycleId}-${reportId}`, jobId);
+          pollJobStatus(jobId);
+        } else {
+          console.error('Active job found but no job_id field:', activeProfilingJob);
+        }
+      } else {
+        console.log('No active data profiling job found for this cycle/report');
+        // Clear any stale localStorage entry
+        localStorage.removeItem(`data-profiling-job-${cycleId}-${reportId}`);
+      }
+    } catch (error) {
+      console.error('Error checking for active jobs:', error);
+    }
+  };
+
+  // Check for active job on mount and when cycleId/reportId change
+  useEffect(() => {
+    // First check localStorage for quick access
+    const storedJobId = localStorage.getItem(`data-profiling-job-${cycleId}-${reportId}`);
+    console.log('🔍 CompressedRulesTable checking localStorage:', storedJobId, 'for cycle:', cycleId, 'report:', reportId);
+    
+    // Always check for active jobs to handle browser refresh/reopen
+    checkForActiveJobs();
+    
+    // Cleanup on unmount
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
   }, [cycleId, reportId]);
+
 
   const loadVersions = async () => {
     try {
@@ -922,6 +986,38 @@ const CompressedRulesTable: React.FC<CompressedRulesTableProps> = ({
 
   return (
     <Box sx={{ width: '100%' }}>
+      {/* Show job progress inline (like MapPDEsActivity) */}
+      {jobProgress && jobProgress.status !== 'completed' && jobProgress.status !== 'failed' && (
+        <Box mb={3} p={2} bgcolor="primary.light" borderRadius={1}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+            <Typography variant="subtitle2" color="primary.contrastText">
+              Generating Profiling Rules...
+            </Typography>
+            <Typography variant="body2" color="primary.contrastText">
+              {jobProgress.progress_percentage || 0}%
+            </Typography>
+          </Box>
+          <LinearProgress 
+            variant="determinate" 
+            value={jobProgress.progress_percentage || 0}
+            sx={{ mb: 1, backgroundColor: 'rgba(255,255,255,0.3)' }}
+          />
+          <Typography variant="body2" color="primary.contrastText">
+            {jobProgress.message || 'Processing...'}
+          </Typography>
+          {jobProgress.current_step && (
+            <Typography variant="caption" color="primary.contrastText" display="block" mt={0.5}>
+              Step: {jobProgress.current_step}
+            </Typography>
+          )}
+          {jobProgress.completed_steps !== undefined && jobProgress.total_steps && (
+            <Typography variant="caption" color="primary.contrastText" display="block">
+              Attributes: {jobProgress.completed_steps} / {jobProgress.total_steps}
+            </Typography>
+          )}
+        </Box>
+      )}
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
           {error}

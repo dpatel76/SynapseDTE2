@@ -565,7 +565,7 @@ async def create_report_attribute(
         data_type=attribute.data_type,
         is_primary_key=attribute.is_primary_key,
         description=attribute.description,
-        validation_rules=attribute.validation_rules,
+        validation_rules=getattr(attribute, 'validation_rules', None),  # Field moved to scoping
         is_active=True,
         created_by_id=current_user.user_id,
         created_at=datetime.utcnow()
@@ -674,8 +674,8 @@ async def get_report_attributes(
                     "is_primary_key": attr.is_primary_key,
                     "approval_status": attr.approval_status,
                     "llm_generated": attr.llm_generated,
-                    "llm_rationale": attr.llm_rationale,
-                    "risk_score": attr.risk_score,
+                    "llm_rationale": getattr(attr, 'llm_rationale', None),  # Field moved to scoping
+                    "risk_score": getattr(attr, 'risk_score', None),  # Field moved to scoping
                     "created_at": attr.created_at,
                     "updated_at": attr.updated_at,
                     # Version fields
@@ -1396,7 +1396,7 @@ async def get_pde_mappings(
             # Attribute fields for display
             "data_type": attr.data_type,
             "is_primary_key": attr.is_primary_key,
-            "validation_rules": attr.validation_rules,
+            "validation_rules": getattr(attr, 'validation_rules', None),  # Field moved to scoping
             "approval_status": attr.approval_status,
             "line_item_number": attr.line_item_number,
             "technical_line_item_name": attr.technical_line_item_name,
@@ -2596,7 +2596,7 @@ async def get_planning_unified_phase_versions(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ) -> dict:
-    """Get phase versions for planning-unified - returns current planning version"""
+    """Get phase versions for planning-unified - returns actual planning versions"""
     
     # The frontend calculates phase_id as cycleId * 1000 + reportId
     # Extract cycle_id and report_id from the phase_id
@@ -2622,23 +2622,37 @@ async def get_planning_unified_phase_versions(
             "total": 0
         }
     
-    # For the unified system, we consider the current phase as version 1
-    # This allows the frontend to detect that unified planning is "available"
-    version = {
-        "version_id": f"phase_{phase_id}_v1",
-        "version_number": 1,
-        "phase_id": phase_id,
-        "cycle_id": phase.cycle_id,
-        "report_id": phase.report_id,
-        "status": phase.status,
-        "created_at": phase.actual_start_date,
-        "is_current": True
-    }
+    # Query actual PlanningVersion records
+    from app.models.planning import PlanningVersion
+    
+    versions_query = select(PlanningVersion).where(
+        PlanningVersion.phase_id == phase.phase_id
+    ).order_by(PlanningVersion.version_number.desc())
+    
+    versions_result = await db.execute(versions_query)
+    planning_versions = versions_result.scalars().all()
+    
+    # Convert to response format
+    versions = []
+    for idx, pv in enumerate(planning_versions):
+        versions.append({
+            "version_id": str(pv.version_id),
+            "version_number": pv.version_number,
+            "phase_id": phase_id,  # Use calculated phase_id for frontend compatibility
+            "cycle_id": cycle_id,
+            "report_id": report_id,
+            "version_status": pv.version_status.value if hasattr(pv.version_status, 'value') else pv.version_status,
+            "status": pv.version_status.value if hasattr(pv.version_status, 'value') else pv.version_status,  # For compatibility
+            "created_at": pv.created_at.isoformat() if pv.created_at else None,
+            "is_current": idx == 0,  # First version (highest number) is current
+            "total_attributes": pv.total_attributes,
+            "approved_attributes": pv.approved_attributes
+        })
     
     return {
         "phase_id": phase_id,
-        "versions": [version],
-        "total": 1
+        "versions": versions,
+        "total": len(versions)
     }
 
 
@@ -2789,7 +2803,7 @@ async def get_attributes_by_version_id(
             "approval_status": attr.approval_status,
             "source_table": getattr(attr, 'source_table', None),  # Safely handle missing field
             "source_column": getattr(attr, 'source_column', None),  # Safely handle missing field
-            "validation_rules": attr.validation_rules,
+            "validation_rules": getattr(attr, 'validation_rules', None),  # Field moved to scoping
             "llm_generated": attr.llm_generated,
             "created_at": attr.created_at,
             "updated_at": attr.updated_at

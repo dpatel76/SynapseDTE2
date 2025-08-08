@@ -567,20 +567,6 @@ export const MapPDEsActivity: React.FC<MapPDEsActivityProps> = (props) => {
     }
   };
 
-  const handleCompleteActivity = async () => {
-    try {
-      await apiClient.post(`/activity-management/activities/map_pdes/complete`, {
-        cycle_id: cycleId,
-        report_id: reportId,
-        phase_name: 'Planning'
-      });
-      setSuccess('Activity completed successfully');
-      // Optionally redirect or update parent component
-    } catch (err: any) {
-      console.error('Error completing activity:', err);
-      setError(err.response?.data?.detail || 'Failed to complete activity');
-    }
-  };
 
   const resetForm = () => {
     setFormData({
@@ -659,15 +645,6 @@ export const MapPDEsActivity: React.FC<MapPDEsActivityProps> = (props) => {
             disabled={getUnmappedAttributes().length === 0}
           >
             Map PDE
-          </Button>
-          <Button
-            variant="contained"
-            color="success"
-            startIcon={<CheckCircleIcon />}
-            onClick={handleCompleteActivity}
-            disabled={!pdeMappings || pdeMappings.length === 0}
-          >
-            Complete Activity
           </Button>
         </Box>
       </Box>
