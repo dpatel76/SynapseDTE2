@@ -264,7 +264,7 @@ const NewRequestInfoPage: React.FC = () => {
       return response.data;
     },
     enabled: !!cycleIdNum && !!reportIdNum,
-    refetchInterval: 5000, // Poll every 5 seconds
+    // refetchInterval: 5000, // DISABLED: Polling may cause issues with status changes
   });
   
   
@@ -343,10 +343,14 @@ const NewRequestInfoPage: React.FC = () => {
         // Data owner view - get test cases directly
         try {
           const response = await apiClient.get(`/request-info/data-owner/test-cases`);
+          console.log('Data owner portal response:', response.data);
           return response.data as DataOwnerPortalData;
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error loading data owner portal:', error);
-          return null;
+          console.error('Error response:', error.response?.data);
+          console.error('Error status:', error.response?.status);
+          // Don't return null - let React Query handle the error
+          throw error;
         }
       } else {
         // Tester/Admin view - combine multiple endpoints
@@ -478,8 +482,8 @@ const NewRequestInfoPage: React.FC = () => {
       return response.data || [];
     },
     enabled: !!cycleIdNum && !!reportIdNum && !!user && user.role !== UserRole.DATA_OWNER,
-    refetchInterval: 5000, // Poll every 5 seconds to check for new test cases
-    staleTime: 2000 // Consider data stale after 2 seconds
+    // refetchInterval: 5000, // DISABLED: Polling may cause issues with status changes
+    staleTime: 30000 // Consider data stale after 30 seconds instead of 2
   });
   
   // Debug logging for test cases query
@@ -793,6 +797,17 @@ const NewRequestInfoPage: React.FC = () => {
       <Container maxWidth={false} sx={{ py: 3 }}>
         <Alert severity="error" sx={{ m: 2 }}>
           Failed to load Request for Information phase data
+        </Alert>
+      </Container>
+    );
+  }
+
+  // Check if data is null (can happen when error is caught in query)
+  if (!phaseData) {
+    return (
+      <Container maxWidth={false} sx={{ py: 3 }}>
+        <Alert severity="warning" sx={{ m: 2 }}>
+          Unable to load phase data. Please refresh the page or contact support if the issue persists.
         </Alert>
       </Container>
     );
@@ -1501,13 +1516,17 @@ const NewRequestInfoPage: React.FC = () => {
                   }}
                   onResend={async (testCase) => {
                     // Handle resend action
-                    console.log('Resend to data owner:', testCase);
+                    console.log('🚨 onResend called for test case:', testCase.test_case_id);
+                    console.log('🚨 THIS WILL SET STATUS TO REQUIRES REVISION!');
                     try {
-                      await apiClient.post(`/request-info/test-cases/${testCase.test_case_id}/resend`, {
+                      const resendEndpoint = `/request-info/test-cases/${testCase.test_case_id}/resend`;
+                      const resendBody = {
                         reason: 'Evidence requires revision',
                         deadline: null,
                         notify_data_owner: true
-                      });
+                      };
+                      console.log('🚨 Posting to:', resendEndpoint, 'Body:', resendBody);
+                      await apiClient.post(resendEndpoint, resendBody);
                       toast.success(`Notification resent to ${testCase.data_owner_name}`);
                       // Refresh the test cases list
                       queryClient.invalidateQueries({ queryKey: ['test-cases'] });
@@ -1522,10 +1541,11 @@ const NewRequestInfoPage: React.FC = () => {
                   }}
                   onValidate={async (testCase, status) => {
                     // Handle validation action
-                    console.log('Validate test case:', testCase, 'Status:', status);
+                    console.log('🎯 onValidate called for test case:', testCase.test_case_id, 'Status:', status);
                     
                     try {
                       // First, get the evidence details for this test case
+                      console.log('📥 Fetching evidence details from:', `/request-info/test-cases/${testCase.test_case_id}/evidence-details`);
                       const evidenceResponse = await apiClient.get(`/request-info/test-cases/${testCase.test_case_id}/evidence-details`);
                       const currentEvidence = evidenceResponse.data.current_evidence;
                       
@@ -1536,18 +1556,26 @@ const NewRequestInfoPage: React.FC = () => {
                       
                       // Get the most recent evidence
                       const latestEvidence = currentEvidence[0];
+                      console.log('📄 Latest evidence ID:', latestEvidence.id, 'Type:', latestEvidence.evidence_type);
                       
                       // Submit the tester decision
-                      await apiClient.post(`/request-info/evidence/${latestEvidence.id}/review`, {
+                      // NOTE: 'Rejected' means the evidence is rejected completely, not that it requires revision
+                      // If you want to request revision, that should be a separate action
+                      const reviewEndpoint = `/request-info/evidence/${latestEvidence.id}/review`;
+                      const reviewBody = {
                         decision: status.toLowerCase(), // 'approved' or 'rejected'
-                        decision_notes: status === 'Approved' ? 'Evidence approved' : 'Evidence requires revision',
-                        requires_resubmission: status === 'Rejected',
-                      });
+                        decision_notes: status === 'Approved' ? 'Evidence approved' : 'Evidence rejected',
+                        requires_resubmission: false, // Don't automatically require resubmission for rejection
+                      };
+                      console.log('📤 Posting to:', reviewEndpoint, 'Body:', reviewBody);
+                      await apiClient.post(reviewEndpoint, reviewBody);
                       
                       toast.success(`Test case ${status.toLowerCase()}`);
                       
-                      // Refresh the test cases list
+                      // Refresh the test cases list - use the correct query key
+                      queryClient.invalidateQueries({ queryKey: ['test-cases', cycleIdNum, reportIdNum] });
                       queryClient.invalidateQueries({ queryKey: ['request-info-phase', cycleIdNum, reportIdNum] });
+                      queryClient.invalidateQueries({ queryKey: ['request-info-status', cycleIdNum, reportIdNum] });
                     } catch (error: any) {
                       console.error('Failed to submit decision:', error);
                       toast.error(error.response?.data?.detail || `Failed to ${status.toLowerCase()} test case`);

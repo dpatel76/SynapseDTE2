@@ -416,7 +416,10 @@ export const TestCasesTable: React.FC<TestCasesTableProps> = ({
                         <Tooltip title="Resend to Data Owner">
                           <IconButton
                             size="small"
-                            onClick={() => onResend && onResend(testCase)}
+                            onClick={() => {
+                              console.log('🔄 RESEND button clicked for test case:', testCase.test_case_id);
+                              onResend && onResend(testCase);
+                            }}
                             color="info"
                           >
                             <SendIcon fontSize="small" />
@@ -444,10 +447,13 @@ export const TestCasesTable: React.FC<TestCasesTableProps> = ({
                                 <CheckCircle fontSize="small" />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="Request Revision">
+                            <Tooltip title="Reject Evidence">
                               <IconButton
                                 size="small"
-                                onClick={() => onValidate && onValidate(testCase, 'Rejected')}
+                                onClick={() => {
+                                  console.log('❌ REJECT button clicked for test case:', testCase.test_case_id);
+                                  onValidate && onValidate(testCase, 'Rejected');
+                                }}
                                 color="error"
                               >
                                 <ErrorIcon fontSize="small" />
@@ -481,14 +487,6 @@ export const TestCasesTable: React.FC<TestCasesTableProps> = ({
         open={evidenceModalOpen}
         testCaseId={selectedTestCaseId || ''}
         onClose={() => {
-          setEvidenceModalOpen(false);
-          setSelectedTestCaseId(null);
-          if (onResend && selectedTestCaseId) {
-            const testCase = testCases.find(tc => tc.test_case_id === selectedTestCaseId);
-            if (testCase) {
-              onResend(testCase);
-            }
-          }
           setEvidenceModalOpen(false);
           setSelectedTestCaseId(null);
         }}

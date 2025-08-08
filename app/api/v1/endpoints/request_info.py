@@ -208,6 +208,11 @@ async def resend_test_case(
     current_user: User = Depends(get_current_user)
 ):
     """Resend test case to data owner"""
+    logger.warning(f"🚨🚨🚨 RESEND ENDPOINT CALLED for test case {test_case_id}")
+    logger.warning(f"🚨🚨🚨 Called by user {current_user.email} (ID: {current_user.user_id})")
+    logger.warning(f"🚨🚨🚨 Reason: {resend_data.reason}")
+    logger.warning(f"🚨🚨🚨 This WILL set status to 'Requires Revision'")
+    
     try:
         use_case = ResendCycleReportTestCaseUseCase()
         test_case = await use_case.execute(
@@ -530,6 +535,8 @@ async def list_test_cases(
         evidence_counts = {row[0]: {'count': row[1], 'latest': row[2]} for row in evidence_counts_result}
         
         # Get latest evidence decisions for approval status
+        test_case_ids = [tc.id for tc in test_cases]
+        
         evidence_decisions_result = await db.execute(
             select(
                 TestCaseEvidence.test_case_id,
@@ -537,7 +544,7 @@ async def list_test_cases(
             )
             .where(
                 and_(
-                    TestCaseEvidence.test_case_id.in_([tc.id for tc in test_cases]),
+                    TestCaseEvidence.test_case_id.in_(test_case_ids),
                     TestCaseEvidence.is_current == True,
                     TestCaseEvidence.tester_decision.is_not(None)
                 )
@@ -563,6 +570,7 @@ async def list_test_cases(
             # Get approval status from evidence decisions
             approval_status = None
             tester_decision = evidence_decisions.get(tc.id)
+            
             if tester_decision:
                 if tester_decision == 'approved':
                     approval_status = 'Approved'
@@ -571,21 +579,20 @@ async def list_test_cases(
                 elif tester_decision == 'requires_revision':
                     approval_status = 'Requires Revision'
             
-            # Map database status to DTO status enum
+            # Map database status to DTO status enum based on evidence
             # The DTO only accepts: Pending, Submitted, Overdue
-            if tc.status in ["Submitted", "Approved", "Complete"]:
+            # Check if test case has evidence first
+            if evidence_info['count'] > 0:
+                # Has evidence, so it's submitted
                 dto_status = "Submitted"
             elif tc.submission_deadline and tc.submission_deadline < datetime.now(timezone.utc):
-                # Check if overdue
-                if tc.status not in ["Submitted", "Approved", "Complete"]:
-                    dto_status = "Overdue"
-                else:
-                    dto_status = "Submitted"
+                # No evidence and past deadline = Overdue
+                dto_status = "Overdue"
             else:
-                # Default to Pending for all other statuses
+                # No evidence and not overdue = Pending
                 dto_status = "Pending"
             
-            test_case_dtos.append(TestCaseWithDetailsDTO(
+            dto = TestCaseWithDetailsDTO(
                 test_case_id=tc.test_case_id,
                 phase_id=str(tc.phase_id),  # DTO expects string
                 cycle_id=tc.cycle_id,
@@ -613,7 +620,9 @@ async def list_test_cases(
                 submission_count=evidence_info['count'],
                 latest_submission_at=evidence_info['latest'],
                 approval_status=approval_status  # Add approval status
-            ))
+            )
+            
+            test_case_dtos.append(dto)
         
         return test_case_dtos
         
@@ -1244,6 +1253,7 @@ async def get_cycle_report_test_cases(
         
         test_case_ids = [tc.id for tc in test_cases]
         evidence_counts = {}
+        evidence_decisions = {}
         
         if test_case_ids:
             evidence_count_result = await db.execute(
@@ -1258,6 +1268,21 @@ async def get_cycle_report_test_cases(
                 ).group_by(RFIEvidenceLegacy.test_case_id)
             )
             evidence_counts = {row[0]: row[1] for row in evidence_count_result}
+            
+            # Get tester decisions for approval status
+            evidence_decisions_result = await db.execute(
+                select(
+                    RFIEvidenceLegacy.test_case_id,
+                    RFIEvidenceLegacy.tester_decision
+                ).where(
+                    and_(
+                        RFIEvidenceLegacy.test_case_id.in_(test_case_ids),
+                        RFIEvidenceLegacy.is_current == True,
+                        RFIEvidenceLegacy.tester_decision.is_not(None)
+                    )
+                )
+            )
+            evidence_decisions = {row[0]: row[1] for row in evidence_decisions_result}
         
         # Convert to response format with adjusted CycleReportTestCase schema
         test_cases_data = []
@@ -1290,6 +1315,17 @@ async def get_cycle_report_test_cases(
                 display_status = "Overdue"
             else:
                 display_status = "Pending"
+            
+            # Get approval status from tester decision
+            approval_status = None
+            tester_decision = evidence_decisions.get(tc.id)
+            if tester_decision:
+                if tester_decision == 'approved':
+                    approval_status = 'Approved'
+                elif tester_decision == 'rejected':
+                    approval_status = 'Rejected'
+                elif tester_decision == 'requires_revision':
+                    approval_status = 'Requires Revision'
             
             test_case_data = {
                 "test_case_id": tc.test_case_id,
@@ -1332,7 +1368,9 @@ async def get_cycle_report_test_cases(
                 "has_submissions": evidence_counts.get(tc.id, 0) > 0,
                 # LOB info
                 "lob_id": tc.lob_id,
-                "lob_name": tc.lob.lob_name if tc.lob else None
+                "lob_name": tc.lob.lob_name if tc.lob else None,
+                # Approval status
+                "approval_status": approval_status
             }
             test_cases_data.append(test_case_data)
         
@@ -2388,4 +2426,27 @@ async def extract_document_values(
         raise HTTPException(
             status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to extract document values: {str(e)}"
+        )
+
+
+# Data Source Query Endpoints
+
+@router.get("/cycles/{cycle_id}/reports/{report_id}/queries", response_model=List[Dict[str, Any]])
+@require_permission("request_info", "read")
+async def get_data_source_queries(
+    cycle_id: int,
+    report_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get available data source queries for the request info phase"""
+    try:
+        # TODO: Implement actual query retrieval logic
+        # For now, return empty list to prevent 404 error
+        return []
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get queries: {str(e)}"
         )

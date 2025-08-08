@@ -1460,6 +1460,10 @@ class ResendCycleReportTestCaseUseCase(UseCase):
         # Mark existing evidence as requiring revision
         # This handles both document and data source evidence types
         if resend_data.invalidate_previous:
+            logger.warning(f"🚨🚨🚨 SETTING REQUIRES_REVISION for test case {test_case_id_int}")
+            logger.warning(f"🚨🚨🚨 Called by user {user_id} with reason: {resend_data.reason}")
+            logger.warning(f"🚨🚨🚨 This is from resend_to_data_owner function")
+            
             # Build the where clause based on evidence type filter
             where_conditions = [
                 TestCaseEvidence.test_case_id == test_case_id_int,
@@ -1470,7 +1474,7 @@ class ResendCycleReportTestCaseUseCase(UseCase):
             if resend_data.evidence_type:
                 where_conditions.append(TestCaseEvidence.evidence_type == resend_data.evidence_type)
             
-            await db.execute(
+            result = await db.execute(
                 update(TestCaseEvidence)
                 .where(and_(*where_conditions))
                 .values(
@@ -1487,6 +1491,7 @@ class ResendCycleReportTestCaseUseCase(UseCase):
                     decided_at=datetime.now(timezone.utc)
                 )
             )
+            logger.warning(f"🚨🚨🚨 Updated {result.rowcount} evidence records to requires_revision")
         
         # TODO: Send notification to data owner
         

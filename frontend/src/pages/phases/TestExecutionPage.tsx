@@ -190,8 +190,8 @@ const TestExecutionPage: React.FC = () => {
   const [selectedTestCaseId, setSelectedTestCaseId] = useState<string | null>(null);
   const [expandedSamples, setExpandedSamples] = useState<Set<string>>(new Set());
 
-  // Unified status hook
-  const { data: unifiedPhaseStatus, isLoading: statusLoading, refetch: refetchStatus } = usePhaseStatus('Test Execution', selectedCycleId, selectedReportId);
+  // Unified status hook - Note: Phase is called "Testing" in database, not "Test Execution"
+  const { data: unifiedPhaseStatus, isLoading: statusLoading, refetch: refetchStatus } = usePhaseStatus('Testing', selectedCycleId, selectedReportId);
 
   // Universal Assignments integration
   const {
@@ -752,7 +752,7 @@ const TestExecutionPage: React.FC = () => {
                 activities={unifiedPhaseStatus.activities}
                 cycleId={selectedCycleId}
                 reportId={selectedReportId}
-                phaseName="Test Execution"
+                phaseName="Testing"
                 onActivityAction={handleActivityAction}
                 phaseStatus={unifiedPhaseStatus.phase_status}
                 overallCompletion={unifiedPhaseStatus.overall_completion_percentage}
