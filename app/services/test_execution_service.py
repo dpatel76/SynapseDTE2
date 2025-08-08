@@ -733,32 +733,62 @@ class TestExecutionService:
             # Verify execution exists
             execution = await self._get_execution(execution_id)
             
-            # Calculate overall score
-            overall_score = await self._calculate_overall_score(request)
-            
-            # Create review record
-            review = TestExecutionReview(
-                execution_id=execution_id,
-                phase_id=phase_id,
-                review_status=request.review_status,
-                review_notes=request.review_notes,
-                reviewer_comments=request.reviewer_comments,
-                recommended_action=request.recommended_action,
-                accuracy_score=request.accuracy_score,
-                completeness_score=request.completeness_score,
-                consistency_score=request.consistency_score,
-                overall_score=overall_score,
-                review_criteria_used=await self._get_review_criteria(),
-                requires_retest=request.requires_retest,
-                retest_reason=request.retest_reason,
-                escalation_required=request.escalation_required,
-                escalation_reason=request.escalation_reason,
-                reviewed_by=reviewed_by,
-                created_by=reviewed_by,
-                updated_by=reviewed_by
+            # Check if review already exists for this execution by this user
+            from sqlalchemy import select, and_
+            existing_review_query = select(TestExecutionReview).where(
+                and_(
+                    TestExecutionReview.execution_id == execution_id,
+                    TestExecutionReview.reviewed_by == reviewed_by
+                )
             )
+            existing_review_result = await self.db.execute(existing_review_query)
+            existing_review = existing_review_result.scalar_one_or_none()
             
-            self.db.add(review)
+            if existing_review:
+                # Update existing review instead of creating new one
+                existing_review.review_status = request.review_status
+                existing_review.review_notes = request.review_notes
+                existing_review.reviewer_comments = request.reviewer_comments
+                existing_review.recommended_action = request.recommended_action
+                existing_review.accuracy_score = request.accuracy_score
+                existing_review.completeness_score = request.completeness_score
+                existing_review.consistency_score = request.consistency_score
+                existing_review.overall_score = await self._calculate_overall_score(request)
+                existing_review.requires_retest = request.requires_retest
+                existing_review.retest_reason = request.retest_reason
+                existing_review.escalation_required = request.escalation_required
+                existing_review.escalation_reason = request.escalation_reason
+                existing_review.updated_by = reviewed_by
+                existing_review.updated_at = datetime.utcnow()
+                
+                review = existing_review
+            else:
+                # Calculate overall score
+                overall_score = await self._calculate_overall_score(request)
+                
+                # Create new review record
+                review = TestExecutionReview(
+                    execution_id=execution_id,
+                    phase_id=phase_id,
+                    review_status=request.review_status,
+                    review_notes=request.review_notes,
+                    reviewer_comments=request.reviewer_comments,
+                    recommended_action=request.recommended_action,
+                    accuracy_score=request.accuracy_score,
+                    completeness_score=request.completeness_score,
+                    consistency_score=request.consistency_score,
+                    overall_score=overall_score,
+                    review_criteria_used=await self._get_review_criteria(),
+                    requires_retest=request.requires_retest,
+                    retest_reason=request.retest_reason,
+                    escalation_required=request.escalation_required,
+                    escalation_reason=request.escalation_reason,
+                    reviewed_by=reviewed_by,
+                    created_by=reviewed_by,
+                    updated_by=reviewed_by
+                )
+                
+                self.db.add(review)
             
             # Update the test execution's test_result based on review status
             if request.review_status == "approved":
@@ -776,7 +806,7 @@ class TestExecutionService:
                 "reviewed",
                 {
                     "review_status": request.review_status,
-                    "overall_score": overall_score,
+                    "overall_score": review.overall_score,
                     "requires_retest": request.requires_retest
                 },
                 reviewed_by

@@ -2,14 +2,14 @@
 Observation Management Phase database models
 """
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Float, JSON, ForeignKey, Enum as SQLEnum, func
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Float, JSON, ForeignKey, Enum as SQLEnum, func, UniqueConstraint, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from datetime import datetime
 import enum
 import uuid
 
-from app.models.base import CustomPKModel
+from app.models.base import BaseModel, CustomPKModel
 from app.models.audit_mixin import AuditMixin
 
 
@@ -138,8 +138,8 @@ class ObservationRecord(CustomPKModel, AuditMixin):
     status = Column(SQLEnum(ObservationStatusEnum), default=ObservationStatusEnum.DETECTED)
     
     # Source information
-    source_test_execution_id = Column(Integer, ForeignKey('cycle_report_test_execution_results.id'), nullable=True)
-    source_sample_record_id = Column(String)
+    source_test_execution_id = Column(Integer, ForeignKey('cycle_report_test_execution_results.id'), nullable=True)  # DEPRECATED: Use test_execution_links
+    # source_sample_record_id removed - derive from test cases instead
     source_attribute_id = Column(Integer, ForeignKey("cycle_report_planning_attributes.id"), nullable=False)
     detection_method = Column(String)  # Auto-detected, Manual, Review-based
     detection_confidence = Column(Float)  # Confidence score for auto-detected
@@ -185,7 +185,7 @@ class ObservationRecord(CustomPKModel, AuditMixin):
     
     # Relationships
     phase = relationship("app.models.workflow.WorkflowPhase", back_populates="observations")
-    source_test_execution = relationship("app.models.test_execution.TestExecution", foreign_keys=[source_test_execution_id])
+    source_test_execution = relationship("app.models.test_execution.TestExecution", foreign_keys=[source_test_execution_id])  # DEPRECATED
     source_attribute = relationship("ReportAttribute", foreign_keys=[source_attribute_id])
     detector = relationship("User", foreign_keys=[detected_by])
     assignee = relationship("User", foreign_keys=[assigned_to])
@@ -194,6 +194,9 @@ class ObservationRecord(CustomPKModel, AuditMixin):
     impact_assessments = relationship("ObservationImpactAssessment", back_populates="observation")
     # approvals = relationship("ObservationApproval", back_populates="observation")  # Removed - approvals now in ObservationRecord
     resolutions = relationship("ObservationResolution", back_populates="observation")
+    
+    # New relationship to test executions through junction table
+    test_execution_links = relationship("ObservationTestExecutionLink", back_populates="observation", cascade="all, delete-orphan")
     
     # Properties to access cycle_id and report_id through phase
     @property
@@ -455,4 +458,27 @@ class ObservationManagementAuditLog(CustomPKModel, AuditMixin):
     phase = relationship("app.models.workflow.WorkflowPhase")
     observation = relationship("ObservationRecord")
     user = relationship("User", foreign_keys=[performed_by])
-    source_test_execution = relationship("app.models.test_execution.TestExecution", foreign_keys=[source_test_execution_id]) 
+    source_test_execution = relationship("app.models.test_execution.TestExecution", foreign_keys=[source_test_execution_id])
+
+
+class ObservationTestExecutionLink(BaseModel):
+    """Junction table for observation to test execution many-to-many relationship"""
+    __tablename__ = "cycle_report_observation_mgmt_test_executions"
+    
+    id = Column(Integer, primary_key=True)
+    observation_id = Column(Integer, ForeignKey("cycle_report_observation_mgmt_observation_records.observation_id", ondelete="CASCADE"), nullable=False)
+    test_execution_id = Column(Integer, ForeignKey("cycle_report_test_execution_results.id", ondelete="CASCADE"), nullable=False)
+    is_primary = Column(Boolean, default=False, nullable=False)
+    linked_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    linked_by_id = Column(Integer, ForeignKey("users.user_id"), nullable=True)
+    
+    # Relationships
+    observation = relationship("ObservationRecord", back_populates="test_execution_links")
+    test_execution = relationship("app.models.test_execution.TestExecution")
+    linked_by = relationship("User", foreign_keys=[linked_by_id])
+    
+    __table_args__ = (
+        UniqueConstraint('observation_id', 'test_execution_id', name='uq_obs_test_exec'),
+        Index('idx_obs_test_exec_observation', 'observation_id'),
+        Index('idx_obs_test_exec_test_execution', 'test_execution_id'),
+    ) 

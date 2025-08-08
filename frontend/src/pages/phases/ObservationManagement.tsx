@@ -941,7 +941,7 @@ const ObservationManagementEnhanced: React.FC = () => {
               <TableRow key={group.group_id}>
                 <TableCell>{group.group_id}</TableCell>
                 <TableCell>{group.attribute_name}</TableCell>
-                <TableCell>{reportInfo?.lob_name || 'Unknown'}</TableCell>
+                <TableCell>{reportInfo?.lob || 'Unknown'}</TableCell>
                 <TableCell>{group.issue_type}</TableCell>
                 <TableCell align="center">
                   <Tooltip title="Click to view test case details">

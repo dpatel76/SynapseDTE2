@@ -1,163 +1,335 @@
-# SynapseDTE Documentation Index
+# SynapseDT - End-to-End Data Testing System
 
-This directory contains all project documentation organized by type and purpose.
+A comprehensive full-stack Python application for managing regulatory and risk management report testing lifecycle with 6 distinct user roles and 7-phase workflow process.
 
-## 🚨 CRITICAL: Required Reading for Background Jobs
+## 🏗️ Architecture Overview
 
-If you're working on any background jobs, async tasks, or database operations in async contexts, you **MUST** read these documents:
-
-1. **[TROUBLESHOOTING_PLANNING_JOBS.md](./TROUBLESHOOTING_PLANNING_JOBS.md)** 🔥
-   - Detailed analysis of issues that took 4+ hours to debug
-   - Root causes and solutions for classification data not saving
-   - Job status update issues and fixes
-   - SQLAlchemy session management in async contexts
-
-2. **[../AGENT_REVIEW_CHECKLIST.md](../AGENT_REVIEW_CHECKLIST.md)** ✅
-   - Quick reference checklist for async patterns
-   - Common mistakes to avoid
-   - Pre-implementation checklist
-   - Code review guidelines
-
-3. **[../CLAUDE.md](../CLAUDE.md#background-jobs--async-operations)** 📖
-   - See section: "Background Jobs & Async Operations"
-   - Phase ID architecture patterns
-   - Overall architecture guidelines
-
-### 🛠️ Tools: Run Before Committing
-```bash
-python scripts/check_async_patterns.py
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Web Frontend  │────│  API Gateway    │────│  Core Services  │
+│   (React/Vue)   │    │   (FastAPI)     │    │   (Python)      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │                        │
+                       ┌─────────────────┐    ┌─────────────────┐
+                       │   Auth Service  │    │ Database Layer  │
+                       │   (JWT/OAuth)   │    │  (PostgreSQL)   │
+                       └─────────────────┘    └─────────────────┘
+                                │                        │
+                       ┌─────────────────┐    ┌─────────────────┐
+                       │  LLM Services   │    │ File Storage    │
+                       │ (Claude/Gemini) │    │   (Local FS)    │
+                       └─────────────────┘    └─────────────────┘
 ```
 
-### ⏱️ Time Saved by Reading These Docs: ~4+ hours
+## 🚀 Technology Stack
 
-## 📁 Directory Structure
+- **Backend**: Python 3.11+, FastAPI, SQLAlchemy, Alembic
+- **Database**: PostgreSQL 14+
+- **Frontend**: React 18+ or Vue 3+ (planned)
+- **Authentication**: JWT with role-based access control
+- **File Storage**: Local filesystem with versioning
+- **LLM Integration**: Claude API, Gemini API with provider switching
+- **Email Service**: SMTP integration for notifications
+- **Task Queue**: Celery with Redis for background tasks
+- **Logging**: Structured logging with structlog
 
-### 📊 Analysis (`/analysis/`)
-Technical analysis reports and audits
-- `COMPREHENSIVE_AUDIT_REPORT_REVISED.md` - Complete system audit (latest)
-- `AUDIT_REPORT.md` - Initial audit report
-- `PROJECT_FILE_AUDIT.md` - Detailed file analysis
-- `RBAC_ANALYSIS.md` - Role-based access control analysis
-- `DATABASE_SCHEMA_ANALYSIS.md` - Database design analysis
-- `LLM_BATCH_SIZE_ANALYSIS.md` - LLM performance analysis
-- `METRICS_IMPLEMENTATION_ANALYSIS.md` - Metrics system analysis
-- `CLEAN_ARCHITECTURE_COVERAGE_ANALYSIS.md` - Architecture migration analysis
-- `UI_UX_CONSISTENCY_ANALYSIS.md` - User interface analysis
-- `WORKFLOW_ANALYSIS.md` - Workflow system analysis
-- `SLA_TRACKING_ANALYSIS.md` - SLA system analysis
-- `NOTIFICATION_TASK_ANALYSIS.md` - Notification system analysis
-- `MOCK_DATA_FALLBACK_ANALYSIS.md` - Data fallback analysis
-- `DYNAMIC_SAMPLE_ARCHITECTURE.md` - Sample architecture analysis
-- `CODE_ORGANIZATION_OOP_ANALYSIS.md` - Code organization analysis
-- `CDO_ASSIGNMENTS_SUMMARY.md` - CDO assignment analysis
-- `AUDIT_VERSIONING_ANALYSIS.md` - Versioning system analysis
-- `ASYNC_DATABASE_ANALYSIS.md` - Database async implementation
-- `APPLICATION_READINESS_REPORT.md` - Application readiness assessment
-- `versioning_analysis_report.md` - Detailed versioning analysis
+## 👥 User Roles
 
-### 🏗️ Architecture (`/architecture/`)
-Architectural decisions and Clean Architecture migration
-- `CLEAN_ARCHITECTURE_STATUS.md` - Current migration status
-- `ENHANCEMENT_VALIDATION_REPORT.md` - Architecture validation
+| Role | Primary Responsibilities | Access Level |
+|------|-------------------------|--------------|
+| **Tester** | Execute testing workflow steps, manage attributes, conduct testing | Report-level assignment |
+| **Test Manager** | Create test cycles, assign reports, monitor team progress | Read-only aggregated view of team testing |
+| **Report Owner** | Approve scoping, sampling, and observations | Own reports across multiple LOBs |
+| **Report Owner Executive** | Portfolio oversight, executive reporting | View all reports under their report owners |
+| **Data Provider** | Provide source documents, confirm data sources | Attribute-level assignments |
+| **CDO** | Assign data providers, manage escalations | LOB-level assignment (one per LOB) |
 
-### 📋 Implementation Plans (`/implementation_plans/`)
-Specific implementation roadmaps and plans
-- `IMPLEMENTATION_STATUS.md` - Overall implementation progress
-- `INDIVIDUAL_SAMPLES_IMPLEMENTATION.md` - Sample selection implementation
-- `SCOPING_IMPLEMENTATION.md` - Scoping phase implementation
-- `SCOPING_READONLY_IMPLEMENTATION.md` - Read-only scoping implementation
+## 🔄 7-Phase Workflow Process
 
-### 📖 Guides (`/guides/`)
-Development guides and best practices
-- `CLEAN_ARCHITECTURE_GUIDE.md` - Clean Architecture patterns
-- `COMPREHENSIVE_TESTING_GUIDE.md` - Testing strategies
-- `DEPLOYMENT_GUIDE.md` - Deployment procedures
-- `DEVELOPMENT_PATTERNS.md` - Code patterns and practices
-- `FUNCTIONAL_REQUIREMENTS.md` - System requirements
-- `REFACTORING_VALIDATION_CHECKLIST.md` - Refactoring checklist
-- `COMMON_MISTAKES.md` - Common pitfalls to avoid
-- `scoping_ui_improvements.md` - UI improvement guidelines
+1. **Planning** - Create comprehensive attribute list for the report
+2. **Scoping** - Determine which attributes require testing based on risk
+3. **Data Provider ID** - Identify and assign data providers for each attribute
+4. **Sample Selection** - Generate or define sample data for testing
+5. **Request for Information** - Collect source information from data providers
+6. **Testing** - Execute testing and validate data accuracy
+7. **Observation Management** - Document, categorize, and resolve discrepancies
 
-### 📝 Summaries (`/summaries/`)
-Status reports, fix summaries, and progress updates
-- `COMPREHENSIVE_ENHANCEMENT_RECOMMENDATIONS.md` - Enhancement recommendations
-- `COMPREHENSIVE_REVIEW_SUMMARY.md` - Overall review summary
-- `COMPREHENSIVE_TEST_SUMMARY.md` - Testing summary
-- `CURRENT_STATUS_SUMMARY.md` - Current project status
-- `FINAL_INTEGRATION_STATUS.md` - Integration completion status
-- `FINAL_REFACTORING_VALIDATION.md` - Refactoring validation
-- `JOB_STATUS_FIX_SUMMARY.md` - Job status fixes
-- `LLM_CONFIG_FIX_SUMMARY.md` - LLM configuration fixes
-- `MIGRATION_SUMMARY.md` - Migration progress
-- `PHASE_NAME_FIX_SUMMARY.md` - Phase naming fixes
-- `RBAC_TEST_SUMMARY.md` - RBAC testing results
-- `REMAINING_INTEGRATION_TASKS.md` - Outstanding tasks
-- `RENAME_TESTING_EXECUTION_SUMMARY.md` - Rename operation summary
-- `SAMPLE_FEEDBACK_DEBUG.md` - Sample feedback debugging
-- `SAMPLE_FEEDBACK_ENHANCEMENTS.md` - Sample feedback improvements
-- `SAMPLE_SELECTION_FIX_SUMMARY.md` - Sample selection fixes
-- `SAMPLE_SELECTION_PERMISSIONS_FIX.md` - Sample permission fixes
-- `SAMPLE_VERSIONING_SUMMARY.md` - Sample versioning implementation
-- `TEST_RESULTS_SUMMARY.md` - Test execution results
-- `TEST_SUMMARY.md` - Overall testing summary
-- `TESTER_DASHBOARD_FIX.md` - Dashboard fixes
-- `FEEDBACK_PROMINENCE_SUMMARY.md` - User feedback analysis
-- `role_rename_impact_analysis.md` - Role rename impact
-- `ISSUES_FIXED.md` - Resolved issues log
+## 🛠️ Installation & Setup
 
-### ⚡ Temporal Workflow (`/temporal/`)
-Temporal workflow system documentation
-- `TEMPORAL_INTEGRATION.md` - Temporal integration guide
-- `TEMPORAL_EXISTING_CODE_INTEGRATION.md` - Integration with existing code
-- `TEMPORAL_HUMAN_IN_LOOP_PATTERN.md` - Human-in-the-loop workflows
-- `TEMPORAL_PHASE_RECONCILIATION.md` - Phase reconciliation
-- `TEMPORAL_RECONCILIATION_COMPLETE.md` - Reconciliation completion
-- `TEMPORAL_RECONCILIATION_SUMMARY.md` - Reconciliation summary
-- `TEMPORAL_UI_ALIGNMENT_COMPLETE.md` - UI alignment completion
-- `UI_TEMPORAL_ALIGNMENT.md` - UI-Temporal integration
+### Prerequisites
 
-### 🧪 Testing (`/testing/`)
-Testing procedures and workflows
-- `test_scoping_workflow.md` - Scoping workflow tests
+- Python 3.11+
+- PostgreSQL 14+
+- Redis (for Celery)
+- Git
 
-## 🔗 Quick Links
+### 1. Clone the Repository
 
-### For New Developers
-1. Start with: `guides/CLEAN_ARCHITECTURE_GUIDE.md`
-2. Read: `guides/DEVELOPMENT_PATTERNS.md`
-3. Check: `architecture/CLEAN_ARCHITECTURE_STATUS.md`
+```bash
+git clone <repository-url>
+cd SynapseDT
+```
 
-### For System Administrators
-1. Review: `guides/DEPLOYMENT_GUIDE.md`
-2. Check: `analysis/COMPREHENSIVE_AUDIT_REPORT_REVISED.md`
-3. Monitor: `summaries/CURRENT_STATUS_SUMMARY.md`
+### 2. Create Virtual Environment
 
-### For Project Managers
-1. Status: `implementation_plans/IMPLEMENTATION_STATUS.md`
-2. Progress: `summaries/FINAL_INTEGRATION_STATUS.md`
-3. Tasks: `summaries/REMAINING_INTEGRATION_TASKS.md`
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-### For Architects
-1. Analysis: `analysis/CLEAN_ARCHITECTURE_COVERAGE_ANALYSIS.md`
-2. Status: `architecture/CLEAN_ARCHITECTURE_STATUS.md`
-3. Database: `analysis/DATABASE_SCHEMA_ANALYSIS.md`
+### 3. Install Dependencies
 
-## 📋 Important Files Remaining at Root Level
+```bash
+pip install -r requirements.txt
+```
 
-- `README.md` - Main project documentation
-- `CLAUDE.md` - Claude Code AI assistant instructions
-- `IMPLEMENTATION_PLAN.md` - Master implementation plan
+### 4. Environment Configuration
 
-## 🔄 Document Maintenance
+```bash
+cp env.example .env
+```
 
-This documentation is organized and maintained as part of the project's Clean Architecture migration. When adding new documentation:
+Edit `.env` file with your configuration:
 
-1. Place analysis documents in `/analysis/`
-2. Place implementation plans in `/implementation_plans/`
-3. Place guides and procedures in `/guides/`
-4. Place status reports in `/summaries/`
-5. Place Temporal-related docs in `/temporal/`
-6. Place architecture docs in `/architecture/`
-7. Place testing docs in `/testing/`
+```env
+# Database Configuration
+DATABASE_URL=postgresql://username:password@localhost:5432/synapse_dt
+SECRET_KEY=your-secret-key-here-change-in-production
 
-Last Updated: 2025-01-22
+# LLM Configuration
+ANTHROPIC_API_KEY=your-anthropic-api-key-here
+GOOGLE_API_KEY=your-google-api-key-here
+
+# Email Configuration
+SMTP_HOST=smtp.gmail.com
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+```
+
+### 5. Database Setup
+
+#### Option A: Automated Setup (Recommended)
+
+```bash
+# Copy environment configuration
+cp env.example .env
+
+# Edit .env file with your database credentials
+# Then run the setup script
+python scripts/setup_database.py
+```
+
+#### Option B: Manual Setup
+
+```bash
+# Create database and user manually
+sudo -u postgres psql
+
+# In PostgreSQL shell:
+CREATE USER synapse_user WITH PASSWORD 'synapse_password';
+CREATE DATABASE synapse_dt OWNER synapse_user;
+GRANT ALL PRIVILEGES ON DATABASE synapse_dt TO synapse_user;
+ALTER USER synapse_user CREATEDB;
+\q
+
+# Run migrations
+alembic upgrade head
+```
+
+### 6. Run the Application
+
+```bash
+# Development server (with virtual environment activated)
+source venv/bin/activate
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
+
+# Or using Python
+python -m app.main
+```
+
+The application will be available at:
+- API: http://localhost:8001
+- Documentation: http://localhost:8001/api/v1/docs
+- Health Check: http://localhost:8001/health
+
+## 🔗 API Endpoints
+
+### Authentication Endpoints
+- `POST /api/v1/auth/login` - User authentication
+- `POST /api/v1/auth/register` - User registration (management only)
+- `POST /api/v1/auth/change-password` - Password change
+- `GET /api/v1/auth/me` - Current user info
+- `POST /api/v1/auth/logout` - User logout
+- `GET /api/v1/auth/roles` - Available roles
+
+### LOB Management Endpoints
+- `POST /api/v1/lobs/` - Create LOB (management only)
+- `GET /api/v1/lobs/` - List all LOBs
+- `GET /api/v1/lobs/{lob_id}` - Get LOB details
+- `PUT /api/v1/lobs/{lob_id}` - Update LOB (management only)
+- `DELETE /api/v1/lobs/{lob_id}` - Delete LOB (management only)
+- `GET /api/v1/lobs/stats/overview` - LOB statistics (management only)
+
+### System Endpoints
+- `GET /` - Root endpoint with system info
+- `GET /health` - Health check
+- `GET /api/v1/health` - API health check
+
+## 📊 Database Schema
+
+The application uses a comprehensive database schema with 13 main models:
+
+### Core Models
+- **LOB** - Lines of Business
+- **User** - User management with role-based access
+- **Report** - Report inventory
+- **DataSource** - External database connections
+
+### Workflow Models
+- **TestCycle** - Test cycle management
+- **CycleReport** - Report assignments to cycles
+- **WorkflowPhase** - Phase tracking
+- **ReportAttribute** - Attribute definitions
+
+### Testing Models
+- **Sample** - Sample data for testing
+- **DataProviderAssignment** - Data provider assignments
+- **TestExecution** - Test execution results
+- **Observation** - Issue tracking and resolution
+
+### Audit Models
+- **SLAConfiguration** - SLA settings
+- **LLMAuditLog** - LLM operation audit trail
+- **AuditLog** - System audit trail
+
+## 🔐 Security Features
+
+- JWT-based authentication
+- Role-based access control (RBAC)
+- Password hashing with bcrypt
+- Security headers middleware
+- Audit logging for all operations
+- Encrypted database credentials
+- Input validation and sanitization
+
+## 📝 API Documentation
+
+Once the server is running, visit:
+- **Swagger UI**: http://localhost:8001/api/v1/docs
+- **ReDoc**: http://localhost:8001/api/v1/redoc
+
+## 🧪 Testing
+
+```bash
+# Run tests (when implemented)
+pytest
+
+# Run with coverage
+pytest --cov=app --cov-report=html
+
+# Run specific test file
+pytest tests/test_auth.py
+```
+
+## 📈 Development Progress
+
+Track implementation progress in:
+- `_reference/implementation_plan.md` - Overall project plan
+- `_reference/progress_tracker.md` - Daily progress tracking
+- `_reference/specifications/specifications.md` - Detailed specifications
+
+### Current Status (Week 1, Day 2) ✅ COMPLETE
+- ✅ Project structure and dependencies
+- ✅ Database models (13/13 complete)
+- ✅ Core configuration and logging
+- ✅ FastAPI application setup
+- ✅ Alembic migrations (complete)
+- ✅ Authentication system with JWT
+- ✅ Role-based access control
+- ✅ API endpoints (12 endpoints)
+- ✅ API documentation
+- ✅ Security middleware
+- ⏳ Database connection (pending setup)
+- ⏳ User management endpoints (planned)
+
+### Day 2 Accomplishments
+- **Authentication System**: Complete JWT-based auth with 6 user roles
+- **API Endpoints**: 12 functional endpoints with proper validation
+- **Security**: RBAC, password validation, audit logging
+- **Documentation**: Interactive API docs with Swagger UI
+- **Testing**: All endpoints tested and functional
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 📞 Support
+
+For support and questions:
+- Create an issue in the repository
+- Check the documentation in `_reference/` folder
+- Review the API documentation at `/docs`
+
+## 🗺️ Roadmap
+
+### Phase 1: Foundation (Weeks 1-4) - 🟡 In Progress (Day 2/5 Complete)
+- [x] Database schema and models
+- [x] Core application structure
+- [x] Authentication system
+- [x] Basic API endpoints
+- [ ] Database connection and migrations
+- [ ] User management CRUD operations
+
+### Phase 2: Core Workflow (Weeks 5-12) - ⏳ Planned
+- [ ] Test cycle management
+- [ ] Planning and scoping phases
+- [ ] LLM integration
+- [ ] Frontend foundation
+
+### Phase 3: Advanced Features (Weeks 13-20) - ⏳ Planned
+- [ ] Data provider coordination
+- [ ] Testing execution engine
+- [ ] Observation management
+- [ ] SLA monitoring
+
+### Phase 4: Analytics & Production (Weeks 21-28) - ⏳ Planned
+- [ ] Dashboards and reporting
+- [ ] Performance optimization
+- [ ] Production deployment
+- [ ] Documentation and training
+
+## 🎯 Quick Start
+
+To quickly test the API:
+
+1. **Start the server:**
+   ```bash
+   source venv/bin/activate
+   uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
+   ```
+
+2. **Test endpoints:**
+   ```bash
+   # Check health
+   curl http://localhost:8001/health
+   
+   # Get available roles
+   curl http://localhost:8001/api/v1/auth/roles
+   
+   # View API documentation
+   open http://localhost:8001/api/v1/docs
+   ```
+
+3. **Next steps:**
+   - Set up PostgreSQL database
+   - Run migrations: `alembic upgrade head`
+   - Create test users
+   - Explore the API documentation 
